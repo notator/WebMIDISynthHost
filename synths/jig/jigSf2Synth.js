@@ -131,7 +131,7 @@ WebMIDI.jigSf2Synth = (function()
 		Object.defineProperty(this, "removable", { value: true, writable: false });
 
 		/*** Extensions for software synths ***/	
-		Object.defineProperty(this, "url", { value: "http://james-ingram-act-two.de/open-source/WebMIDISynthHost/host.html", writable: false }); // The synth author's webpage hosting the synth.		
+		Object.defineProperty(this, "url", { value: "https://github.com/gree/sf2synth.js", writable: false }); // The synth author's webpage hosting the synth.		
 		Object.defineProperty(this, "commands", { value: commands, writable: false }); // The commands supported by this synth (see above).		
 		Object.defineProperty(this, "controls", { value: controls, writable: false }); // The controls supported by this synth (see above).		
 		Object.defineProperty(this, "isPolyphonic", { value: true, writable: false }); // If isPolyphonic is false, the synth ignores the channel nibble in MIDI messages

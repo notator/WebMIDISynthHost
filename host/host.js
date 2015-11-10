@@ -900,21 +900,19 @@ WebMIDI.host = (function(document)
 		option.synth = new WebMIDI.jigSf2Synth.JIGSf2Synth();
 		option.synth.init();
 		option.text = option.synth.name;
-		option.website = "https://github.com/gree/sf2synth.js";
 		synthSelect.add(option);
 
 		option = document.createElement("option");
 		option.synth = new WebMIDI.consoleSf2Synth.ConsoleSf2Synth();
 		option.synth.init();
 		option.text = option.synth.name;
-		option.website = "http://james-ingram-act-two.de/open-source/WebMIDISynthHost/host.html";
 		synthSelect.add(option);
 
 		// Do the following for each available soundFont origin folder (= soundFont 'type').
 		// Add specific soundFonts in the custom).
 		option = document.createElement("option");
 		option.text = "Arachno Version 1.0";
-		option.website = "http://www.arachnosoft.com/main/soundfont.php";
+		option.url = "http://www.arachnosoft.com/main/soundfont.php";
 		option.sf2SelectOptions = getSf2SelectOptions(option.text);
 		setOptions(sf2Select, option.sf2SelectOptions);		
 
