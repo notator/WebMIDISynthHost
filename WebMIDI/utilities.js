@@ -1,5 +1,5 @@
 /*
-*  copyright 2014 James Ingram
+*  copyright 2015 James Ingram
 *  http://james-ingram-act-two.de/
 *
 *  Code licensed under MIT
@@ -16,7 +16,6 @@ WebMIDI.utilities = (function()
 {
     "use strict";
 
-    // begin var
     var
 	CMD = WebMIDI.constants.COMMAND,
 	CTL = WebMIDI.constants.CONTROL,
@@ -61,7 +60,6 @@ WebMIDI.utilities = (function()
     {
     	setPitchWheelDeviation: setPitchWheelDeviation
     };
-    // end var
 
     return publicAPI;
 

@@ -3,7 +3,7 @@
 * http://james-ingram-act-two.de/
 * 
 * This is almost entirely the riff parser code from
-* https://github.com/gree/sf2synth.js/blob/master/src/riff.js
+* https://github.com/gree/sf2synth.js
 *
 * All this code licensed under MIT
 *

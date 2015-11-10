@@ -1,5 +1,4 @@
-﻿/// <reference path="../../WebMIDI/WebMIDISoundFont.js" />
-/*
+﻿/*
 *  copyright 2015 James Ingram
 *  http://james-ingram-act-two.de/
 *
@@ -22,7 +21,7 @@ WebMIDI.consoleSf2Synth = (function(document)
 	"use strict";
 
 	var
-	bank = 0, // for CTL.BANK_SELECT implementation. Delete if not required.
+	bank = 0, // CTL.BANK_SELECT implementation.
 
 	CMD = WebMIDI.constants.COMMAND,
 	CTL = WebMIDI.constants.CONTROL,

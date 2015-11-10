@@ -7,7 +7,7 @@
 *  This file contains the implementation of the WebMIDISynthHost's GUI. 
 *  The WebMIDISynthHost can host one or more WebMIDISynths and use one
 *  or more SoundFonts.
-*  This code is currently a bit raw. It works, but could be simplified.
+*  This code is currently a bit raw. It works, but could be improved.
 */
 
 /*jslint bitwise: false, nomen: true, plusplus: true, white: true */
