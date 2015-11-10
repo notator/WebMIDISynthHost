@@ -1,0 +1,108 @@
+﻿
+div.app
+{
+    font-family: Lucida Sans Unicode, Verdana, Arial, Geneva, Sans-Serif;
+    font-size: 11px; 
+	width: 400px;
+	margin-top:30px;
+	margin-left:30px;
+	padding:25px;
+	border:1px solid black;
+}
+
+span.boldTitle
+{
+	font-weight: bold;
+	font-size:14px;
+}
+
+span.boldSubtitle
+{
+	font-weight: bold;
+}
+
+table.midiMessagesControlTable
+{
+	font-size: 11px;
+	margin-left:auto;
+	margin-right:auto;
+}
+
+td.left
+{
+	text-align:right;
+}
+
+select.synthSelect
+{
+    font-size: 11px; 
+    width: 300px;
+    margin-left: 0; 
+}
+
+
+select.sf2OriginSelect
+{
+    font-size: 11px; 
+    width: 160px;
+    margin-left: 0; 
+}
+
+select.sf2Select
+{
+    font-size: 11px; 
+    width: 135px;
+    margin-left: 0; 
+}
+
+select.presetSelect
+{
+    font-size: 11px; 
+    width: 190px;
+	height:18px;
+    margin-left: 0;
+}
+
+select.valueSelector
+{
+    font-size: 11px; 
+    width: 45px;
+    margin-left: 0;
+	margin-right: 4px;
+}
+
+input.number
+{
+    font-size: 11px;
+    width: 41px;
+    margin-left: 0;
+	margin-right: 4px;
+}
+
+input.sendAgainButton
+{
+    font-size: 11px;
+	height:18px;
+}
+
+input.sendButton
+{
+    font-size: 11px;
+	height:18px;
+	width:45px;
+}
+
+input.smallButton
+{
+	font-size:11px;
+	height:22px;
+}
+
+input.largeButton
+{
+	font-size:12px;
+	height:24px;
+	width:80px;
+}
+
+

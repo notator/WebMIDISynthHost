@@ -1,0 +1,134 @@
+﻿<!DOCTYPE HTML>
+<html lang="en"
+	  xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<title>Web MIDI Synth Host</title>
+	<link href="hostStyleSheet.css" media="all" rel="stylesheet" type="text/css" />
+	<!-- Javascript files are included at the end of the body element -->
+</head>
+<body>
+	<div id="cursorControlDiv" style="cursor:wait">
+		<div id="appDiv" class="app">
+			<div id="title">
+				<table width="400">
+					<tr>
+						<td><span class="boldTitle">Web MIDI Synth Host</span></td>
+						<td align="right"><input class="smallButton" type="button" value="GitHub" width="80" onclick="WebMIDI.host.gitHubButtonClick()" /></td>
+					</tr>
+				</table>
+			</div>
+			<hr />
+			<div id="div1" style="visibility:visible"><span>Please wait while the default "grand piano" sound font loads...</span></div>
+			<div id="div2" style="visibility:hidden">
+				<span>
+					Other sound fonts are still loading.<br />
+					These will become selectable as soon as they are ready.<br /><br />
+				</span>
+				<div style="text-align:right">
+					<input class="largeButton" type="button" value="continue" onclick="WebMIDI.host.div2ButtonClick()" />
+				</div>
+			</div>
+			<div id="controlsDiv" style="visibility:hidden">
+				<table>
+					<tr>
+						<td width="75"><span class="boldSubtitle">Synth:</span></td>
+						<td>
+							<!--
+							To add a synth, include its code at the bottom of this file, and add it to this
+							select control in the controls.init() function (see Controls.js).
+							-->
+							<select id="synthSelect" class="synthSelect" onchange="WebMIDI.host.onSynthSelectChanged()" />
+
+						</td>
+					</tr>
+					<tr id="monoSynthInfo">
+						<td><input class="smallButton" type="button" value="website" onclick="WebMIDI.host.synthWebsiteButtonClick()" /></td>
+						<td>monophonic synth -- (ignores channel info)</td>
+					</tr>
+					<tr id="polySynthInfoAndChannelSelector">
+						<td><input class="smallButton" type="button" value="website" onclick="WebMIDI.host.synthWebsiteButtonClick()" /></td>
+						<td>
+							<span>polyphonic synth -- channel:</span>
+							<select id="channelSelect" class="valueSelector">
+								<option value="0">0</option>
+								<option value="1">1</option>
+								<option value="2">2</option>
+								<option value="3">3</option>
+								<option value="4">4</option>
+								<option value="5">5</option>
+								<option value="6">6</option>
+								<option value="7">7</option>
+								<option value="8">8</option>
+								<option value="9" disabled="disabled">9</option>
+								<option value="10">10</option>
+								<option value="11">11</option>
+								<option value="12">12</option>
+								<option value="13">13</option>
+								<option value="14">14</option>
+								<option value="15">15</option>
+							</select>
+						</td>
+					</tr>
+				</table>
+				<hr />
+				<table>
+					<tr>
+						<td width="75"><span class="boldSubtitle">SoundFont:</span></td>
+						<td>
+							<!--
+							To add an sf2 SoundFont folder, put it in the soundFonts folder, and add it to the options for this select control.
+							(See the controls.init() function in Controls.js).
+							-->
+							<select id="sf2OriginSelect" class="sf2OriginSelect" onchange="WebMIDI.host.onSf2OriginSelectChanged()" />
+						</td>
+						<td>
+							<!--
+							To add an sf2 SoundFont, put it in the soundFonts folder, and add it to the	options for this select control.
+							(See the controls.init() function in Controls.js).
+							-->
+							<select id="sf2Select" class="sf2Select" onchange="WebMIDI.host.onSf2SelectChanged()" />
+						</td>
+					</tr>
+				</table>
+				<table>
+					<tr>
+						<td width="75"><input class="smallButton" type="button" value="website" onclick="WebMIDI.host.soundFontWebsiteButtonClick()" /></td>
+						<td id="loadLog"></td>
+					</tr>
+				</table>
+				<hr />
+				<table id="midiMessagesControlTable" class="midiMessagesControlTable"></table>
+				<hr />
+				<table>
+					<tr>
+						<td width="70">
+							<span class="boldSubtitle">Note:</span>
+						</td>
+						<td>
+								<span>note</span>
+								<input id="noteIndexInput" type="number" name="value" class="number" min="0" max="127" value="64" onchange="WebMIDI.host.onNoteInputChanged()">
+								<span>velocity</span>
+								<input id="noteVelocityInput" type="number" name="value" class="number" min="0" max="127" value="100" onchange="WebMIDI.host.onNoteInputChanged()">
+								<input type="button" class="sendButton" value="send" onmousedown="WebMIDI.host.doNoteOn()" onmouseup="WebMIDI.host.doNoteOff()" />
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div> <!-- appDiv -->
+	</div> <!-- cursorControlDiv -->
+
+	<script src="WebMIDI/namespace.js" type="text/javascript"></script>
+	<script src="WebMIDI/constants.js" type="text/javascript"></script>
+	<script src="WebMIDI/utilities.js" type="text/javascript"></script> <!-- contains setPitchWheelDeviation(...)-->
+	<script src="WebMIDI/riffParser.js" type="text/javascript"></script> <!-- needed for all sf2Synths -->
+	<script src="WebMIDI/soundFontParser.js" type="text/javascript"></script> <!-- needed for all sf2Synths -->
+	<script src="WebMIDI/soundFont.js" type="text/javascript"></script> <!-- needed for all sf2Synths -->
+	<script src="WebMIDI/soundFontSynthNote.js" type="text/javascript"></script> <!-- needed for jiGreeSf2Synth -->
+
+	<script src="synths/console/consoleSf2Synth.js" type="text/javascript"></script>
+	<script src="synths/jig/jigSf2Synth.js" type="text/javascript"></script>
+	<!-- add more synths here -->
+	<script src="host/host.js" type="text/javascript"></script>
+</body>
+</html>
+
