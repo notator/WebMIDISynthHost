@@ -2,10 +2,13 @@
 Introduction
 ------------
 This is a WEB MIDI application, written in HTML5 and Javascript.<br />
-Its main purpose is to be a focus for discussion while standardizing the interface that software synthesizers need to
+It can be tried out at <br />
+http://james-ingram-act-two.de/open-source/WebMIDISynthHost/host.html <br />
+<br />
+The main object of this exercise is to provide a focus for discussion while standardizing the interface that software synthesizers need to
 implement in order to be used seamlessly with the hardware synthesizers provided by browser implementations of
 the Web MIDI API [1].<br />
-This application should eventually be usable as a host GUI within which any new Web MIDI Synth can be developed.<br />
+When the interface has stabilized, this application should also be usable as a host GUI within which any new Web MIDI Synth can be developed.<br />
 <br />
 The first commit provides two synthesizers, and some soundFonts:<br />
 Synthesizers:<br />
