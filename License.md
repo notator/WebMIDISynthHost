@@ -21,15 +21,14 @@ THE SOFTWARE.
 
 The above applies to all the software in this repository, with the exception of
 the Arachno SoundFont, which does not allow commercial use.
-The original Arachnosoft Read Me is included in the soundFonts/Arachno directory at
-./soundFonts/Arachno/Read Me.txt. It contains the following<br />
-IMPORTANT LICENSING INFORMATION:<br />
-Most portions of this bank actually come from other sources (SoundFont
+The original Arachnosoft Read Me is included in the soundFonts/Arachno directory.
+It contains the following IMPORTANT LICENSING INFORMATION:<br />
+"Most portions of this bank actually come from other sources (SoundFont
 and GigaSampler libraries, third-party synthesizer samples) that
 have been credited in the bundled documentation.<br />
 You're free to use Arachno SoundFont in any of your projects. But,
 please be aware that this bank is primarily distributed for private,
 non-commercial purposes only, as it uses portions from other authors.<br />
 If you want to use it for commercial purposes, please obtain a written
-consent from the original authors credited in the documentation.<br />
+consent from the original authors credited in the documentation."<br />
 <br />
