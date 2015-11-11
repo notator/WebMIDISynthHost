@@ -135,15 +135,34 @@ WebMIDI.host = (function(document)
 
 	setMIDIMessagesControlTable = function()
 	{
-		var CMD = WebMIDI.constants.COMMAND, CTL = WebMIDI.constants.CONTROL,
+		var CMD = WebMIDI.constants.COMMAND,
+		    CTL = WebMIDI.constants.CONTROL,
 			DEFAULT = WebMIDI.constants.DEFAULT,
-			i,
+			hasNNCommands, hasControls,
 			synthSelect = document.getElementById("synthSelect"),
 			synth = synthSelect[synthSelect.selectedIndex].synth,
 			channelSelect = document.getElementById("channelSelect"),
 			sf2Select = document.getElementById("sf2Select"),
-			presetSelect = document.getElementById("presetSelect"),
-			table = document.getElementById("midiMessagesControlTable");
+			noCommandsDiv = document.getElementById("noCommandsDiv"),
+			midiCommandsTable = document.getElementById("midiCommandsTable"),
+			noControlsDiv = document.getElementById("noControlsDiv"),
+			midiControlsTable = document.getElementById("midiControlsTable");
+
+		function emptyTables(midiCommandsTable, midiControlsTable)
+		{
+			var i;
+
+			function empty(table)
+			{
+				for(i = table.childNodes.length - 1; i >= 0; --i)
+				{
+					table.removeChild(table.childNodes[i]);
+				}
+			}
+
+			empty(midiCommandsTable);
+			empty(midiControlsTable);
+		}
 
 		function sendCommand(command, value)
 		{
@@ -315,20 +334,40 @@ WebMIDI.host = (function(document)
 			return tr;
 		}
 
-		function appendTitleCommandRow(table)
+		function hasNonNoteCommands(commands)
 		{
-			var tr = document.createElement("tr"),
+			var i, rval = false;
+
+			if(commands !== undefined)
+			{
+				for(i = 0; i < commands.length; ++i)
+				{
+					if(commands[i] !== CMD.NOTE_ON && commands[i] !== CMD.NOTE_OFF)
+					{
+						rval = true;
+						break;
+					}
+				}
+			}
+
+			return rval;
+		}
+
+		function appendTitle(table, text)
+		{
+			var
+			tr = document.createElement("tr"),
 			td = document.createElement("td"),
 			span = document.createElement("span");
 
 			table.appendChild(tr);
 			tr.appendChild(td);
 			td.appendChild(span);
-			span.innerHTML = "synth's commands:";
+			span.innerHTML = text;
 			span.className = "boldSubtitle";
 		}
 
-		function appendPresetCommandRow(table, presetOptions)
+		function appendSoundFontPresetCommandRow(table, presetOptions)
 		{
 			var tr = document.createElement("tr"),
 				td, presetSelect, input;
@@ -401,18 +440,6 @@ WebMIDI.host = (function(document)
 
 		function appendControlRows(table, controls)
 		{
-			function appendTitleControlRow(table)
-			{
-				var tr = document.createElement("tr"),
-				td = document.createElement("td"),
-				span = document.createElement("span");
-
-				table.appendChild(tr);
-				tr.appendChild(td);
-				td.appendChild(span);
-				span.innerHTML = "synth's controls:";
-				span.className = "boldSubtitle";
-			}
 			// 3-byte controls
 			function appendLongControlRows(table, controls)
 			{
@@ -515,29 +542,52 @@ WebMIDI.host = (function(document)
 				}
 			}
 
-			appendTitleControlRow(table);
 			appendLongControlRows(table, controls);
 			appendShortControlRows(table, controls);
 		}
 
 		inputDefaultsCache.length = 0;
 
-		if(presetSelect === null || presetSelect === undefined)
+		emptyTables(midiCommandsTable, midiControlsTable);
+
+		hasNNCommands = hasNonNoteCommands(synth.commands);
+		hasControls = (synth.controls !== undefined && synth.controls.length > 0);
+
+		if(hasNNCommands)
 		{
-			appendTitleCommandRow(table);
-			appendPresetCommandRow(table, sf2Select[sf2Select.selectedIndex].presetOptions);
+			noCommandsDiv.style.display = "none";
+			midiCommandsTable.style.display = "block";
+
+			appendTitle(midiCommandsTable, "synth's commands:");
+			if(synth.commands.indexOf(CMD.PATCH_CHANGE) >= 0)
+			{
+				if(synth.setSoundFont !== undefined)
+				{
+					appendSoundFontPresetCommandRow(midiCommandsTable, sf2Select[sf2Select.selectedIndex].presetOptions);
+				}
+				// TODO handle synths that have presets, but don't use soundFonts, here
+			}
+			appendCommandRows(midiCommandsTable, synth.commands);
 		}
 		else
 		{
-			for(i = table.childNodes.length - 1; i > 1; --i) // dont remove the title and preset rows (0 and 1)
-			{
-				table.removeChild(table.childNodes[i]);
-			}
+			noCommandsDiv.style.display = "block";
+			midiCommandsTable.style.display = "none";
 		}
 
-		appendCommandRows(table, synth.commands);
+		if(hasControls)
+		{
+			noControlsDiv.style.display = "none";
+			midiControlsTable.style.display = "block";
 
-		appendControlRows(table, synth.controls);
+			appendTitle(midiControlsTable, "synth's controls:");
+			appendControlRows(midiControlsTable, synth.controls);
+		}
+		else
+		{
+			noControlsDiv.style.display = "block";
+			midiControlsTable.style.display = "none";
+		}
 	},
 
 	onNoteInputChanged = function()
@@ -589,27 +639,52 @@ WebMIDI.host = (function(document)
 	// exported. Also used by init()
 	onSynthSelectChanged = function()
 	{
-		function setMonoPolyDivsVisibility()
+		var
+		synthSelect = document.getElementById("synthSelect"),
+		synth = synthSelect[synthSelect.selectedIndex].synth;
+
+		function setMonoPolyDisplay(synth)
 		{
 			var
-			synthSelect = document.getElementById("synthSelect"),
-			synth = synthSelect[synthSelect.selectedIndex].synth,
 			monoSynthInfo = document.getElementById("monoSynthInfo"),
 			polySynthInfoAndChannelSelector = document.getElementById("polySynthInfoAndChannelSelector");
 
 			if(synth.isPolyphonic)
 			{
 				monoSynthInfo.style.display = "none";
-				polySynthInfoAndChannelSelector.style.display = "normal";
+				polySynthInfoAndChannelSelector.style.display = "table-row";
 			}
 			else
 			{
-				monoSynthInfo.style.display = "normal";
+				monoSynthInfo.style.display = "table-row";
 				polySynthInfoAndChannelSelector.style.display = "none";
 			}
 		}
 
-		setMonoPolyDivsVisibility();
+		function setSoundFontTableDisplay(synth)
+		{
+			var
+			noSoundFontDiv = document.getElementById("noSoundFontDiv"),
+			soundFontTable1 = document.getElementById("soundFontTable1"),
+			soundFontTable2 = document.getElementById("soundFontTable2");
+
+			if(synth.setSoundFont === undefined)
+			{
+				noSoundFontDiv.style.display = "block";
+				soundFontTable1.style.display = "none";
+				soundFontTable2.style.display = "none";
+			}
+			else
+			{
+				noSoundFontDiv.style.display = "none";
+				soundFontTable1.style.display = "block";
+				soundFontTable2.style.display = "block";
+			}
+		}
+
+		setMonoPolyDisplay(synth);
+
+		setSoundFontTableDisplay(synth);
 
 		setMIDIMessagesControlTable();
 	},
@@ -740,7 +815,7 @@ WebMIDI.host = (function(document)
 			// Do the following for each available SoundFont type.
 			if(originName === "Arachno Version 1.0")
 			{
-				sf2OriginPathBase = "soundFonts/Arachno/Arachno1.0selection-";
+				sf2OriginPathBase = "http://james-ingram-act-two.de/open-source/WebMIDISynthHost/soundFonts/Arachno/Arachno1.0selection-";
 				sf2SelectOptions = [];
 
 				so = document.createElement("option");
@@ -908,6 +983,12 @@ WebMIDI.host = (function(document)
 		option.text = option.synth.name;
 		synthSelect.add(option);
 
+		option = document.createElement("option");
+		option.synth = new WebMIDI.monosynth.Monosynth();
+		option.synth.init();
+		option.text = option.synth.name;
+		synthSelect.add(option);
+
 		// Do the following for each available soundFont origin folder (= soundFont 'type').
 		// Add specific soundFonts in the custom).
 		option = document.createElement("option");
@@ -932,7 +1013,6 @@ WebMIDI.host = (function(document)
     	gitHubButtonClick: gitHubButtonClick,
 
     	div2ButtonClick: div2ButtonClick,
-
 
     	synthWebsiteButtonClick: synthWebsiteButtonClick,
     	soundFontWebsiteButtonClick: soundFontWebsiteButtonClick,

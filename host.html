@@ -38,12 +38,11 @@
 							select control in the controls.init() function (see Controls.js).
 							-->
 							<select id="synthSelect" class="synthSelect" onchange="WebMIDI.host.onSynthSelectChanged()" />
-
 						</td>
 					</tr>
 					<tr id="monoSynthInfo">
 						<td><input class="smallButton" type="button" value="website" onclick="WebMIDI.host.synthWebsiteButtonClick()" /></td>
-						<td>monophonic synth -- (ignores channel info)</td>
+						<td><span>monophonic synth -- (ignores channel info)</span></td>
 					</tr>
 					<tr id="polySynthInfoAndChannelSelector">
 						<td><input class="smallButton" type="button" value="website" onclick="WebMIDI.host.synthWebsiteButtonClick()" /></td>
@@ -71,7 +70,8 @@
 					</tr>
 				</table>
 				<hr />
-				<table>
+				<div id="noSoundFontDiv"><span>This synth does not use soundFonts.</span></div>
+				<table id="soundFontTable1">
 					<tr>
 						<td width="75"><span class="boldSubtitle">SoundFont:</span></td>
 						<td>
@@ -90,14 +90,17 @@
 						</td>
 					</tr>
 				</table>
-				<table>
+				<table id="soundFontTable2">
 					<tr>
 						<td width="75"><input class="smallButton" type="button" value="website" onclick="WebMIDI.host.soundFontWebsiteButtonClick()" /></td>
 						<td id="loadLog"></td>
 					</tr>
 				</table>
 				<hr />
-				<table id="midiMessagesControlTable" class="midiMessagesControlTable"></table>
+				<div id="noCommandsDiv"><span>This synth has no commands, other than noteOn and noteOff.</span></div>
+				<table id="midiCommandsTable" class="midiMessagesTable"></table>
+				<div id="noControlsDiv"><span>This synth has no controls.</span></div>
+				<table id="midiControlsTable" class="midiMessagesTable"></table>
 				<hr />
 				<table>
 					<tr>
@@ -125,8 +128,9 @@
 	<script src="WebMIDI/soundFont.js" type="text/javascript"></script> <!-- needed for all sf2Synths -->
 	<script src="WebMIDI/soundFontSynthNote.js" type="text/javascript"></script> <!-- needed for jiGreeSf2Synth -->
 
-	<script src="synths/console/consoleSf2Synth.js" type="text/javascript"></script>
 	<script src="synths/jig/jigSf2Synth.js" type="text/javascript"></script>
+	<script src="synths/console/consoleSf2Synth.js" type="text/javascript"></script>
+	<script src="synths/chris_wilson/monosynth.js" type="text/javascript"></script>
 	<!-- add more synths here -->
 	<script src="host/host.js" type="text/javascript"></script>
 </body>
