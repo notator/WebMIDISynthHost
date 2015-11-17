@@ -20,8 +20,10 @@ WebMIDI.constants = (function()
     COMMAND = {},
     REAL_TIME = {},
     CONTROL = {},
+	CUSTOMCONTROL = {},
     SYSTEM_EXCLUSIVE = {},
 	DEFAULT = {},
+
     // True if constant is one of the REAL_TIME status bytes, otherwise false
     isRealTimeStatus = function(constant)
     {
@@ -97,15 +99,16 @@ WebMIDI.constants = (function()
         COMMAND: COMMAND,
         REAL_TIME: REAL_TIME,
         CONTROL: CONTROL,
+        CUSTOMCONTROL: CUSTOMCONTROL,
         SYSTEM_EXCLUSIVE: SYSTEM_EXCLUSIVE,
-		DEFAULT : DEFAULT,
+        DEFAULT: DEFAULT,
         isRealTimeStatus: isRealTimeStatus,
     	GeneralMIDIInstrumentNames: GeneralMIDIInstrumentNames
     };
 
     Object.defineProperty(COMMAND, "NOTE_OFF", { value: 0x80, writable: false });
     Object.defineProperty(COMMAND, "NOTE_ON", { value: 0x90, writable: false });
-    Object.defineProperty(COMMAND, "AFTERTOUCH", { value: 0xA0, writable: false });
+    Object.defineProperty(COMMAND, "CUSTOMCONTROL_CHANGE", { value: 0xA0, writable: false }); // was AFTERTOUCH -- see utilities.js
     Object.defineProperty(COMMAND, "CONTROL_CHANGE", { value: 0xB0, writable: false });
     Object.defineProperty(COMMAND, "PATCH_CHANGE", { value: 0xC0, writable: false });
     Object.defineProperty(COMMAND, "CHANNEL_PRESSURE", { value: 0xD0, writable: false });
@@ -161,6 +164,12 @@ WebMIDI.constants = (function()
     Object.defineProperty(CONTROL, "ALL_SOUND_OFF", { value: 120, writable: false });
     Object.defineProperty(CONTROL, "ALL_CONTROLLERS_OFF", { value: 121, writable: false });
     Object.defineProperty(CONTROL, "ALL_NOTES_OFF", { value: 123, writable: false });
+
+	// CUSTOMCONTROL
+	// These two values are reserved for custom controls that set Aftertouch (see utilities.js)
+	// Other custom controls can be freely defined in the range [0..125].
+    Object.defineProperty(CUSTOMCONTROL, "AFTERTOUCH_KEY", { value: 126, writable: false });
+    Object.defineProperty(CUSTOMCONTROL, "AFTERTOUCH_PRESSURE", { value: 127, writable: false });
 
     // SYSTEM_EXCLUSIVE
     Object.defineProperty(SYSTEM_EXCLUSIVE, "START", { value: 0xF0, writable: false });

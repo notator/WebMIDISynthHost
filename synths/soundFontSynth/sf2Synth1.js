@@ -1,36 +1,38 @@
 ﻿/*
-* Copyright 2015 James Ingram
+* Copyright 2015 James Ingram, gree
 * http://james-ingram-act-two.de/
+* https://github.com/gree
 * 
 * This code is based on the gree soundFont synthesizer at
 * https://github.com/gree/sf2synth.js
 *
 * All this code is licensed under MIT
 *
-*  WebMIDI.jigSf2Synth namespace containing a JIGSf2Synth constructor.
+*  WebMIDI.sf2Synth1 namespace containing a Sf2Synth1 constructor.
 * 
-*  This soundFont WebMIDISynth plays soundFonts loaded using its setSoundFont(soundFont)
+*  This soundFont synth plays soundFonts loaded using its setSoundFont(soundFont)
 *  function. It also logs MIDI messages to the console.
 *  The object of having this code is to be able to discuss and improve the interface.
 *  It would, however, be nice if this synth could be optimised and improved by real
-*  Web Audio programmers. See the Web MIDI Synth Host issues.
+*  Web Audio programmers. See the Web MIDI Synth Host issues on GitHub.
 */
 
 /*jslint bitwise: false, nomen: true, plusplus: true, white: true */
 /*global WebMIDI: false,  window: false,  document: false, performance: false, console: false, alert: false, XMLHttpRequest: false */
 
-WebMIDI.namespace('WebMIDI.jigSf2Synth');
+WebMIDI.namespace('WebMIDI.sf2Synth1');
 
-WebMIDI.jigSf2Synth = (function()
+WebMIDI.sf2Synth1 = (function()
 {
 	"use strict";
 
 	var
-    /********************************************************************************
+    /*********************************************************
+	 * ji -- November 2015
 	 * These variables were originally in the gree code.
-	 * I have removed all references to the original gree GUI (i.e. the HTML <table>).
-	 * (ji 05.11.2015)
-	 ********************************************************************************/
+	 * I have removed all references to the original gree GUI
+	 * (i.e. the HTML <table> and the instrument names).
+	 *********************************************************/
 	/** @type {number} */
 	bankIndex = 0,
 	/** @type {Array.<Array.<Object>>} */
@@ -78,19 +80,6 @@ WebMIDI.jigSf2Synth = (function()
 	CMD = WebMIDI.constants.COMMAND,
 	CTL = WebMIDI.constants.CONTROL,
 	// The commands and controls arrays are part of a standard WebMIDI synth's interface.
-	// They tell the host which messages are implemented.
-	// Proposal: If CMD.PATCH_CHANGE is implemented, then CTL.BANK_SELECT MUST be implemented (its trivial to implement).
-	// If WebMIDISynth.prototype.setSoundFont(...) is undefined, then custom controls could be defined.
-	// Proposal: define a custom controls array for MIDI-controlled synths that don't use soundFonts:
-	// customControls =
-	// [
-	//    { name: "lowPassFilter1", index: 0, defaultValue: 0 },
-	//    { name: "lowPassFilter1_Lo", index: 1, defaultValue: 0 },
-	//    { name: "reverb", index: 2, defaultValue: 0 },
-	//    { name: "volume", index: 3, defaultValue: 100 },
-	//    { name: "transpose", index: 4, defaultValue: 0 }
-	//    // etc.
-	// ]
 	commands =
 	[
 		CMD.NOTE_OFF,
@@ -109,19 +98,19 @@ WebMIDI.jigSf2Synth = (function()
 		CTL.ALL_SOUND_OFF
 	],
 
-	JIGSf2Synth = function()
+	Sf2Synth1 = function()
 	{
 		var i;
 
-		if(!(this instanceof JIGSf2Synth))
+		if(!(this instanceof Sf2Synth1))
 		{
-			return new JIGSf2Synth();
+			return new Sf2Synth1();
 		}
 
 		/** WebMIDIAPI §10 -- MIDIPort interface **/
-		Object.defineProperty(this, "id", { value: "jigSf2Synth01", writable: false });
-		Object.defineProperty(this, "manufacturer", { value: "ji and gree", writable: false });
-		Object.defineProperty(this, "name", { value: "jigSf2Synth", writable: false });
+		Object.defineProperty(this, "id", { value: "Sf2Synth01", writable: false });
+		Object.defineProperty(this, "manufacturer", { value: "gree & ji", writable: false });
+		Object.defineProperty(this, "name", { value: "Sf2Synth1 (gree & ji)", writable: false });
 		Object.defineProperty(this, "type", { value: "output", writable: false });
 		Object.defineProperty(this, "version", { value: "1", writable: false });
 		Object.defineProperty(this, "ondisconnect", { value: null, writable: false }); // Do we need this at all? Is it correct to set it to null?
@@ -134,7 +123,8 @@ WebMIDI.jigSf2Synth = (function()
 		Object.defineProperty(this, "url", { value: "https://github.com/gree/sf2synth.js", writable: false }); // The synth author's webpage hosting the synth.		
 		Object.defineProperty(this, "commands", { value: commands, writable: false }); // The commands supported by this synth (see above).		
 		Object.defineProperty(this, "controls", { value: controls, writable: false }); // The controls supported by this synth (see above).		
-		Object.defineProperty(this, "isPolyphonic", { value: true, writable: false }); // If isPolyphonic is false, the synth ignores the channel nibble in MIDI messages
+		Object.defineProperty(this, "isMultiChannel", { value: true, writable: false }); // If isMultiChannel is false, the synth ignores the channel nibble in MIDI messages
+		Object.defineProperty(this, "isPolyphonic", { value: true, writable: false }); // If isPolyphonic is false, the synth can only play one note at a time
 
 		ctx = getAudioContext();
 		gainMaster = ctx.createGain();
@@ -151,13 +141,13 @@ WebMIDI.jigSf2Synth = (function()
 
 	API =
     {
-    	JIGSf2Synth: JIGSf2Synth // constructor
+    	Sf2Synth1: Sf2Synth1 // constructor
     };
 	// end var
 
 	// WebMIDIAPI MIDIOutput send()
 	// This synth does not yet support timestamps (05.11.2015)
-	JIGSf2Synth.prototype.send = function(message, ignoredTimestamp)
+	Sf2Synth1.prototype.send = function(message, ignoredTimestamp)
 	{
 		var
 		command = message[0] & 0xF0,
@@ -177,13 +167,13 @@ WebMIDI.jigSf2Synth = (function()
 		function handleNoteOff(channel, data1, data2)
 		{
 			checkCommandExport(CMD.NOTE_OFF);
-			console.log("jigSf2Synth NoteOff:".concat(" channel:", channel, " note:", data1, " velocity:", data2));
+			console.log("sf2Synth1 NoteOff:".concat(" channel:", channel, " note:", data1, " velocity:", data2));
 			that.noteOff(channel, data1, data2);
 		}
 		function handleNoteOn(channel, data1, data2)
 		{
 			checkCommandExport(CMD.NOTE_ON);
-			console.log("jigSf2Synth NoteOn:".concat(" channel:", channel, " note:", data1, " velocity:", data2));
+			console.log("sf2Synth1 NoteOn:".concat(" channel:", channel, " note:", data1, " velocity:", data2));
 			that.noteOn(channel, data1, data2);
 		}
 		function handleControl(channel, data1, data2)
@@ -199,37 +189,37 @@ WebMIDI.jigSf2Synth = (function()
 			function setBank(channel, value)
 			{
 				checkControlExport(CTL.BANK_SELECT);
-				console.log("jigSf2Synth Bank:".concat(" channel:", channel, " value:", value));
+				console.log("sf2Synth1 Bank:".concat(" channel:", channel, " value:", value));
 				bankIndex = value; // this is the complete implementation!
 			}
 			function setPitchWheelDeviation(channel, value)
 			{
 				checkControlExport(CTL.PITCHWHEEL_DEVIATION);
-				console.log("jigSf2Synth PitchWheelDeviation:".concat(" channel:", channel, " value:", value));
+				console.log("sf2Synth1 PitchWheelDeviation:".concat(" channel:", channel, " value:", value));
 				that.pitchBendSensitivity(channel, value);
 			}
 			function setVolume(channel, value)
 			{
 				checkControlExport(CTL.VOLUME);
-				console.log("jigSf2Synth Volume:".concat(" channel:", channel, " value:", value));
+				console.log("sf2Synth1 Volume:".concat(" channel:", channel, " value:", value));
 				that.volumeChange(channel, value);
 			}
 			function setPan(channel, value)
 			{
 				checkControlExport(CTL.PAN);
-				console.log("jigSf2Synth Pan:".concat(" channel:", channel, " value:", value));
+				console.log("sf2Synth1 Pan:".concat(" channel:", channel, " value:", value));
 				that.panpotChange(channel, value);
 			}
 			function setAllControllersOff(channel)
 			{
 				checkControlExport(CTL.ALL_CONTROLLERS_OFF);
-				console.log("jigSf2Synth AllControllersOff: channel:".concat(channel));
+				console.log("sf2Synth1 AllControllersOff: channel:".concat(channel));
 				that.resetAllControl(channel);	
 			}
 			function setAllSoundOff(channel)
 			{
 				checkControlExport(CTL.ALL_SOUND_OFF);
-				console.log("jigSf2Synth AllSoundOff: channel:".concat(channel));
+				console.log("sf2Synth1 AllSoundOff: channel:".concat(channel));
 				that.allSoundOff(channel);
 			}
 
@@ -256,19 +246,19 @@ WebMIDI.jigSf2Synth = (function()
 					setAllSoundOff(channel);
 					break;
 				default:
-					throw "Error: ".concat("Controller ", data1.toString(10), " (", data1.toString(16), ") is not defined.");
+					throw "Error: ".concat("Controller ", data1.toString(10), " (0x", data1.toString(16), ") is not defined.");
 			}
 		}
 		function handlePatchChange(channel, data1)
 		{
 			checkCommandExport(CMD.PATCH_CHANGE);
-			console.log("jigSf2Synth Patch:".concat(" channel:", channel, " value:", data1));
+			console.log("sf2Synth1 Patch:".concat(" channel:", channel, " value:", data1));
 			that.programChange(channel, data1);
 		}
 		function handlePitchWheel(channel, data1)
 		{
 			checkCommandExport(CMD.PITCHWHEEL);
-			console.log("jigSf2Synth PitchWheel:".concat(" channel:", channel, " value:", data1));
+			console.log("sf2Synth1 PitchWheel:".concat(" channel:", channel, " value:", data1));
 			that.pitchBend(channel, data1, data2);
 		}
 
@@ -290,14 +280,14 @@ WebMIDI.jigSf2Synth = (function()
 				handlePitchWheel(channel, data1, data2);
 				break;
 			default:
-				throw "Error: ".concat("Command ", command.toString(10), " (", command.toString(16), ") is not defined.");
+				throw "Error: ".concat("Command ", command.toString(10), " (0x", command.toString(16), ") is not defined.");
 		}
 	};
 
 	// The setSoundFont function should only be defined for synths that use soundFonts.
 	// The argument is a SoundFont object having the appropriate attributes.
 	// (The SoundFont constructor is in WebMIDI/soundFont.js)
-	JIGSf2Synth.prototype.setSoundFont = function(soundFont)
+	Sf2Synth1.prototype.setSoundFont = function(soundFont)
 	{
 		var i, DEFAULT = WebMIDI.constants.DEFAULT;
 
@@ -317,11 +307,11 @@ WebMIDI.jigSf2Synth = (function()
 			this.pitchBendSensitivity(i, DEFAULT.PITCHWHEEL_DEVIATION); // 2 -- was 2
 		}
 
-		console.log("jigSf2Synth SoundFont set.");
+		console.log("sf2Synth1 SoundFont set.");
 	};
 
 	// Call this immediately after the synth has been constructed.
-	JIGSf2Synth.prototype.init = function()
+	Sf2Synth1.prototype.init = function()
 	{
 		bufSrc.connect(gainMaster);
 		gainMaster.connect(ctx.destination);
@@ -329,23 +319,23 @@ WebMIDI.jigSf2Synth = (function()
 
 		this.setMasterVolume(16383);
 
-		console.log("jigSf2Synth initialised");
+		console.log("sf2Synth1 initialised");
 	};
 
-	JIGSf2Synth.prototype.setMasterVolume = function(volume)
+	Sf2Synth1.prototype.setMasterVolume = function(volume)
 	{
 		masterVolume = volume;
 		gainMaster.gain.value = baseVolume * (volume / 16384);
 	};
 
-	JIGSf2Synth.prototype.disconnect = function()
+	Sf2Synth1.prototype.disconnect = function()
 	{
 		bufSrc.disconnect(0);
 		gainMaster.disconnect(0);
 		compressor.disconnect(0);
 	};
 
-	JIGSf2Synth.prototype.noteOn = function(channel, key, velocity)
+	Sf2Synth1.prototype.noteOn = function(channel, key, velocity)
 	{
 		var bank = bankSet[(channel === 9) ? 128 : bankIndex],
 		instrument = bank[channelInstrument[channel]],
@@ -381,7 +371,7 @@ WebMIDI.jigSf2Synth = (function()
 		currentNoteOns[channel].push(note);
 	};
 
-	JIGSf2Synth.prototype.noteOff = function(channel, key, velocity)
+	Sf2Synth1.prototype.noteOff = function(channel, key, velocity)
 	{
 		var bank = bankSet[channel === 9 ? 128 : bankIndex],
 			instrument = bank[channelInstrument[channel]],
@@ -407,7 +397,7 @@ WebMIDI.jigSf2Synth = (function()
 		}
 	};
 
-	JIGSf2Synth.prototype.programChange = function(channel, instrument)
+	Sf2Synth1.prototype.programChange = function(channel, instrument)
 	{
 		if(channel === 9)
 		{
@@ -417,17 +407,17 @@ WebMIDI.jigSf2Synth = (function()
 		channelInstrument[channel] = instrument;
 	};
 
-	JIGSf2Synth.prototype.volumeChange = function(channel, volume)
+	Sf2Synth1.prototype.volumeChange = function(channel, volume)
 	{
 		channelVolume[channel] = volume;
 	};
 
-	JIGSf2Synth.prototype.panpotChange = function(channel, panpot)
+	Sf2Synth1.prototype.panpotChange = function(channel, panpot)
 	{
 		channelPanpot[channel] = panpot;
 	};
 
-	JIGSf2Synth.prototype.pitchBend = function(channel, lowerByte, higherByte)
+	Sf2Synth1.prototype.pitchBend = function(channel, lowerByte, higherByte)
 	{
 		var bend = (lowerByte & 0x7f) | ((higherByte & 0x7f) << 7),
 		i, il,
@@ -444,12 +434,12 @@ WebMIDI.jigSf2Synth = (function()
 		channelPitchBend[channel] = bend;
 	};
 
-	JIGSf2Synth.prototype.pitchBendSensitivity = function(channel, sensitivity)
+	Sf2Synth1.prototype.pitchBendSensitivity = function(channel, sensitivity)
 	{
 		channelPitchBendSensitivity[channel] = sensitivity;
 	};
 
-	JIGSf2Synth.prototype.allSoundOff = function(channel)
+	Sf2Synth1.prototype.allSoundOff = function(channel)
 	{
 		var currentNoteOn = currentNoteOns[channel];
 
@@ -459,7 +449,7 @@ WebMIDI.jigSf2Synth = (function()
 		}
 	};
 
-	JIGSf2Synth.prototype.resetAllControl = function(channel)
+	Sf2Synth1.prototype.resetAllControl = function(channel)
 	{
 		this.pitchBend(channel, 0x00, 0x40); // 8192
 	};

@@ -4,10 +4,10 @@
 *
 *  Code licensed under MIT
 *
-*  WebMIDI.consoleSf2Synth contains a WebMIDISynth constructor.
+*  WebMIDI.consoleSf2Synth contains a ConsoleSf2Synth constructor.
 * 
-*  This skeleton WebMIDISynth just logs MIDI messages to the console, but it is
-*  intended to be easily adaptable for use by WebMIDIsynths that produce sound.
+*  This skeleton synth just logs MIDI messages to the console, but it is
+*  intended to be easily adaptable for use by software synths that produce sound.
 *  The object of having this code is to be able to discuss and improve the interface.
 */
 
@@ -25,25 +25,12 @@ WebMIDI.consoleSf2Synth = (function(document)
 
 	CMD = WebMIDI.constants.COMMAND,
 	CTL = WebMIDI.constants.CONTROL,
-	// The commands and controls arrays are part of a standard WebMIDI synth's interface.
-	// They tell the host which messages are implemented.
-	// Proposal: If CMD.PATCH_CHANGE is implemented, then CTL.BANK_SELECT MUST be implemented (its trivial to implement).
-	// If WebMIDISynth.prototype.setSoundFont(...) is undefined, then custom controls could be defined.
-	// Proposal: define a custom controls array for MIDI-controlled synths that don't use soundFonts:
-	// customControls =
-	// [
-	//    { name: "lowPassFilter1", index: 0, defaultValue: 0 },
-	//    { name: "lowPassFilter1_Lo", index: 1, defaultValue: 0 },
-	//    { name: "reverb", index: 2, defaultValue: 0 },
-	//    { name: "volume", index: 3, defaultValue: 100 },
-	//    { name: "transpose", index: 4, defaultValue: 0 }
-	//    // etc.
-	// ]
+
 	commands =
 	[
 		CMD.NOTE_OFF,
 		CMD.NOTE_ON, 
-		CMD.AFTERTOUCH,
+		CMD.CUSTOMCONTROL_CHANGE, /** Proposal: see GitHub issues, WebMIDI/constants.js and WebMIDI/utilities.js **/
 		CMD.CONTROL_CHANGE,
 		CMD.PATCH_CHANGE,
 		CMD.CHANNEL_PRESSURE,
@@ -53,7 +40,7 @@ WebMIDI.consoleSf2Synth = (function(document)
 	[
 		CTL.BANK_SELECT,
 		CTL.MODWHEEL,
-		CTL.PITCHWHEEL_DEVIATION, /** Proposal: see WebMIDI/constants.js and WebMIDI/utilities.js **/
+		CTL.PITCHWHEEL_DEVIATION, /** Proposal: see GitHub issues, WebMIDI/constants.js and WebMIDI/utilities.js **/
 		CTL.PAN,
 		CTL.ALL_CONTROLLERS_OFF,
 		CTL.ALL_NOTES_OFF
@@ -69,7 +56,7 @@ WebMIDI.consoleSf2Synth = (function(document)
 		/** WebMIDIAPI §10 -- MIDIPort interface **/
 		Object.defineProperty(this, "id", { value: "consoleSf2Synth1", writable: false });
 		Object.defineProperty(this, "manufacturer", { value: "james ingram", writable: false });
-		Object.defineProperty(this, "name", { value: "consoleSf2Synth", writable: false });
+		Object.defineProperty(this, "name", { value: "consoleSf2Synth (ji)", writable: false });
 		Object.defineProperty(this, "type", { value: "output", writable: false });
 		Object.defineProperty(this, "version", { value: "1", writable: false });
 		Object.defineProperty(this, "ondisconnect", { value: null, writable: false }); // Do we need this at all? Is it correct to set it to null?
@@ -81,7 +68,8 @@ WebMIDI.consoleSf2Synth = (function(document)
 		Object.defineProperty(this, "url", { value: "https://github.com/notator/WebMIDISynthHost", writable: false }); // The synth author's webpage hosting the synth.		
 		Object.defineProperty(this, "commands", { value: commands, writable: false }); // The commands supported by this synth (see above).		
 		Object.defineProperty(this, "controls", { value: controls, writable: false }); // The controls supported by this synth (see above).		
-		Object.defineProperty(this, "isPolyphonic", { value: true, writable: false }); // If isPolyphonic is false, the synth ignores the channel nibble in MIDI messages
+		Object.defineProperty(this, "isMultiChannel", { value: true, writable: false }); // If isMultiChannel is false, the synth ignores the channel nibble in MIDI messages
+		Object.defineProperty(this, "isPolyphonic", { value: true, writable: false }); // If isPolyphonic is false, the synth can only play one note at a time
 	},
 
 	API =
@@ -97,7 +85,6 @@ WebMIDI.consoleSf2Synth = (function(document)
 		console.log("consoleSf2Synth initialised.");
 	};
 
-	// WebMIDIAPI MIDIOutput send()
 	// This synth does not support timestamps
 	ConsoleSf2Synth.prototype.send = function(message, ignoredTimestamp)
 	{
@@ -123,9 +110,9 @@ WebMIDI.consoleSf2Synth = (function(document)
 		{
 			console.log("consoleSf2Synth NoteOn:".concat(" channel:", channel, " note:", data1, " velocity:", data2));
 		}
-		// AFTERTOUCH.data[1] is the MIDIpitch to which to apply the aftertouch
-		// AFTERTOUCH.data[2] is the amount of pressure 0..127.
-		function handleAftertouch(channel, data1, data2)
+		// CUSTOMCONTROL_CHANGE.data[1] is the MIDIpitch to which to apply the aftertouch
+		// CUSTOMCONTROL_CHANGE.data[2] is the amount of pressure 0..127.
+		function handleCustomControlChange(channel, data1, data2)
 		{
 			console.log("consoleSf2Synth Aftertouch:".concat(" channel:", channel, " note:", data1, " value:", data2));
 		}
@@ -192,7 +179,7 @@ WebMIDI.consoleSf2Synth = (function(document)
 					setAllNotesOff(channel);
 					break;
 				default:
-					throw "Error: ".concat("Controller ", data1.toString(10), " (", data1.toString(16), ") is not defined.");
+					throw "Error: ".concat("Controller ", data1.toString(10), " (0x", data1.toString(16), ") is not defined.");
 			}
 		}
 		function handlePatchChange(channel, data1)
@@ -219,11 +206,11 @@ WebMIDI.consoleSf2Synth = (function(document)
 				checkCommandExport(CMD.NOTE_ON);
 				handleNoteOn(channel, data1, data2);
 				break;
-			case CMD.AFTERTOUCH:
-				checkCommandExport(CMD.AFTERTOUCH);
-				// AFTERTOUCH.data[1] is the MIDIpitch to which to apply the aftertouch
-				// AFTERTOUCH.data[2] is the amount of pressure 0..127.
-				handleAftertouch(channel, data1, data2);
+			case CMD.CUSTOMCONTROL_CHANGE:
+				checkCommandExport(CMD.CUSTOMCONTROL_CHANGE);
+				// CUSTOMCONTROL_CHANGE.data[1] is the MIDIpitch to which to apply the aftertouch
+				// CUSTOMCONTROL_CHANGE.data[2] is the amount of pressure 0..127.
+				handleCustomControlChange(channel, data1, data2);
 				break;
 			case CMD.CONTROL_CHANGE:
 				checkCommandExport(CMD.CONTROL_CHANGE);
@@ -244,7 +231,7 @@ WebMIDI.consoleSf2Synth = (function(document)
 				break;
 
 			default:
-				throw "Error: ".concat("Command ", command.toString(10), " (", command.toString(16), ") is not defined.");
+				throw "Error: ".concat("Command ", command.toString(10), " (0x", command.toString(16), ") is not defined.");
 		}
 	};
 

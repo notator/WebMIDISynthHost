@@ -19,6 +19,7 @@ WebMIDI.utilities = (function()
     var
 	CMD = WebMIDI.constants.COMMAND,
 	CTL = WebMIDI.constants.CONTROL,
+	CUSTOMCONTROL = WebMIDI.constants.CUSTOMCONTROL,
 
 	// This function is standard MIDI for setting the pitchWheel deviation.
 	// arg1: the output synth (hardware or WebMIDISynth) 
@@ -56,9 +57,36 @@ WebMIDI.utilities = (function()
     	}
     },
 
+	// ji: I have changed the CMD.AFTERTOUCH constant to CMD.CUSTOMCONTROL_CHANGE for WebMIDI synths.
+	// Hosts can set Aftertouch for both hard- and software synths, by defining the following
+	// two custom controls in their WebMIDI synth(s), and calling the following function.
+	//     { name: "aftertouchKey", index: CUSTOMCONTROL.AFTERTOUCH_KEY, defaultValue:0 }
+	//     { name: "aftertouchPressure", index: CUSTOMCONTROL.AFTERTOUCH_PRESSURE, defaultValue:0 }
+	// (AFTERTOUCH_KEY and AFTERTOUCH_PRESSURE are reserved indices 126 and 127.)
+	// Using this scheme, custom control indices do not conflict with the Standard MIDI control indices,
+	// and can be chosen freely in the range [0..125].
+	setAftertouch = function(synth, channel, key, pressure, isWebMIDISynth)
+	{
+		var msg;
+
+		if(isWebMIDISynth !== undefined && isWebMIDISynth === true)
+		{
+			msg = new Uint8Array([CMD.CUSTOMCONTROL_CHANGE + channel, CUSTOMCONTROL.AFTERTOUCH_NOTE, key]);
+			synth.send(msg, performance.now());
+			msg = new Uint8Array([CMD.CUSTOMCONTROL_CHANGE + channel, CUSTOMCONTROL.AFTERTOUCH_PRESSURE, pressure]);
+			synth.send(msg, performance.now());
+		}
+		else // a hardware synth (sends a Standard MIDI Aftertouch message)
+		{
+			msg = new Uint8Array([CMD.CUSTOMCONTROL_CHANGE + channel, key, pressure]);
+			synth.send(msg, performance.now());
+		}
+	},
+
     publicAPI =
     {
-    	setPitchWheelDeviation: setPitchWheelDeviation
+    	setPitchWheelDeviation: setPitchWheelDeviation,
+    	setAftertouch: setAftertouch
     };
 
     return publicAPI;
