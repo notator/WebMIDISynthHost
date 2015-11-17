@@ -58,7 +58,7 @@ WebMIDI.cwMonosynth = (function(document)
 		/** WebMIDIAPI §10 -- MIDIPort interface **/
 		Object.defineProperty(this, "id", { value: "monosynth1", writable: false });
 		Object.defineProperty(this, "manufacturer", { value: "chris wilson", writable: false });
-		Object.defineProperty(this, "name", { value: "cwMonosynth (Chris Wilson)", writable: false });
+		Object.defineProperty(this, "name", { value: "monosynth (Chris Wilson)", writable: false });
 		Object.defineProperty(this, "type", { value: "output", writable: false });
 		Object.defineProperty(this, "version", { value: "1", writable: false });
 		Object.defineProperty(this, "ondisconnect", { value: null, writable: false }); // Do we need this at all? Is it correct to set it to null?
