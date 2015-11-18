@@ -35,7 +35,7 @@ WebMIDI.cwMIDISynth = (function()
 		CMD.NOTE_OFF,
 		CMD.NOTE_ON,
 		CMD.CONTROL_CHANGE,
-		CMD.CUSTOMCONTROL_CHANGE, // Was CUSTOMCONTROL_CHANGE. See constants.js and utilities.js
+		CMD.CUSTOMCONTROL_CHANGE, // See constants.js and utilities.js
 		//CMD.PATCH_CHANGE,
 		//CMD.CHANNEL_PRESSURE,
 		CMD.PITCHWHEEL
@@ -90,10 +90,8 @@ WebMIDI.cwMIDISynth = (function()
 		{ name: "aftertouch key", index: CUSTOMCONTROL.AFTERTOUCH_KEY, defaultValue:0 },
 		{ name: "aftertouch pressure", index: CUSTOMCONTROL.AFTERTOUCH_PRESSURE, defaultValue:0 },
 
-		// Standard (2-byte) controllers.
-        CTL.ALL_SOUND_OFF,
-        CTL.ALL_CONTROLLERS_OFF,
-		CTL.ALL_NOTES_OFF
+		// Standard (2-byte) controller.
+        CTL.ALL_CONTROLLERS_OFF
 	],
 
 	CWMIDISynth = function()
@@ -185,35 +183,124 @@ WebMIDI.cwMIDISynth = (function()
 		}
 		function handleControl(channel, data1, data2)
 		{
-			function setAllSoundOff()
+			function resetAllControllers()
 			{
-				console.log("cwMIDISynth setAllSoundOff(). (Not implemented.)");
-			}
-			function setAllControllersOff()
-			{
-				console.log("cwMIDISynth setAllControllersOff(). (Not implemented.)");
-			}
-			function setAllNotesOff()
-			{
-				console.log("cwMIDISynth setAllNotesOff(). (Not implemented.)");
+				var
+				i, CWDEF = WebMIDI.cwConstants.CW_DEFAULT,
+				controls = that.controls,
+				controller = that.core.controller, // function
+				controllerIndex;
+
+				for(i = 0; i < controls.length; ++i)
+				{
+					controllerIndex = controls[i].index; // is undefined for standard controls
+					switch(controllerIndex) // ji controller indices
+					{
+						case 0:
+							controller(0, CWDEF.MOD_WAVEFORM);
+							break;
+						case 1:
+							controller(1, CWDEF.MOD_FREQ);
+							break;
+						case 2:
+							controller(2, CWDEF.MOD_OSC1_TREMOLO);
+							break;
+						case 3:
+							controller(3, CWDEF.MOD_OSC2_TREMOLO);
+							break;
+
+						case 4:
+							controller(4, CWDEF.OSC1_WAVEFORM);
+							break;
+						case 5:
+							controller(5, CWDEF.OSC1_INTERVAL);
+							break;
+						case 6:
+							controller(6, CWDEF.OSC1_DETUNE);
+							break;
+						case 7:
+							controller(7, CWDEF.OSC1_MIX);
+							break;
+
+						case 8:
+							controller(8, CWDEF.OSC2_WAVEFORM);
+							break;
+						case 9:
+							controller(9, CWDEF.OSC2_INTERVAL);
+							break;
+						case 10:
+							controller(10, CWDEF.OSC2_DETUNE);
+							break;
+						case 11:
+							controller(11, CWDEF.OSC2_MIX);
+							break;
+
+						case 12:
+							controller(12, CWDEF.FILTER_CUTOFF);
+							break;
+						case 13:
+							controller(13, CWDEF.FILTER_Q);
+							break;
+						case 14:
+							controller(14, CWDEF.FILTER_MOD);
+							break;
+						case 15:
+							controller(15, CWDEF.FILTER_ENV);
+							break;
+
+						case 16:
+							controller(16, CWDEF.FILTERENV_ATTACK);
+							break;
+						case 17:
+							controller(17, CWDEF.FILTERENV_DECAY);
+							break;
+						case 18:
+							controller(18, CWDEF.FILTERENV_SUSTAIN);
+							break;
+						case 19:
+							controller(19, CWDEF.FILTERENV_RELEASE);
+							break;
+
+						case 20:
+							controller(20, CWDEF.VOLUMEENV_ATTACK);
+							break;
+						case 21:
+							controller(21, CWDEF.VOLUMEENV_DECAY);
+							break;
+						case 22:
+							controller(22, CWDEF.VOLUMEENV_SUSTAIN);
+							break;
+						case 23:
+							controller(23, CWDEF.VOLUMEENV_RELEASE);
+							break;
+
+						case 24:
+							controller(24, CWDEF.MASTER_DRIVE);
+							break;
+						case 25:
+							controller(25, CWDEF.MASTER_REVERB);
+							break;
+						case 26:
+							controller(26, CWDEF.MASTER_VOLUME);
+							break;
+						case CUSTOMCONTROL.AFTERTOUCH_KEY:
+							controller(CUSTOMCONTROL.AFTERTOUCH_KEY, CWDEF.MOD_WAVEFORM);
+							break;
+						case CUSTOMCONTROL.AFTERTOUCH_PRESSURE:
+							controller(CUSTOMCONTROL.AFTERTOUCH_PRESSURE, CWDEF.MOD_WAVEFORM);
+							break;
+					}
+				}
+				console.log("cwMIDISynth resetAllControllers().");
 			}
 
 			// If data1 is the index of a control that is not present in the
 			// control array, an exception is thrown in the default:
 			switch(data1)
 			{
-				// 2-byte controllers
-				case CTL.ALL_SOUND_OFF:
-					checkControlExport(data1);
-					setAllSoundOff();
-					break;
 				case CTL.ALL_CONTROLLERS_OFF:
 					checkControlExport(data1);
-					setAllControllersOff();
-					break;
-				case CTL.ALL_NOTES_OFF:
-					checkControlExport(data1);
-					setAllNotesOff();
+					resetAllControllers();
 					break;
 				default:
 					throw "Error: Unknown standard controller"
