@@ -284,12 +284,22 @@ WebMIDI.sf2Synth1 = (function()
 		}
 	};
 
+	Sf2Synth1.prototype.setChannelControlDefaults = function(channel)
+	{
+		var DEFAULT = WebMIDI.constants.DEFAULT;
+
+		this.volumeChange(channel, DEFAULT.VOLUME); // 100 -- was 0x64
+		this.panpotChange(channel, DEFAULT.PAN); // 64 -- was 0x40
+		this.pitchBend(channel, 0, DEFAULT.PITCHWHEEL); // 0, 64 -- was 0x00, 0x40 (8192)
+		this.pitchBendSensitivity(channel, DEFAULT.PITCHWHEEL_DEVIATION); // 2 -- was 2
+	};
+
 	// The setSoundFont function should only be defined for synths that use soundFonts.
 	// The argument is a SoundFont object having the appropriate attributes.
 	// (The SoundFont constructor is in WebMIDI/soundFont.js)
 	Sf2Synth1.prototype.setSoundFont = function(soundFont)
 	{
-		var i, DEFAULT = WebMIDI.constants.DEFAULT;
+		var i;
 
 		bankSet = soundFont.banks;
 
@@ -301,10 +311,7 @@ WebMIDI.sf2Synth1 = (function()
 			{
 				this.programChange(i, soundFont.presets[0].presetIndex); // the first preset index in the bankSet
 			}
-			this.volumeChange(i, DEFAULT.VOLUME); // 100 -- was 0x64
-			this.panpotChange(i, DEFAULT.PAN); // 64 -- was 0x40
-			this.pitchBend(i, 0, DEFAULT.PITCHWHEEL); // 0, 64 -- was 0x00, 0x40 (8192)
-			this.pitchBendSensitivity(i, DEFAULT.PITCHWHEEL_DEVIATION); // 2 -- was 2
+			this.setChannelControlDefaults(i);
 		}
 
 		console.log("sf2Synth1 SoundFont set.");
@@ -451,7 +458,7 @@ WebMIDI.sf2Synth1 = (function()
 
 	Sf2Synth1.prototype.resetAllControl = function(channel)
 	{
-		this.pitchBend(channel, 0x00, 0x40); // 8192
+		this.setChannelControlDefaults(channel);
 	};
 
 	return API;
