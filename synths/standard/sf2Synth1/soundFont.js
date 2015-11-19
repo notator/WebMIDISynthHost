@@ -548,7 +548,7 @@ WebMIDI.soundFont = (function()
 	// end var
 
 	// Call this function immediately after the SoundFont has been constructed.
-	SoundFont.prototype.getAttributes = function()
+	SoundFont.prototype.init = function()
 	{
 		Object.defineProperty(this, "name", { value: name, writable: false });
 		Object.defineProperty(this, "presets", { value: presetInfo, writable: false });

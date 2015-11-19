@@ -1058,7 +1058,7 @@ WebMIDI.host = (function(document)
 						}
 
 						nFontsOfThisTypeLoaded++;
-						soundFont.getAttributes();
+						soundFont.init();
 						selectOptions[fontIndex].soundFont = soundFont;
 						selectOptions[fontIndex].disabled = false;
 						if(typeIndex === 0 && fontIndex === 0)
