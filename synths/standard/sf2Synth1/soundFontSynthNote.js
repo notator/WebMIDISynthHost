@@ -197,7 +197,13 @@ WebMIDI.soundFontSynthNote = (function()
 		outputGain.linearRampToValueAtTime(this.volume * (this.velocity / 127), volAttack);
 		outputGain.linearRampToValueAtTime(this.volume * (1 - instrument['volSustain']), volDecay);
 
-		filter.Q.setValueAtTime(instrument['initialFilterQ'] * Math.pow(10, 200), now);
+		// begin ji changes November 2015.
+		// The following original line was a bug that threw an out-of-range exception:
+		//     filter.Q.setValueAtTime(instrument['initialFilterQ'] * Math.pow(10, 200), now);
+		// The following line seems to work, but is it realy correct?
+		filter.Q.setValueAtTime(instrument['initialFilterQ'], now);
+		// end ji ji changes November 2015
+
 		baseFreq = amountToFreq(instrument['initialFilterFc']);
 		peekFreq = amountToFreq(instrument['initialFilterFc'] + instrument['modEnvToFilterFc']);
 		sustainFreq = baseFreq + (peekFreq - baseFreq) * (1 - instrument['modSustain']);
