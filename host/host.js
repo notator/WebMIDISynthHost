@@ -1011,18 +1011,16 @@ WebMIDI.host = (function(document)
 				fontIndex = 0,
 				soundFontURL = selectOptions[fontIndex].url,
 				soundFontName = selectOptions[fontIndex].text,
-				soundFontPresets,
+				presetIndices,
 				loadLogElem = getElem("loadLog");
 
-				function getSoundFontPresets(presetOptions)
+				function getPresetIndices(presetOptions)
 				{
-					var i, preset, name, rval = [];
+					var i, rval = [];
 
 					for(i = 0; i < presetOptions.length; ++i)
 					{
-						name = presetOptions[i].text.slice(10); // remove the bank and patch info: "000:000 - "
-						preset = { name: name, presetIndex: presetOptions[i].patch };
-						rval.push(preset);
+						rval.push(presetOptions[i].patch);
 					}
 					return rval;
 				}
@@ -1074,7 +1072,7 @@ WebMIDI.host = (function(document)
 						{
 							soundFontURL = selectOptions[fontIndex].url;
 							soundFontName = selectOptions[fontIndex].text;
-							soundFontPresets = getSoundFontPresets(selectOptions[fontIndex].presetOptions);
+							presetIndices = getPresetIndices(selectOptions[fontIndex].presetOptions);
 							loadLogElem.innerHTML = "loading the ".concat('"', soundFontName, '" soundFont (', (nFontsOfThisTypeLoaded + 1), "/", nFontsOfThisType, ")...");
 							loadSoundFontAsynch();
 						}
@@ -1088,10 +1086,10 @@ WebMIDI.host = (function(document)
 						}
 					}
 
-					soundFont = new WebMIDI.soundFont.SoundFont(soundFontURL, soundFontName, soundFontPresets, onLoad);
+					soundFont = new WebMIDI.soundFont.SoundFont(soundFontURL, soundFontName, presetIndices, onLoad);
 				}
 
-				soundFontPresets = getSoundFontPresets(selectOptions[fontIndex].presetOptions);
+				presetIndices = getPresetIndices(selectOptions[fontIndex].presetOptions);
 				loadSoundFontAsynch();
 			}
 

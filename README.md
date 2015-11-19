@@ -5,12 +5,14 @@ This is a WEB MIDI application, written in HTML5 and Javascript.<br />
 It can be tried out at <br />
 http://james-ingram-act-two.de/open-source/WebMIDISynthHost/host.html <br />
 <br />
-The main object of this exercise is to arrive at a standard interface for software synthesizers that can be used interchangeably with the hardware synthesizers provided by browser implementations of the Web MIDI API [1].<br />
+This project is unofficial, but is intended to further the discussion about software synths at [1].<br />
+When the interface for software synthesizers has stabilized, this application should also be usable as a
+host GUI within which any new Web MIDI Synth can be developed.<br />
+I am not a Web Audio specialist, so I am also hoping for help in improving the resident synthesizers' Web Audio code.
+If such help materializes, this project ought to end up with some really usable synthesizers!<br />
 <br />
-When the interface for software synthesizers has stabilized, this application should also be usable as a host GUI within which any new Web MIDI Synth can be developed.<br />
-I am not a Web Audio specialist, so I am also hoping for help in improving the resident synthesizers' Web Audio code. If such help materializes, this project ought to end up with some really usable synthesizers!<br />
-<br />
-The resident synthesizers can easily be lifted out and used in Web applications that work "out-of-the-box". The browser will need to support the Web Audio API of course, but given that, end-users will not need any special MIDI hardware or browser plugins.<br />
+The resident synthesizers can easily be lifted out and used in Web applications that work "out-of-the-box". The browser
+will need to support the Web Audio API of course, but given that, end-users will not need any special MIDI hardware or browser plugins.<br />
 <br />
 SoundFonts:
 I have seeded the soundFonts directory with .sf2 files created from the Arachno soundfont [2] using the Viena editor [3].
@@ -39,7 +41,7 @@ It could be used as a stub when writing a new synthesizer.
 November 2015<br />
 James Ingram
 
-[1] Web MIDI API: http://cwilso.github.io/web-midi-api/ <br />
+[1] Web MIDI API issue 124: https://github.com/WebAudio/web-midi-api/issues/124<br />
 [2] Arachnosoft: http://www.arachnosoft.com/main/soundfont.php <br />
 [3] Viena Soundfont Editor:  http://www.synthfont.com/index.html <br />
 [4] Chris Wilson's MIDI synth synthesizer: https://github.com/cwilso/midi-synth <br />

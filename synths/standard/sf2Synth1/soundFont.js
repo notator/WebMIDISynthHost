@@ -24,7 +24,7 @@ WebMIDI.soundFont = (function()
 	"use strict";
 	var
 	name, // ji for host
-	requiredPresets, // ji for host
+	presetInfo, // ji for host
 	banks, // export to synth
 
 	createBagModGen_ = function(indexStart, indexEnd, zoneModGen)
@@ -447,7 +447,7 @@ WebMIDI.soundFont = (function()
 			// ji: I'm unsure about this function. See comment on function.  
 			instruments = getInstruments(parsersInstruments);
 
-			console.assert(instruments.length === requiredPresets.length, "Error: the expected number of presets does not match the number of presets in the sf2 file.");
+			console.assert(instruments.length === presetInfo.length, "Error: the expected number of presets does not match the number of presets in the sf2 file.");
 			// the final entry in presets is 'EOP'
 			console.assert(instruments.length === (presets.length - 1), "Error: wrong number of instruments in sf2 file.");
 
@@ -490,13 +490,25 @@ WebMIDI.soundFont = (function()
 	// When ready, the callback function is invoked.
 	// Note that XMLHttpRequest does not work with local files (localhost:).
 	// To make it work, run the app from the web (http:).
-	SoundFont = function(soundFontUrl, soundFontName, neededPresets, callback)
+	SoundFont = function(soundFontUrl, soundFontName, presetIndices, callback)
 	{
 		var xhr = new XMLHttpRequest();
 
 		if(!(this instanceof SoundFont))
 		{
 			return new SoundFont(soundFontUrl, callback);
+		}
+
+		function getPresetInfo(presetIndices)
+		{
+			var i, name, presetIndex, soundFontPresets = [];
+			for(i = 0; i < presetIndices.length; ++i)
+			{
+				presetIndex = presetIndices[i];
+				name = WebMIDI.constants.GeneralMIDIInstrumentNames[presetIndex];
+				soundFontPresets.push({ name: name, presetIndex: presetIndex });
+			}
+			return soundFontPresets;
 		}
 
 		function onLoad()
@@ -521,7 +533,7 @@ WebMIDI.soundFont = (function()
 
 		name = soundFontName;
 
-		requiredPresets = neededPresets;
+		presetInfo = getPresetInfo(presetIndices);
 
 		xhr.open('GET', soundFontUrl);
 		xhr.addEventListener('load', onLoad, false);
@@ -539,7 +551,7 @@ WebMIDI.soundFont = (function()
 	SoundFont.prototype.getAttributes = function()
 	{
 		Object.defineProperty(this, "name", { value: name, writable: false });
-		Object.defineProperty(this, "presets", { value: requiredPresets, writable: false });
+		Object.defineProperty(this, "presets", { value: presetInfo, writable: false });
 		Object.defineProperty(this, "banks", { value: banks, writable: false });
 	};
 
