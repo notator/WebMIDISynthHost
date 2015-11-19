@@ -342,8 +342,22 @@ WebMIDI.cwMIDISynthCore = (function(window)
 		this.osc1.type = waveforms[currentOsc1Waveform];
 
 		this.osc1Gain = audioContext.createGain();
-		this.osc1Gain.gain.value = 0.005 * currentOsc1Mix;
-		// this.osc1Gain.gain.value = 0.05 + (0.33 * velocity);
+		/* (ji -- November 2015)
+		 * In the original file, the velocity argument to this constructor is not used,
+		 * and osc1Gain.gain.value is set as follows:
+		 *    this.osc1Gain.gain.value = 0.005 * currentOsc1Mix;
+		 * When asked about this, Chris said he didn't want to change the original
+		 * file because he'd "ideally like to have some controls over what the velocity
+		 * argument does (applies to filter frequency, gain, attack only, etc.)".
+		 * Obviously those would be nice things to do too, but I wanted here to avoid
+		 * giving the impression that the synth couldn't handle velocity at all, and have
+		 * decided to use it as follows:
+		 * currentOsc1Mix is in range [0..100], so gain is being set in range [0..0.5];
+		 * velocity is in range [0..127], so I have set the gain in range [0..0.5] using
+		 *    this.osc1Gain.gain.value = 0.5 * (velocity / 127);
+		 * The same goes for osc2 below.
+		 */
+		this.osc1Gain.gain.value = 0.5 * (velocity / 127); // ji 
 		this.osc1.connect(this.osc1Gain);
 
 		// create osc 2
@@ -352,8 +366,9 @@ WebMIDI.cwMIDISynthCore = (function(window)
 		this.osc2.type = waveforms[currentOsc2Waveform];
 
 		this.osc2Gain = audioContext.createGain();
-		this.osc2Gain.gain.value = 0.005 * currentOsc2Mix;
-		// this.osc2Gain.gain.value = 0.05 + (0.33 * velocity);
+		//this.osc2Gain.gain.value = 0.005 * currentOsc2Mix;
+		//this.osc2Gain.gain.value = 0.05 + (0.33 * velocity);
+		this.osc2Gain.gain.value = 0.5 * (velocity / 127); // ji
 		this.osc2.connect(this.osc2Gain);
 
 		// create modulator osc

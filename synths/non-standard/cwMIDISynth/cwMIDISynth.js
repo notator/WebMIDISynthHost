@@ -174,12 +174,12 @@ WebMIDI.cwMIDISynth = (function()
 		function handleNoteOff(channel, data1, data2)
 		{
 			that.core.noteOff(data1);
-			console.log("cwMIDISynth NoteOff:".concat(" channel:", channel, " note:", data1, " velocity:", data2, " (channel and velocity are ignored)"));
+			console.log("cwMIDISynth NoteOff:".concat(" channel:", channel, " note:", data1, " velocity:", data2, " (channel is ignored)"));
 		}
 		function handleNoteOn(channel, data1, data2)
 		{
 			that.core.noteOn(data1, data2);
-			console.log("cwMIDISynth NoteOn:".concat(" channel:", channel, " note:", data1, " velocity:", data2, " (channel and velocity are ignored)"));
+			console.log("cwMIDISynth NoteOn:".concat(" channel:", channel, " note:", data1, " velocity:", data2, " (channel is ignored)"));
 		}
 		function handleControl(channel, data1, data2)
 		{
