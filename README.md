@@ -1,3 +1,4 @@
+###Introduction
 This is a Web MIDI application, written in HTML5 and Javascript. It can be tried out at <br />
 http://james-ingram-act-two.de/open-source/WebMIDISynthHost/host.html <br />
 <br />
@@ -33,9 +34,12 @@ James Ingram
 
 [1] A "Web MIDI Synth" is a software synth that uses the Web Audio API to implement the Output Device interface defined in the Web MIDI API. Web MIDI Synths can be used online independently of browser implementations of the Web MIDI API. *Standard* Web MIDI Synths can be used interchangeably with the hardware synths supplied by browser implementations of the Web MIDI API.<br />
 
-[2] The top-level files containing Web MIDI Synth interface definitions are:<br />
-standard/sf2Synth1/sf2synth1.js<br />
-standard/consoleSf2Synth.js<br />
-non-standard/cwMIDISynth/cwMIDISynth.js<br />
-non-standard/cwMonosynth.js<br />
+[2] The top-level files containing Web MIDI Synth interface definitions are:
+```
+standard/sf2Synth1/sf2synth1.js
+standard/consoleSf2Synth.js
+non-standard/cwMIDISynth/cwMIDISynth.js
+non-standard/cwMonosynth.js
+```
+
 
