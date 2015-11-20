@@ -672,7 +672,7 @@ WebMIDI.cwMIDISynthCore = (function(window)
 
 		if (!isMobile) {
 			var irRRequest = new XMLHttpRequest();			
-			irRRequest.open("GET", "http://james-ingram-act-two.de/open-source/WebMIDISynthHost/synths/non-standard/cwMIDISynth/sounds/irRoom.wav", true);
+			irRRequest.open("GET", "synths/non-standard/cwMIDISynth/sounds/irRoom.wav", true);
 			irRRequest.responseType = "arraybuffer";
 			irRRequest.onload = function()
 			{
