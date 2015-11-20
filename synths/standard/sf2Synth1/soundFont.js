@@ -10,7 +10,7 @@
 * The WebMIDI.soundFont namespace containing:
 * 
 *        // SoundFont constructor
-*        SoundFont(soundFontUrl, callback)
+*        SoundFont(soundFontUrl, soundFontName, presetIndices, onLoad)
 */
 
 /*jslint bitwise: false, nomen: true, plusplus: true, white: true */
@@ -233,11 +233,11 @@ WebMIDI.soundFont = (function()
 	},
 
 	// Parses the Uin8Array to create this soundFont's banks.
-	getBanks = function(uint8Array)
+	getBanks = function(uint8Array, nRequiredPresets)
 	{
-		var sf2Parser = new WebMIDI.soundFontParser.SoundFontParser(uint8Array);
+		var banks, sf2Parser = new WebMIDI.soundFontParser.SoundFontParser(uint8Array);
 
-		function createBanks(parser)
+		function createBanks(parser, nRequiredPresets)
 		{
 			var i, j, k,
 			presets, parsersInstruments, instruments,
@@ -447,9 +447,11 @@ WebMIDI.soundFont = (function()
 			// ji: I'm unsure about this function. See comment on function.  
 			instruments = getInstruments(parsersInstruments);
 
-			console.assert(instruments.length === presetInfo.length, "Error: the expected number of presets does not match the number of presets in the sf2 file.");
 			// the final entry in presets is 'EOP'
-			console.assert(instruments.length === (presets.length - 1), "Error: wrong number of instruments in sf2 file.");
+			if(nRequiredPresets !== (presets.length - 1))
+			{
+				throw "Error: the expected number of presets does not match the number of presets in the sf2 file.";
+			}
 
 			for(i = 0; i < instruments.length; ++i)
 			{
@@ -483,7 +485,9 @@ WebMIDI.soundFont = (function()
 
 		sf2Parser.parse();
 
-		banks = createBanks(sf2Parser);
+		banks = createBanks(sf2Parser, nRequiredPresets);
+
+		return banks;
 	},
 
 	// The SoundFont is constructed asychronously (using XmlHttpRequest).
@@ -521,7 +525,7 @@ WebMIDI.soundFont = (function()
 				if(arrayBuffer)
 				{
 					uint8Array = new Uint8Array(arrayBuffer);
-					getBanks(uint8Array);
+					banks = getBanks(uint8Array, presetInfo.length);
 					callback();
 				}
 			}
@@ -532,7 +536,6 @@ WebMIDI.soundFont = (function()
 		}
 
 		name = soundFontName;
-
 		presetInfo = getPresetInfo(presetIndices);
 
 		xhr.open('GET', soundFontUrl);
