@@ -1,7 +1,5 @@
-
-Introduction
-------------
-This is a WEB MIDI application, written in HTML5 and Javascript. It can be tried out at <br />
+<br />
+This is a Web MIDI application, written in HTML5 and Javascript. It can be tried out at <br />
 http://james-ingram-act-two.de/open-source/WebMIDISynthHost/host.html <br />
 <br />
 This project is unofficial, but is intended to further the discussion about software synths at [Web MIDI API issue 124](https://github.com/WebAudio/web-midi-api/issues/124).<br />
