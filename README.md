@@ -1,4 +1,3 @@
-<br />
 This is a Web MIDI application, written in HTML5 and Javascript. It can be tried out at <br />
 http://james-ingram-act-two.de/open-source/WebMIDISynthHost/host.html <br />
 <br />
