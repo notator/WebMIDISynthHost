@@ -500,7 +500,7 @@ WebMIDI.soundFont = (function()
 
 		if(!(this instanceof SoundFont))
 		{
-			return new SoundFont(soundFontUrl, callback);
+			return new SoundFont(soundFontUrl, soundFontName, presetIndices, callback);
 		}
 
 		function getPresetInfo(presetIndices)
