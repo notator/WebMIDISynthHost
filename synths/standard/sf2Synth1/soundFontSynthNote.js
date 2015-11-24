@@ -168,7 +168,19 @@ WebMIDI.soundFontSynthNote = (function()
 		// buffer source
 		bufferSource = this.bufferSource = ctx.createBufferSource();
 		bufferSource.buffer = buffer;
-		bufferSource.loop = (this.channel !== 9);
+		/* ji begin changes November 2015 */
+		// This line was originally:
+		//    bufferSource.loop = (this.channel !== 9);
+		// This means that all presets in channels other than 9 should loop, and
+		// assumes that they all have valid loop parameters.
+		// In the Arachno soundFont, the presets Marimba, Banjo and Melodic Tom
+		// use samples that have loops that start at 0 or 8. I think these are bugs
+		// in the soundFont.
+		// The Sf2 spec says that loops should start at at least position 8.
+		// If the loop starts too close to the attack, the attack is of course
+		// played again.
+		bufferSource.loop = (this.channel !== 9) && (instrument.loopStart > 8);
+		/* ji end changes November 2015 */
 		bufferSource.loopStart = loopStart;
 		bufferSource.loopEnd = loopEnd;
 		this.updatePitchBend(this.pitchBend);
