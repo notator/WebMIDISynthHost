@@ -11,13 +11,10 @@
 * 
 *        // SoundFontParser constructor
 *        SoundFontParser(soundFontUrl, callback)
-*
-* Any functions will be defined in the prototype (after var)
 */
 
-/*jslint bitwise: true, nomen: true, plusplus: true, white: true */
-/*global WebMIDI: false, window: false,  document: false, performance: false, console: false, alert: false, XMLHttpRequest: false */
-
+/*jshint elision:true */
+/*global WebMIDI */
 
 WebMIDI.namespace('WebMIDI.soundFontParser');
 
@@ -25,46 +22,33 @@ WebMIDI.soundFontParser = (function()
 {
 	"use strict";
 	var
-	SoundFontParser = function(input, opt_params) // input is a Uint8Array
+	SoundFontParser = function(input, optParams) // input is a Uint8Array
 	{
-		opt_params = opt_params || {};
-		/** @type {ByteArray} */
+		optParams = optParams || {};
 		this.input = input;
-		/** @type {(Object|undefined)} */
-		this.parserOption = opt_params['parserOption'];
-
-		/** @type {Array.<Object>} */
+		this.parserOption = optParams.parserOption;
 		this.presetHeader;
-		/** @type {Array.<Object>} */
 		this.presetZone;
-		/** @type {Array.<Object>} */
 		this.presetZoneModulator;
-		/** @type {Array.<Object>} */
 		this.presetZoneGenerator;
-		/** @type {Array.<Object>} */
 		this.instrument;
-		/** @type {Array.<Object>} */
 		this.instrumentZone;
-		/** @type {Array.<Object>} */
 		this.instrumentZoneModulator;
-		/** @type {Array.<Object>} */
 		this.instrumentZoneGenerator;
-		/** @type {Array.<Object>} */
 		this.sampleHeader;
 	},
 
 	API =
 	{
-		SoundFontParser: SoundFontParser // constructor
+		SoundFontParser: SoundFontParser
 	};
 	// end var
 
 	SoundFontParser.prototype.parse = function()
 	{
-		/** @type {WebMIDI.riffParser.RiffParser} */
-		var parser = new WebMIDI.riffParser.RiffParser(this.input, this.parserOption);
-		/** @type {?Riff.Chunk} */
-		var chunk;
+		var
+		chunk,
+		parser = new WebMIDI.riffParser.RiffParser(this.input, this.parserOption);
 
 		// parse RIFF chunk
 		parser.parse();
@@ -80,39 +64,26 @@ WebMIDI.soundFontParser = (function()
 		}
 
 		this.parseRiffChunk(chunk);
-		//console.log(this.sampleHeader);
+
 		this.input = null;
 	};
 
-	/**
-	 * @param {Riff.Chunk} chunk
-	 */
 	SoundFontParser.prototype.parseRiffChunk = function(chunk)
 	{
-		/** @type {WebMIDI.riffParser.RiffParser} */
-		var parser;
-		/** @type {ByteArray} */
-		var data = this.input;
-		/** @type {number} */
-		var ip = chunk.offset;
-		/** @type {string} */
-		var signature;
+		var parser, data = this.input, ip = chunk.offset, signature;
 
-		// check parse target
 		if(chunk.type !== 'RIFF')
 		{
 			throw new Error('invalid chunk type:' + chunk.type);
 		}
 
-		// check signature
 		signature = String.fromCharCode(data[ip++], data[ip++], data[ip++], data[ip++]);
 		if(signature !== 'sfbk')
 		{
 			throw new Error('invalid signature:' + signature);
 		}
 
-		// read structure
-		parser = new WebMIDI.riffParser.RiffParser(data, { 'index': ip, 'length': chunk.size - 4 });
+		parser = new WebMIDI.riffParser.RiffParser(data, { index: ip, length: chunk.size - 4 });
 		parser.parse();
 		if(parser.getNumberOfChunks() !== 3)
 		{
@@ -120,149 +91,101 @@ WebMIDI.soundFontParser = (function()
 		}
 
 		// INFO-list
-		this.parseInfoList(/** @type {!Riff.Chunk} */(parser.getChunk(0)));
+		this.parseInfoList(parser.getChunk(0));
 
 		// sdta-list
-		this.parseSdtaList(/** @type {!Riff.Chunk} */(parser.getChunk(1)));
+		this.parseSdtaList(parser.getChunk(1));
 
 		// pdta-list
-		this.parsePdtaList(/** @type {!Riff.Chunk} */(parser.getChunk(2)));
+		this.parsePdtaList(parser.getChunk(2));
 	};
 
-	/**
-	 * @param {Riff.Chunk} chunk
-	 */
 	SoundFontParser.prototype.parseInfoList = function(chunk)
 	{
-		/** @type {WebMIDI.riffParser.RiffParser} */
-		var parser;
-		/** @type {ByteArray} */
-		var data = this.input;
-		/** @type {number} */
-		var ip = chunk.offset;
-		/** @type {string} */
-		var signature;
+		var parser, data = this.input, ip = chunk.offset, signature;
 
-		// check parse target
 		if(chunk.type !== 'LIST')
 		{
 			throw new Error('invalid chunk type:' + chunk.type);
 		}
 
-		// check signature
 		signature = String.fromCharCode(data[ip++], data[ip++], data[ip++], data[ip++]);
 		if(signature !== 'INFO')
 		{
 			throw new Error('invalid signature:' + signature);
 		}
 
-		// read structure
-		parser = new WebMIDI.riffParser.RiffParser(data, { 'index': ip, 'length': chunk.size - 4 });
+		parser = new WebMIDI.riffParser.RiffParser(data, { index: ip, length: chunk.size - 4 });
 		parser.parse();
 	};
 
-	/**
-	 * @param {Riff.Chunk} chunk
-	 */
 	SoundFontParser.prototype.parseSdtaList = function(chunk)
 	{
-		/** @type {WebMIDI.riffParser.RiffParser} */
-		var parser;
-		/** @type {ByteArray} */
-		var data = this.input;
-		/** @type {number} */
-		var ip = chunk.offset;
-		/** @type {string} */
-		var signature;
+		var parser, data = this.input, ip = chunk.offset, signature;
 
-		// check parse target
 		if(chunk.type !== 'LIST')
 		{
 			throw new Error('invalid chunk type:' + chunk.type);
 		}
 
-		// check signature
 		signature = String.fromCharCode(data[ip++], data[ip++], data[ip++], data[ip++]);
 		if(signature !== 'sdta')
 		{
 			throw new Error('invalid signature:' + signature);
 		}
 
-		// read structure
-		parser = new WebMIDI.riffParser.RiffParser(data, { 'index': ip, 'length': chunk.size - 4 });
+		parser = new WebMIDI.riffParser.RiffParser(data, { index: ip, length: chunk.size - 4 });
 		parser.parse();
 		if(parser.chunkList.length !== 1)
 		{
 			throw new Error('TODO');
 		}
-		this.samplingData =
-		  /** @type {{type: string, size: number, offset: number}} */
-		  (parser.getChunk(0));
+
+		this.samplingData = parser.getChunk(0);
 	};
 
-	/**
-	 * @param {Riff.Chunk} chunk
-	 */
 	SoundFontParser.prototype.parsePdtaList = function(chunk)
 	{
-		/** @type {WebMIDI.riffParser.RiffParser} */
-		var parser;
-		/** @type {ByteArray} */
-		var data = this.input;
-		/** @type {number} */
-		var ip = chunk.offset;
-		/** @type {string} */
-		var signature;
+		var parser, data = this.input, ip = chunk.offset, signature;
 
-		// check parse target
 		if(chunk.type !== 'LIST')
 		{
 			throw new Error('invalid chunk type:' + chunk.type);
 		}
 
-		// check signature
 		signature = String.fromCharCode(data[ip++], data[ip++], data[ip++], data[ip++]);
 		if(signature !== 'pdta')
 		{
 			throw new Error('invalid signature:' + signature);
 		}
 
-		// read structure
-		parser = new WebMIDI.riffParser.RiffParser(data, { 'index': ip, 'length': chunk.size - 4 });
+		parser = new WebMIDI.riffParser.RiffParser(data, { index: ip, length: chunk.size - 4 });
 		parser.parse();
 
-		// check number of chunks
 		if(parser.getNumberOfChunks() !== 9)
 		{
 			throw new Error('invalid pdta chunk');
 		}
 
-		this.parsePhdr(/** @type {Riff.Chunk} */(parser.getChunk(0)));
-		this.parsePbag(/** @type {Riff.Chunk} */(parser.getChunk(1)));
-		this.parsePmod(/** @type {Riff.Chunk} */(parser.getChunk(2)));
-		this.parsePgen(/** @type {Riff.Chunk} */(parser.getChunk(3)));
-		this.parseInst(/** @type {Riff.Chunk} */(parser.getChunk(4)));
-		this.parseIbag(/** @type {Riff.Chunk} */(parser.getChunk(5)));
-		this.parseImod(/** @type {Riff.Chunk} */(parser.getChunk(6)));
-		this.parseIgen(/** @type {Riff.Chunk} */(parser.getChunk(7)));
-		this.parseShdr(/** @type {Riff.Chunk} */(parser.getChunk(8)));
+		this.parsePhdr(parser.getChunk(0));
+		this.parsePbag(parser.getChunk(1));
+		this.parsePmod(parser.getChunk(2));
+		this.parsePgen(parser.getChunk(3));
+		this.parseInst(parser.getChunk(4));
+		this.parseIbag(parser.getChunk(5));
+		this.parseImod(parser.getChunk(6));
+		this.parseIgen(parser.getChunk(7));
+		this.parseShdr(parser.getChunk(8));
 	};
 
-	/**
-	 * @param {Riff.Chunk} chunk
-	 */
 	SoundFontParser.prototype.parsePhdr = function(chunk)
 	{
-		/** @type {ByteArray} */
-		var data = this.input;
-		/** @type {number} */
-		var ip = chunk.offset;
-		/** @type {Array.<Object>} */
-		var presetHeader = this.presetHeader = [];
-		/** @type {number} */
-		var size = chunk.offset + chunk.size;
+		var
+		data = this.input,
+		ip = chunk.offset,
+		presetHeader = this.presetHeader = [],
+		size = chunk.offset + chunk.size;
 
-		// check parse target
 		if(chunk.type !== 'phdr')
 		{
 			throw new Error('invalid chunk type:' + chunk.type);
@@ -282,21 +205,14 @@ WebMIDI.soundFontParser = (function()
 		}
 	};
 
-	/**
-	 * @param {Riff.Chunk} chunk
-	 */
 	SoundFontParser.prototype.parsePbag = function(chunk)
 	{
-		/** @type {ByteArray} */
-		var data = this.input;
-		/** @type {number} */
-		var ip = chunk.offset;
-		/** @type {Array.<Object>} */
-		var presetZone = this.presetZone = [];
-		/** @type {number} */
-		var size = chunk.offset + chunk.size;
+		var
+		data = this.input,
+		ip = chunk.offset,
+		presetZone = this.presetZone = [],
+		size = chunk.offset + chunk.size;
 
-		// check parse target
 		if(chunk.type !== 'pbag')
 		{
 			throw new Error('invalid chunk type:' + chunk.type);
@@ -311,12 +227,8 @@ WebMIDI.soundFontParser = (function()
 		}
 	};
 
-	/**
-	 * @param {Riff.Chunk} chunk
-	 */
 	SoundFontParser.prototype.parsePmod = function(chunk)
 	{
-		// check parse target
 		if(chunk.type !== 'pmod')
 		{
 			throw new Error('invalid chunk type:' + chunk.type);
@@ -325,12 +237,8 @@ WebMIDI.soundFontParser = (function()
 		this.presetZoneModulator = this.parseModulator(chunk);
 	};
 
-	/**
-	 * @param {Riff.Chunk} chunk
-	 */
 	SoundFontParser.prototype.parsePgen = function(chunk)
 	{
-		// check parse target
 		if(chunk.type !== 'pgen')
 		{
 			throw new Error('invalid chunk type:' + chunk.type);
@@ -338,21 +246,14 @@ WebMIDI.soundFontParser = (function()
 		this.presetZoneGenerator = this.parseGenerator(chunk);
 	};
 
-	/**
-	 * @param {Riff.Chunk} chunk
-	 */
 	SoundFontParser.prototype.parseInst = function(chunk)
 	{
-		/** @type {ByteArray} */
-		var data = this.input;
-		/** @type {number} */
-		var ip = chunk.offset;
-		/** @type {Array.<Object>} */
-		var instrument = this.instrument = [];
-		/** @type {number} */
-		var size = chunk.offset + chunk.size;
+		var
+		data = this.input,
+		ip = chunk.offset,
+		instrument = this.instrument = [],
+		size = chunk.offset + chunk.size;
 
-		// check parse target
 		if(chunk.type !== 'inst')
 		{
 			throw new Error('invalid chunk type:' + chunk.type);
@@ -367,26 +268,18 @@ WebMIDI.soundFontParser = (function()
 		}
 	};
 
-	/**
-	 * @param {Riff.Chunk} chunk
-	 */
 	SoundFontParser.prototype.parseIbag = function(chunk)
 	{
-		/** @type {ByteArray} */
-		var data = this.input;
-		/** @type {number} */
-		var ip = chunk.offset;
-		/** @type {Array.<Object>} */
-		var instrumentZone = this.instrumentZone = [];
-		/** @type {number} */
-		var size = chunk.offset + chunk.size;
+		var
+		data = this.input,
+		ip = chunk.offset,
+		instrumentZone = this.instrumentZone = [],
+		size = chunk.offset + chunk.size;
 
-		// check parse target
 		if(chunk.type !== 'ibag')
 		{
 			throw new Error('invalid chunk type:' + chunk.type);
 		}
-
 
 		while(ip < size)
 		{
@@ -397,12 +290,8 @@ WebMIDI.soundFontParser = (function()
 		}
 	};
 
-	/**
-	 * @param {Riff.Chunk} chunk
-	 */
 	SoundFontParser.prototype.parseImod = function(chunk)
 	{
-		// check parse target
 		if(chunk.type !== 'imod')
 		{
 			throw new Error('invalid chunk type:' + chunk.type);
@@ -411,13 +300,8 @@ WebMIDI.soundFontParser = (function()
 		this.instrumentZoneModulator = this.parseModulator(chunk);
 	};
 
-
-	/**
-	 * @param {Riff.Chunk} chunk
-	 */
 	SoundFontParser.prototype.parseIgen = function(chunk)
 	{
-		// check parse target
 		if(chunk.type !== 'igen')
 		{
 			throw new Error('invalid chunk type:' + chunk.type);
@@ -426,43 +310,17 @@ WebMIDI.soundFontParser = (function()
 		this.instrumentZoneGenerator = this.parseGenerator(chunk);
 	};
 
-	/**
-	 * @param {Riff.Chunk} chunk
-	 */
 	SoundFontParser.prototype.parseShdr = function(chunk)
 	{
-		/** @type {ByteArray} */
-		var data = this.input;
-		/** @type {number} */
-		var ip = chunk.offset;
-		/** @type {Array.<Object>} */
-		var samples = this.sample = [];
-		/** @type {Array.<Object>} */
-		var sampleHeader = this.sampleHeader = [];
-		/** @type {number} */
-		var size = chunk.offset + chunk.size;
-		/** @type {string} */
-		var sampleName;
-		/** @type {number} */
-		var start;
-		/** @type {number} */
-		var end;
-		/** @type {number} */
-		var startLoop;
-		/** @type {number} */
-		var endLoop;
-		/** @type {number} */
-		var sampleRate;
-		/** @type {number} */
-		var originalPitch;
-		/** @type {number} */
-		var pitchCorrection;
-		/** @type {number} */
-		var sampleLink;
-		/** @type {number} */
-		var sampleType;
+		var
+		sampleName, start, end, startLoop, endLoop, sampleRate, originalPitch,
+		pitchCorrection, sampleLink, sampleType, uint8Array, buffer, sample, adjust,
+		data = this.input,
+		ip = chunk.offset,
+		samples = this.sample = [],
+		sampleHeader = this.sampleHeader = [],
+		size = chunk.offset + chunk.size;
 
-		// check parse target
 		if(chunk.type !== 'shdr')
 		{
 			throw new Error('invalid chunk type:' + chunk.type);
@@ -491,18 +349,16 @@ WebMIDI.soundFontParser = (function()
 			sampleLink = data[ip++] | (data[ip++] << 8);
 			sampleType = data[ip++] | (data[ip++] << 8);
 
-			//*
-			var sample = new Int16Array(new Uint8Array(data.subarray(
-			  this.samplingData.offset + start * 2,
-			  this.samplingData.offset + end * 2
-			)).buffer);
+			uint8Array = new Uint8Array(data.subarray(this.samplingData.offset + start * 2, this.samplingData.offset + end * 2));
+			buffer = uint8Array.buffer;
+			sample = new Int16Array(buffer);
 
 			startLoop -= start;
 			endLoop -= start;
 
 			if(sampleRate > 0)
 			{
-				var adjust = this.adjustSampleData(sample, sampleRate);
+				adjust = this.adjustSampleData(sample, sampleRate);
 				sample = adjust.sample;
 				sampleRate *= adjust.multiply;
 				startLoop *= adjust.multiply;
@@ -510,7 +366,6 @@ WebMIDI.soundFontParser = (function()
 			}
 
 			samples.push(sample);
-			//*/
 
 			sampleHeader.push({
 				sampleName: sampleName,
@@ -531,22 +386,14 @@ WebMIDI.soundFontParser = (function()
 
 	SoundFontParser.prototype.adjustSampleData = function(sample, sampleRate)
 	{
-		/** @type {Int16Array} */
-		var newSample;
-		/** @type {number} */
-		var i;
-		/** @type {number} */
-		var il;
-		/** @type {number} */
-		var j;
-		/** @type {number} */
-		var multiply = 1;
+		var newSample, i, il, j, multiply = 1;
 
-		// buffer
 		while(sampleRate < 22050)
 		{
 			newSample = new Int16Array(sample.length * 2);
-			for(i = j = 0, il = sample.length; i < il; ++i)
+			il = sample.length;
+			j = 0;
+			for(i = 0; i < il; ++i)
 			{
 				newSample[j++] = sample[i];
 				newSample[j++] = sample[i];
@@ -562,24 +409,12 @@ WebMIDI.soundFontParser = (function()
 		};
 	};
 
-	/**
-	 * @param {Riff.Chunk} chunk
-	 * @return {Array.<Object>}
-	 */
 	SoundFontParser.prototype.parseModulator = function(chunk)
 	{
-		/** @type {ByteArray} */
-		var data = this.input;
-		/** @type {number} */
-		var ip = chunk.offset;
-		/** @type {number} */
-		var size = chunk.offset + chunk.size;
-		/** @type {number} */
-		var code;
-		/** @type {string} */
-		var key;
-		/** @type {Array.<Object>} */
-		var output = [];
+		var code, key, output = [],
+		data = this.input,
+		ip = chunk.offset,
+		size = chunk.offset + chunk.size;
 
 		while(ip < size)
 		{
@@ -590,7 +425,7 @@ WebMIDI.soundFontParser = (function()
 			// Dest Oper
 			code = data[ip++] | (data[ip++] << 8);
 			key = SoundFontParser.GeneratorEnumeratorTable[code];
-			if(key === void 0)
+			if(key === undefined)
 			{
 				// Amount
 				output.push({
@@ -642,30 +477,18 @@ WebMIDI.soundFontParser = (function()
 		return output;
 	};
 
-	/**
-	 * @param {Riff.Chunk} chunk
-	 * @return {Array.<Object>}
-	 */
 	SoundFontParser.prototype.parseGenerator = function(chunk)
 	{
-		/** @type {ByteArray} */
-		var data = this.input;
-		/** @type {number} */
-		var ip = chunk.offset;
-		/** @type {number} */
-		var size = chunk.offset + chunk.size;
-		/** @type {number} */
-		var code;
-		/** @type {string} */
-		var key;
-		/** @type {Array.<Object>} */
-		var output = [];
+		var code, key, output = [],
+		data = this.input,
+		ip = chunk.offset,
+		size = chunk.offset + chunk.size;
 
 		while(ip < size)
 		{
 			code = data[ip++] | (data[ip++] << 8);
 			key = SoundFontParser.GeneratorEnumeratorTable[code];
-			if(key === void 0)
+			if(key === undefined)
 			{
 				output.push({
 					type: key,
@@ -709,40 +532,22 @@ WebMIDI.soundFontParser = (function()
 
 	SoundFontParser.prototype.createInstrument = function()
 	{
-		/** @type {Array.<Object>} */
-		var instrument = this.instrument;
-		/** @type {Array.<Object>} */
-		var zone = this.instrumentZone;
-		/** @type {Array.<Object>} */
-		var output = [];
-		/** @type {number} */
-		var bagIndex;
-		/** @type {number} */
-		var bagIndexEnd;
-		/** @type {Array.<Object>} */
-		var zoneInfo;
-		/** @type {{generator: Object, generatorInfo: Array.<Object>}} */
-		var instrumentGenerator;
-		/** @type {{modulator: Object, modulatorInfo: Array.<Object>}} */
-		var instrumentModulator;
-		/** @type {number} */
-		var i;
-		/** @type {number} */
-		var il;
-		/** @type {number} */
-		var j;
-		/** @type {number} */
-		var jl;
+		var	bagIndex, bagIndexEnd, zoneInfo, instrumentGenerator, instrumentModulator,
+		i, il, j, jl, output = [],
+		instrument = this.instrument,
+		zone = this.instrumentZone;
 
 		// instrument -> instrument bag -> generator / modulator
-		for(i = 0, il = instrument.length; i < il; ++i)
+		il = instrument.length;
+		for(i = 0; i < il; ++i)
 		{
 			bagIndex = instrument[i].instrumentBagIndex;
 			bagIndexEnd = instrument[i + 1] ? instrument[i + 1].instrumentBagIndex : zone.length;
 			zoneInfo = [];
 
 			// instrument bag
-			for(j = bagIndex, jl = bagIndexEnd; j < jl; ++j)
+			jl = bagIndexEnd;
+			for(j = bagIndex; j < jl; ++j)
 			{
 				instrumentGenerator = this.createInstrumentGenerator_(zone, j);
 				instrumentModulator = this.createInstrumentModulator_(zone, j);
@@ -766,42 +571,24 @@ WebMIDI.soundFontParser = (function()
 
 	SoundFontParser.prototype.createPreset = function()
 	{
-		/** @type {Array.<Object>} */
-		var preset = this.presetHeader;
-		/** @type {Array.<Object>} */
-		var zone = this.presetZone;
-		/** @type {Array.<Object>} */
-		var output = [];
-		/** @type {number} */
-		var bagIndex;
-		/** @type {number} */
-		var bagIndexEnd;
-		/** @type {Array.<Object>} */
-		var zoneInfo;
-		/** @type {number} */
-		var instrument;
-		/** @type {{generator: Object, generatorInfo: Array.<Object>}} */
-		var presetGenerator;
-		/** @type {{modulator: Object, modulatorInfo: Array.<Object>}} */
-		var presetModulator;
-		/** @type {number} */
-		var i;
-		/** @type {number} */
-		var il;
-		/** @type {number} */
-		var j;
-		/** @type {number} */
-		var jl;
+		var
+		bagIndex, bagIndexEnd, zoneInfo, instrument, presetGenerator, presetModulator,
+		i, il, j, jl,
+		preset = this.presetHeader,
+		zone = this.presetZone,
+		output = [];
 
 		// preset -> preset bag -> generator / modulator
-		for(i = 0, il = preset.length; i < il; ++i)
+		il = preset.length;
+		for(i = 0; i < il; ++i)
 		{
 			bagIndex = preset[i].presetBagIndex;
 			bagIndexEnd = preset[i + 1] ? preset[i + 1].presetBagIndex : zone.length;
 			zoneInfo = [];
 
 			// preset bag
-			for(j = bagIndex, jl = bagIndexEnd; j < jl; ++j)
+			jl = bagIndexEnd;
+			for(j = bagIndex; j < jl; ++j)
 			{
 				presetGenerator = this.createPresetGenerator_(zone, j);
 				presetModulator = this.createPresetModulator_(zone, j);
@@ -814,10 +601,10 @@ WebMIDI.soundFontParser = (function()
 				});
 
 				instrument =
-				  presetGenerator.generator['instrument'] !== void 0 ?
-					presetGenerator.generator['instrument'].amount :
-				  presetModulator.modulator['instrument'] !== void 0 ?
-					presetModulator.modulator['instrument'].amount :
+				  presetGenerator.generator.instrument !== undefined ?
+					presetGenerator.generator.instrument.amount :
+				  presetModulator.modulator.instrument !== undefined ?
+					presetModulator.modulator.instrument.amount :
 				  null;
 			}
 
@@ -832,12 +619,6 @@ WebMIDI.soundFontParser = (function()
 		return output;
 	};
 
-	/**
-	 * @param {Array.<Object>} zone
-	 * @param {number} index
-	 * @returns {{generator: Object, generatorInfo: Array.<Object>}}
-	 * @private
-	 */
 	SoundFontParser.prototype.createInstrumentGenerator_ = function(zone, index)
 	{
 		var modgen = this.createBagModGen_(
@@ -853,12 +634,6 @@ WebMIDI.soundFontParser = (function()
 		};
 	};
 
-	/**
-	 * @param {Array.<Object>} zone
-	 * @param {number} index
-	 * @returns {{modulator: Object, modulatorInfo: Array.<Object>}}
-	 * @private
-	 */
 	SoundFontParser.prototype.createInstrumentModulator_ = function(zone, index)
 	{
 		var modgen = this.createBagModGen_(
@@ -874,12 +649,6 @@ WebMIDI.soundFontParser = (function()
 		};
 	};
 
-	/**
-	 * @param {Array.<Object>} zone
-	 * @param {number} index
-	 * @returns {{generator: Object, generatorInfo: Array.<Object>}}
-	 * @private
-	 */
 	SoundFontParser.prototype.createPresetGenerator_ = function(zone, index)
 	{
 		var modgen = this.createBagModGen_(
@@ -895,15 +664,8 @@ WebMIDI.soundFontParser = (function()
 		};
 	};
 
-	/**
-	 * @param {Array.<Object>} zone
-	 * @param {number} index
-	 * @returns {{modulator: Object, modulatorInfo: Array.<Object>}}
-	 * @private
-	 */
 	SoundFontParser.prototype.createPresetModulator_ = function(zone, index)
 	{
-		/** @type {{modgen: Object, modgenInfo: Array.<Object>}} */
 		var modgen = this.createBagModGen_(
 		  zone,
 		  zone[index].presetModulatorIndex,
@@ -917,34 +679,17 @@ WebMIDI.soundFontParser = (function()
 		};
 	};
 
-	/**
-	 * @param {Array.<Object>} zone
-	 * @param {number} indexStart
-	 * @param {number} indexEnd
-	 * @param zoneModGen
-	 * @returns {{modgen: Object, modgenInfo: Array.<Object>}}
-	 * @private
-	 */
 	SoundFontParser.prototype.createBagModGen_ = function(zone, indexStart, indexEnd, zoneModGen)
 	{
-		/** @type {Array.<Object>} */
-		var modgenInfo = [];
-		/** @type {Object} */
-		var modgen = {
+		var info, i,
+		modgenInfo = [],
+		modgen =
+		{
 			unknown: [],
-			'keyRange': {
-				hi: 127,
-				lo: 0
-			}
-		}; // TODO
-		/** @type {Object} */
-		var info;
-		/** @type {number} */
-		var i;
-		/** @type {number} */
-		var il;
+			keyRange: {hi: 127, lo: 0}
+		};
 
-		for(i = indexStart, il = indexEnd; i < il; ++i)
+		for(i = indexStart; i < indexEnd; ++i)
 		{
 			info = zoneModGen[i];
 			modgenInfo.push(info);
@@ -952,7 +697,8 @@ WebMIDI.soundFontParser = (function()
 			if(info.type === 'unknown')
 			{
 				modgen.unknown.push(info.value);
-			} else
+			}
+			else
 			{
 				modgen[info.type] = info.value;
 			}
@@ -964,10 +710,6 @@ WebMIDI.soundFontParser = (function()
 		};
 	};
 
-	/**
-	 * @type {Array.<string>}
-	 * @const
-	 */
 	SoundFontParser.GeneratorEnumeratorTable = [
 	  'startAddrsOffset',
 	  'endAddrsOffset',

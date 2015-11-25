@@ -13,9 +13,7 @@
 *        SoundFont(soundFontUrl, soundFontName, presetIndices, onLoad)
 */
 
-/*jslint bitwise: false, nomen: true, plusplus: true, white: true */
-/*global WebMIDI: false,  window: false,  document: false, performance: false, console: false, alert: false, XMLHttpRequest: false */
-
+/*global WebMIDI */
 
 WebMIDI.namespace('WebMIDI.soundFont');
 
@@ -32,7 +30,7 @@ WebMIDI.soundFont = (function()
 		var modgenInfo = [],
 			modgen = {
 				unknown: [],
-				'keyRange': {
+				keyRange: {
 					hi: 127,
 					lo: 0
 				}},
@@ -118,44 +116,31 @@ WebMIDI.soundFont = (function()
 		};
 	},
 
-	getModGenAmount = function(generator, enumeratorType, opt_default)
+	getModGenAmount = function(generator, enumeratorType, optDefault)
 	{
-		if (opt_default === undefined) {
-			opt_default = 0;
+		if (optDefault === undefined) {
+			optDefault = 0;
 		}
 
-		return generator[enumeratorType] ? generator[enumeratorType].amount : opt_default;
+		return generator[enumeratorType] ? generator[enumeratorType].amount : optDefault;
 	},
 
-	createNoteInfo = function(parser, generator, preset) {
-
-		/** @type {number} */
-		var sampleId,
-		/** @type {Object} */
+	createNoteInfo = function(parser, generator, preset, bankIndex, patchIndex)
+	{
+		var
+		sampleId,
 		sampleHeader,
-		/** @type {number} */
 		volAttack,
-		/** @type {number} */
 		volDecay,
-		/** @type {number} */
 		volSustain,
-		/** @type {number} */
 		volRelease,
-		/** @type {number} */
 		modAttack,
-		/** @type {number} */
 		modDecay,
-		/** @type {number} */
 		modSustain,
-		/** @type {number} */
 		modRelease,
-		/** @type {number} */
 		tune,
-		/** @type {number} */
 		scale,
-		/** @type {number} */
 		freqVibLFO,
-		/** @type {number} */
 		i;
 
 		if (generator.keyRange === undefined || generator.sampleID === undefined) {
@@ -184,6 +169,12 @@ WebMIDI.soundFont = (function()
 			{
 				sampleId = getModGenAmount(generator, 'sampleID');
 				sampleHeader = parser.sampleHeader[sampleId];
+
+				if(sampleHeader.sampleName.indexOf('EOS') < 0 && sampleHeader.startLoop <= 8 && bankIndex === 0 && patchIndex < 128)
+				{
+					console.log("Warning: startLoop <= 8: sampleName=" + sampleHeader.sampleName + " startLoop=" + sampleHeader.startLoop);
+				}
+
 				preset[i] = {
 					'sample': parser.sample[sampleId],
 					'sampleRate': sampleHeader.sampleRate,
@@ -246,24 +237,15 @@ WebMIDI.soundFont = (function()
 
 			function createPreset(parser)
 			{
-				/** @type {Array.<Object>} */
 				var i, j,
 				preset = parser.presetHeader,
-				/** @type {Array.<Object>} */
 				zone = parser.presetZone,
-				/** @type {Array.<Object>} */
 				output = [],
-				/** @type {number} */
 				bagIndex,
-				/** @type {number} */
 				bagIndexEnd,
-				/** @type {Array.<Object>} */
 				zoneInfo,
-				/** @type {number} */
 				instrument,
-				/** @type {{generator: Object, generatorInfo: Array.<Object>}} */
 				presetGenerator,
-				/** @type {{modulator: Object, modulatorInfo: Array.<Object>}} */
 				presetModulator;
 
 				// preset -> preset bag -> generator / modulator
@@ -318,7 +300,7 @@ WebMIDI.soundFont = (function()
 				return output;
 			}
 
-			// ji: This is the original gree function, edited to comply with my programming style (old JSLint).
+			// ji: This is the original gree function, edited to comply with my programming style.
 			// I don't know why it returns all the instrument zones as a single instrument.
 			// It seems to work okay, but needs checking to see that nothing irregular is happening.
 			// Maybe its because the parser is expecting to be given a full set of presets, and only geting a
@@ -475,7 +457,7 @@ WebMIDI.soundFont = (function()
 					instr = instrument[j];
 					for(k = 0; k < instr.info.length; ++k)
 					{
-						createNoteInfo(parser, instr.info[k].generator, bank[patchIndex]);
+						createNoteInfo(parser, instr.info[k].generator, bank[patchIndex], bankIndex, patchIndex);
 					}
 				}
 			}
@@ -560,4 +542,4 @@ WebMIDI.soundFont = (function()
 
 	return API;
 
-}(window));
+}());

@@ -1,30 +1,30 @@
-﻿/*
-* Copyright 2015 James Ingram, gree
-* http://james-ingram-act-two.de/
-* https://github.com/gree
-* 
-* This code is based on the gree soundFont synthesizer at
-* https://github.com/gree/sf2synth.js
-*
-* All this code is licensed under MIT
-*
-*  WebMIDI.sf2Synth1 namespace containing a Sf2Synth1 constructor.
-* 
-*  This soundFont synth plays soundFonts loaded using its setSoundFont(soundFont)
-*  function. It also logs MIDI messages to the console.
-*  The object of having this code is to be able to discuss and improve the interface.
-*  It would, however, be nice if this synth could be optimised and improved by real
-*  Web Audio programmers. See the Web MIDI Synth Host issues on GitHub.
-*/
+﻿/* Copyright 2015 James Ingram, gree
+ * http://james-ingram-act-two.de/
+ * https://github.com/gree
+ *  
+ * This code is based on the gree soundFont synthesizer at
+ * https://github.com/gree/sf2synth.js
+ *
+ * All this code is licensed under MIT
+ *
+ * WebMIDI.sf2Synth1 namespace containing a Sf2Synth1 constructor.
+ * 
+ * This soundFont synth plays soundFonts loaded using its setSoundFont(soundFont)
+ * function. It also logs MIDI messages to the console.
+ * The object of having this code is to be able to discuss and improve the interface.
+ * It would, however, be nice if this synth could be optimised and improved by real
+ * Web Audio programmers. See the Web MIDI Synth Host issues on GitHub.
+ * https://github.com/notator/WebMIDISynthHost
+ */
 
-/*jslint bitwise: false, nomen: true, plusplus: true, white: true */
-/*global WebMIDI: false,  window: false,  document: false, performance: false, console: false, alert: false, XMLHttpRequest: false */
+/*jshint strict: true, -W110*/
+/*global WebMIDI */
 
 WebMIDI.namespace('WebMIDI.sf2Synth1');
 
-WebMIDI.sf2Synth1 = (function()
+WebMIDI.sf2Synth1 = (function(window)
 {
-	"use strict";
+    "use strict";
 
 	var
     /*********************************************************
@@ -33,41 +33,33 @@ WebMIDI.sf2Synth1 = (function()
 	 * I have removed all references to the original gree GUI
 	 * (i.e. the HTML <table> and the instrument names).
 	 *********************************************************/
-	/** @type {number} */
 	bankIndex = 0,
-	/** @type {Array.<Array.<Object>>} */
 	bankSet,
-	/** @type {number} */
-	bufferSize = 1024,
-	/** @type {AudioContext} */
 	ctx, // set in constructor
-	/** @type {AudioGainNode} */
 	gainMaster,  // set in constructor (ji)
+
+	/** ji begin compressor commented out because unused November 2015 */
 	/** @type {DynamicsCompressorNode} */
-	compressor,  // set in constructor (ji)
-	/** @type {AudioBufferSourceNode} */
+	// compressor,
+	/** ji end compressor commented out because unused November 2015 */
+
 	bufSrc,  // set in constructor (ji)
-	/** @type {Array.<number>} */
 	channelInstrument =
 	  [0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 10, 11, 12, 13, 14, 15],
-	/** @type {Array.<number>} */
 	channelVolume =
 	  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-	/** @type {Array.<number>} */
 	channelPanpot =
 	  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-	/** @type {Array.<number>} */
 	channelPitchBend =
 	  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 	channelPitchBendSensitivity =
 	  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-	/** @type {Array.<Array.<SoundFont.SynthesizerNote>>} */
 	currentNoteOns = [],
-	/** @type {number} */
 	baseVolume = 1 / 0x8000,
-	/** @type {number} */
-	masterVolume = 16384,
-	/*  end of gree code  *********************************************/
+
+	// masterVolume = 16384, -- unused and commented out (ji November 2015)
+
+	/*  end of gree variables  ****************************************/
 	/******************************************************************/
 
 	getAudioContext = function()
@@ -83,7 +75,7 @@ WebMIDI.sf2Synth1 = (function()
 	commands =
 	[
 		CMD.NOTE_OFF,
-		CMD.NOTE_ON, 
+		CMD.NOTE_ON,
 		CMD.CONTROL_CHANGE,
 		CMD.PATCH_CHANGE,
 		CMD.PITCHWHEEL
@@ -119,7 +111,7 @@ WebMIDI.sf2Synth1 = (function()
 		/*** See also: disconnect() function below ***/
 		Object.defineProperty(this, "removable", { value: true, writable: false });
 
-		/*** Extensions for software synths ***/	
+		/*** Extensions for software synths ***/
 		Object.defineProperty(this, "url", { value: "https://github.com/gree/sf2synth.js", writable: false }); // The synth author's webpage hosting the synth.		
 		Object.defineProperty(this, "commands", { value: commands, writable: false }); // The commands supported by this synth (see above).		
 		Object.defineProperty(this, "controls", { value: controls, writable: false }); // The controls supported by this synth (see above).		
@@ -128,9 +120,14 @@ WebMIDI.sf2Synth1 = (function()
 
 		ctx = getAudioContext();
 		gainMaster = ctx.createGain();
+
+		/** ji begin compressor commented out because unused November 2015 */
 		/** @type {DynamicsCompressorNode} */
-		compressor = ctx.createDynamicsCompressor();
+		// compressor = ctx.createDynamicsCompressor();
+		/** ji end compressor commented out because unused November 2015 */
+
 		/** @type {AudioBufferSourceNode} */
+
 		bufSrc = ctx.createBufferSource();
 
 		for(i = 0; i < 16; ++i)
@@ -214,7 +211,7 @@ WebMIDI.sf2Synth1 = (function()
 			{
 				checkControlExport(CTL.ALL_CONTROLLERS_OFF);
 				console.log("sf2Synth1 AllControllersOff: channel:".concat(channel));
-				that.resetAllControl(channel);	
+				that.resetAllControl(channel);
 			}
 			function setAllSoundOff(channel)
 			{
@@ -270,10 +267,10 @@ WebMIDI.sf2Synth1 = (function()
 			case CMD.NOTE_ON:
 				handleNoteOn(channel, data1, data2);
 				break;
-			case CMD.CONTROL_CHANGE:				
+			case CMD.CONTROL_CHANGE:
 				handleControl(channel, data1, data2);
 				break;
-			case CMD.PATCH_CHANGE:			
+			case CMD.PATCH_CHANGE:
 				handlePatchChange(channel, data1);
 				break;
 			case CMD.PITCHWHEEL:
@@ -324,6 +321,7 @@ WebMIDI.sf2Synth1 = (function()
 		gainMaster.connect(ctx.destination);
 		bufSrc.start(0);
 
+		// ji November 2015
 		this.setMasterVolume(16383);
 
 		console.log("sf2Synth1 initialised");
@@ -331,7 +329,7 @@ WebMIDI.sf2Synth1 = (function()
 
 	Sf2Synth1.prototype.setMasterVolume = function(volume)
 	{
-		masterVolume = volume;
+		// masterVolume = volume; -- masterVolume unused so commented out (ji November 2015)
 		gainMaster.gain.value = baseVolume * (volume / 16384);
 	};
 
@@ -339,7 +337,11 @@ WebMIDI.sf2Synth1 = (function()
 	{
 		bufSrc.disconnect(0);
 		gainMaster.disconnect(0);
-		compressor.disconnect(0);
+
+		/** ji begin compressor commented out because unused November 2015 */
+		// compressor.disconnect(0);
+		/** ji end compressor commented out because unused November 2015 */
+
 	};
 
 	Sf2Synth1.prototype.noteOn = function(channel, key, velocity)
@@ -348,18 +350,27 @@ WebMIDI.sf2Synth1 = (function()
 		instrument = bank[channelInstrument[channel]],
 		instrumentKey,
 		note,
-		panpot = channelPanpot[channel] - 64;
+		panpot = channelPanpot[channel] - 64,
+		bnk, bankStr, instrStr, channelStr;
 
 		if(!instrument)
 		{
-			throw "instrument not found: channel=".concat(channel, " bankIndex=", bankIndex);
+			bnk = (channel === 9) ? 128 : this.bank;
+			bankStr = bnk.toString(10);
+			instrStr = (this.channelInstrument[channel]).toString(10);
+			channelStr = channel.toString(10);
+			throw "instrument not found: bank=" + bankStr + " instrument=" + instrStr + " channel=" + channelStr;
 		}
 
 		instrumentKey = instrument[key];
 
 		if(!instrumentKey)
 		{
-			throw "instrument key not found: channel=".concat(channel, " key=", key);
+	  		bnk = (channel === 9) ? 128 : this.bank;
+			bankStr = bnk.toString(10);
+			instrStr = (this.channelInstrument[channel]).toString(10);
+			channelStr = channel.toString(10);
+			throw "instrument key not found: bank=" + bankStr + " instrument=" + instrStr + " channel=" + channelStr + " key=" + key;
 		}
 
 		panpot /= panpot < 0 ? 64 : 63;
@@ -391,7 +402,8 @@ WebMIDI.sf2Synth1 = (function()
 			return;
 		}
 
-		for(i = 0, il = currentNoteOn.length; i < il; ++i)
+		il = currentNoteOn.length;
+		for(i = 0; i < il; ++i)
 		{
 			note = currentNoteOn[i];
 			if(note.key === key)
@@ -433,7 +445,8 @@ WebMIDI.sf2Synth1 = (function()
 
 		if(currentNoteOn !== undefined)
 		{
-			for(i = 0, il = currentNoteOn.length; i < il; ++i)
+			il = currentNoteOn.length;
+			for(i = 0; i < il; ++i)
 			{
 				currentNoteOn[i].updatePitchBend(calculated);
 			}
@@ -463,4 +476,4 @@ WebMIDI.sf2Synth1 = (function()
 
 	return API;
 
-}());
+}(window));

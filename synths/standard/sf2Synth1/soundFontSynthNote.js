@@ -1,19 +1,19 @@
 /*
 * Copyright 2015 James Ingram
 * http://james-ingram-act-two.de/
-* 
+*
 * This code is based on the gree soundFont synthesizer at
 * https://github.com/gree/sf2synth.js
 *
 * All this code is licensed under MIT
 *
 * The WebMIDI.soundFontSynthNote namespace containing the following constructor:
+*
+*        SoundFontSynthNote(ctx, gainMaster, instrument)
 * 
-*        SoundFontSynthNote(ctx, destination, instrument)
 */
 
-/*jslint bitwise: false, nomen: true, plusplus: true, white: true */
-/*global WebMIDI: false,  window: false,  document: false, performance: false, console: false, alert: false, XMLHttpRequest: false */
+/*global WebMIDI */
 
 WebMIDI.namespace('WebMIDI.soundFontSynthNote');
 
@@ -21,152 +21,72 @@ WebMIDI.soundFontSynthNote = (function()
 {
 	"use strict";
 	var
-	/**
-     * @param {AudioContext} ctx
-     * @param {AudioNode} destination
-     * @param {{
-     *   channel: number,
-     *   key: number,
-     *   sample: Uint8Array,
-     *   basePlaybackRate: number,
-     *   loopStart: number,
-     *   loopEnd: number,
-     *   volume: number,
-     *   panpot: number
-     * }} instrument
-     * @constructor
-     */
-	SoundFontSynthNote = function(ctx, destination, instrument)
+	SoundFontSynthNote = function(ctx, gainMaster, instrument)
 	{
-		/** @type {AudioContext} */
 		this.ctx = ctx;
-		/** @type {AudioNode} */
-		this.destination = destination;
-		/** @type {{
-		 *   channel: number,
-		 *   key: number,
-		 *   sample: Uint8Array,
-		 *   basePlaybackRate: number,
-		 *   loopStart: number,
-		 *   loopEnd: number,
-		 *   volume: number,
-		 *   panpot: number
-		 * }}
-		 */
+		this.gainMaster = gainMaster;
 		this.instrument = instrument;
-		/** @type {number} */
-		this.channel = instrument['channel'];
-		/** @type {number} */
-		this.key = instrument['key'];
-		/** @type {number} */
-		this.velocity = instrument['velocity'];
-		/** @type {Int16Array} */
-		this.buffer = instrument['sample'];
-		/** @type {number} */
-		this.playbackRate = instrument['basePlaybackRate'];
-		/** @type {number} */
-		this.sampleRate = instrument['sampleRate'];
-		/** @type {number} */
-		this.volume = instrument['volume'];
-		/** @type {number} */
-		this.panpot = instrument['panpot'];
-		/** @type {number} */
-		this.pitchBend = instrument['pitchBend'];
-		/** @type {number} */
-		this.pitchBendSensitivity = instrument['pitchBendSensitivity'];
-		/** @type {number} */
-		this.modEnvToPitch = instrument['modEnvToPitch'];
+		this.channel = instrument.channel;
+		this.key = instrument.key;
+		this.velocity = instrument.velocity;
+		this.buffer = instrument.sample;
+		this.playbackRate = instrument.basePlaybackRate;
+		this.sampleRate = instrument.sampleRate;
+		this.volume = instrument.volume;
+		this.panpot = instrument.panpot;
+		this.pitchBend = instrument.pitchBend;
+		this.pitchBendSensitivity = instrument.pitchBendSensitivity;
+		this.modEnvToPitch = instrument.modEnvToPitch;
 
 		// state
-		/** @type {number} */
 		this.startTime = ctx.currentTime;
-		/** @type {number} */
 		this.computedPlaybackRate = this.playbackRate;
 
-		//---------------------------------------------------------------------------
 		// audio node
-		//---------------------------------------------------------------------------
+		this.audioBuffer = null;
+		this.bufferSource = null;
+		this.panner = null;
+		this.gainOutput = null;
 
-		/** @type {AudioBuffer} */
-		this.audioBuffer;
-		/** @type {AudioBufferSourceNode} */
-		this.bufferSource;
-		/** @type {AudioPannerNode} */
-		this.panner;
-		/** @type {AudioGainNode} */
-		this.gainOutput;
-
-		//console.log(instrument['modAttack'], instrument['modDecay'], instrument['modSustain'], instrument['modRelease']);
-		
+		//console.log(instrument.modAttack, instrument.modDecay, instrument.modSustain, instrument.modRelease);	
 	},
 
 	API =
 	{
-		SoundFontSynthNote: SoundFontSynthNote, // constructor
+		SoundFontSynthNote: SoundFontSynthNote // constructor
 	};
-	// end var
 
 	SoundFontSynthNote.prototype.noteOn = function()
 	{
-		/** @type {AudioContext} */
-		var ctx = this.ctx;
-		/** @type {{
-		 *   channel: number,
-		 *   key: number,
-		 *   sample: Uint8Array,
-		 *   basePlaybackRate: number,
-		 *   loopStart: number,
-		 *   loopEnd: number,
-		 *   volume: number,
-		 *   panpot: number
-		 * }} */
-		var instrument = this.instrument;
-		/** @type {Int16Array} */
-		var sample = this.buffer;
-		/** @type {AudioBuffer} */
-		var buffer;
-		/** @type {Float32Array} */
-		var channelData;
-		/** @type {AudioBufferSourceNode} */
-		var bufferSource;
-		/** @type {BiquadFilterNode} */
-		var filter;
-		/** @type {AudioPannerNode} */
-		var panner;
-		/** @type {AudioGainNode} */
-		var output;
-		/** @type {AudioGain} */
-		var outputGain;
-		/** @type {number} */
-		var now = this.ctx.currentTime;
-		/** @type {number} */
-		var volAttack = now + instrument['volAttack'];
-		/** @type {number} */
-		var modAttack = now + instrument['modAttack'];
-		/** @type {number} */
-		var volDecay = volAttack + instrument['volDecay'];
-		/** @type {number} */
-		var modDecay = modAttack + instrument['modDecay'];
-		/** @type {number} */
-		var loopStart = instrument['loopStart'] / this.sampleRate;
-		/** @type {number} */
-		var loopEnd = instrument['loopEnd'] / this.sampleRate;
-		/** @type {number} */
-		var startTime = instrument['start'] / this.sampleRate;
-		/** @type {number} */
-		var baseFreq;
-		/** @type {number} */
-		var peekFreq;
-		/** @type {number} */
-		var sustainFreq;
+		var
+		buffer, channelData, bufferSource, filter, panner,
+		output, outputGain, baseFreq, peekFreq, sustainFreq,
+		ctx = this.ctx,
+		instrument = this.instrument,
+		sample = this.buffer,
+		now = this.ctx.currentTime,
+		volAttack = now + instrument.volAttack,
+		modAttack = now + instrument.modAttack,
+		volDecay = volAttack + instrument.volDecay,
+		modDecay = modAttack + instrument.modDecay,
+		loopStart = instrument.loopStart / this.sampleRate,
+		loopEnd = instrument.loopEnd / this.sampleRate,
+		startTime = instrument.start / this.sampleRate;
 
-		sample = sample.subarray(0, sample.length + instrument['end']);
-		buffer = this.audioBuffer = ctx.createBuffer(1, sample.length, this.sampleRate);
+		function amountToFreq(val)
+		{
+			return Math.pow(2, (val - 6900) / 1200) * 440;
+		}
+
+		sample = sample.subarray(0, sample.length + instrument.end);
+		this.audioBuffer = ctx.createBuffer(1, sample.length, this.sampleRate);
+		buffer = this.audioBuffer;
 		channelData = buffer.getChannelData(0);
 		channelData.set(sample);
 
 		// buffer source
-		bufferSource = this.bufferSource = ctx.createBufferSource();
+		this.bufferSource = ctx.createBufferSource();
+		bufferSource = this.bufferSource;
 		bufferSource.buffer = buffer;
 		/* ji begin changes November 2015 */
 		// This line was originally:
@@ -174,7 +94,7 @@ WebMIDI.soundFontSynthNote = (function()
 		// This means that all presets in channels other than 9 should loop, and
 		// assumes that they all have valid loop parameters.
 		// In the Arachno soundFont, the presets Marimba, Banjo and Melodic Tom
-		// use samples that have loops that start at 0 or 8. I think these are bugs
+		// use samples that have loops that start at 0 or 8. These must be bugs
 		// in the soundFont.
 		// The Sf2 spec says that loops should start at at least position 8.
 		// If the loop starts too close to the attack, the attack is of course
@@ -186,12 +106,15 @@ WebMIDI.soundFontSynthNote = (function()
 		this.updatePitchBend(this.pitchBend);
 
 		// audio node
-		panner = this.panner = ctx.createPanner();
-		output = this.gainOutput = ctx.createGain();
+		this.panner = ctx.createPanner();
+		panner = this.panner;
+		this.gainOutput = ctx.createGain();
+		output = this.gainOutput;
 		outputGain = output.gain;
 
 		// filter
-		filter = this.filter = ctx.createBiquadFilter();
+		this.filter = ctx.createBiquadFilter();
+		filter = this.filter;
 		filter.type = 'lowpass';
 
 		// panpot
@@ -207,36 +130,28 @@ WebMIDI.soundFontSynthNote = (function()
 		//---------------------------------------------------------------------------
 		outputGain.setValueAtTime(0, now);
 		outputGain.linearRampToValueAtTime(this.volume * (this.velocity / 127), volAttack);
-		outputGain.linearRampToValueAtTime(this.volume * (1 - instrument['volSustain']), volDecay);
+		outputGain.linearRampToValueAtTime(this.volume * (1 - instrument.volSustain), volDecay);
 
 		// begin ji changes November 2015.
-		// The following original line was a bug that threw an out-of-range exception:
+		// The following original line was a (deliberate, forgotten?) bug that threw an out-of-range
+		// exception when instrument['initialFilterQ'] > 0:
 		//     filter.Q.setValueAtTime(instrument['initialFilterQ'] * Math.pow(10, 200), now);
 		// The following line seems to work, but is it realy correct?
-		filter.Q.setValueAtTime(instrument['initialFilterQ'], now);
+		filter.Q.setValueAtTime(instrument.initialFilterQ, now);
 		// end ji ji changes November 2015
 
-		baseFreq = amountToFreq(instrument['initialFilterFc']);
-		peekFreq = amountToFreq(instrument['initialFilterFc'] + instrument['modEnvToFilterFc']);
-		sustainFreq = baseFreq + (peekFreq - baseFreq) * (1 - instrument['modSustain']);
+		baseFreq = amountToFreq(instrument.initialFilterFc);
+		peekFreq = amountToFreq(instrument.initialFilterFc + instrument.modEnvToFilterFc);
+		sustainFreq = baseFreq + (peekFreq - baseFreq) * (1 - instrument.modSustain);
 		filter.frequency.setValueAtTime(baseFreq, now);
 		filter.frequency.linearRampToValueAtTime(peekFreq, modAttack);
 		filter.frequency.linearRampToValueAtTime(sustainFreq, modDecay);
-
-		/**
-		 * @param {number} val
-		 * @returns {number}
-		 */
-		function amountToFreq(val)
-		{
-			return Math.pow(2, (val - 6900) / 1200) * 440;
-		}
 
 		// connect
 		bufferSource.connect(filter);
 		filter.connect(panner);
 		panner.connect(output);
-		output.connect(this.destination);
+		output.connect(this.gainMaster);
 
 		// fire
 		bufferSource.start(0, startTime);
@@ -244,27 +159,12 @@ WebMIDI.soundFontSynthNote = (function()
 
 	SoundFontSynthNote.prototype.noteOff = function()
 	{
-		/** @type {{
-		 *   channel: number,
-		 *   key: number,
-		 *   sample: Uint8Array,
-		 *   basePlaybackRate: number,
-		 *   loopStart: number,
-		 *   loopEnd: number,
-		 *   volume: number,
-		 *   panpot: number
-		 * }} */
-		var instrument = this.instrument;
-		/** @type {AudioBufferSourceNode} */
-		var bufferSource = this.bufferSource;
-		/** @type {AudioGainNode} */
-		var output = this.gainOutput;
-		/** @type {number} */
-		var now = this.ctx.currentTime;
-		/** @type {number} */
-		var volEndTime = now + instrument['volRelease'];
-		/** @type {number} */
-		var modEndTime = now + instrument['modRelease'];
+		var instrument = this.instrument,
+		bufferSource = this.bufferSource,
+		output = this.gainOutput,
+		now = this.ctx.currentTime,
+		volEndTime = now + instrument.volRelease,
+		modEndTime = now + instrument.modRelease;
 
 		if(!this.audioBuffer)
 		{
@@ -283,7 +183,6 @@ WebMIDI.soundFontSynthNote = (function()
 		bufferSource.stop(volEndTime);
 
 		// disconnect
-		//*
 		setTimeout(
 		  (function(note)
 		  {
@@ -293,40 +192,28 @@ WebMIDI.soundFontSynthNote = (function()
 		  		note.panner.disconnect(0);
 		  		note.gainOutput.disconnect(0);
 		  	};
-		  })(this),
-		  instrument['volRelease'] * 1000
+		  }(this)),
+		  instrument.volRelease * 1000
 		);
-		//*/
 	};
 
 	SoundFontSynthNote.prototype.schedulePlaybackRate = function()
 	{
-		var playbackRate = this.bufferSource.playbackRate;
-		/** @type {number} */
-		var computed = this.computedPlaybackRate;
-		/** @type {number} */
-		var start = this.startTime;
-		/** @type {Object} */
-		var instrument = this.instrument;
-		/** @type {number} */
-		var modAttack = start + instrument['modAttack'];
-		/** @type {number} */
-		var modDecay = modAttack + instrument['modDecay'];
-		/** @type {number} */
-		var peekPitch = computed * Math.pow(
-		  Math.pow(2, 1 / 12),
-		  this.modEnvToPitch * this.instrument['scaleTuning']
-		);
+		var
+		playbackRate = this.bufferSource.playbackRate,
+		computed = this.computedPlaybackRate,
+		start = this.startTime,
+		instrument = this.instrument,
+		modAttack = start + instrument.modAttack,
+		modDecay = modAttack + instrument.modDecay,
+		peekPitch = computed * Math.pow(Math.pow(2, 1 / 12), this.modEnvToPitch * this.instrument.scaleTuning);
 
 		playbackRate.cancelScheduledValues(0);
 		playbackRate.setValueAtTime(computed, start);
 		playbackRate.linearRampToValueAtTime(peekPitch, modAttack);
-		playbackRate.linearRampToValueAtTime(computed + (peekPitch - computed) * (1 - instrument['modSustain']), modDecay);
+		playbackRate.linearRampToValueAtTime(computed + (peekPitch - computed) * (1 - instrument.modSustain), modDecay);
 	};
 
-	/**
-	 * @param {number} pitchBend
-	 */
 	SoundFontSynthNote.prototype.updatePitchBend = function(pitchBend)
 	{
 		this.computedPlaybackRate = this.playbackRate * Math.pow(
@@ -335,11 +222,11 @@ WebMIDI.soundFontSynthNote = (function()
 			this.pitchBendSensitivity * (
 			  pitchBend / (pitchBend < 0 ? 8192 : 8191)
 			)
-		  ) * this.instrument['scaleTuning']
+		  ) * this.instrument.scaleTuning
 		);
 		this.schedulePlaybackRate();
 	};
 
 	return API;
 
-}(window));
+}());
