@@ -159,12 +159,15 @@ WebMIDI.soundFontSynthNote = (function()
 
 	SoundFontSynthNote.prototype.noteOff = function()
 	{
-		var instrument = this.instrument,
+		var
+		instrument = this.instrument,
 		bufferSource = this.bufferSource,
 		output = this.gainOutput,
-		now = this.ctx.currentTime,
-		volEndTime = now + instrument.volRelease,
-		modEndTime = now + instrument.modRelease;
+		now = this.ctx.currentTime;
+		// begin original gree
+		//var volEndTime = now + instrument.volRelease;
+		//var modEndTime = now + instrument.modRelease;
+		// end original gree
 
 		if(!this.audioBuffer)
 		{
@@ -174,25 +177,35 @@ WebMIDI.soundFontSynthNote = (function()
 		//---------------------------------------------------------------------------
 		// Release
 		//---------------------------------------------------------------------------
-		output.gain.cancelScheduledValues(0);
-		output.gain.linearRampToValueAtTime(0, volEndTime);
-		bufferSource.playbackRate.cancelScheduledValues(0);
-		bufferSource.playbackRate.linearRampToValueAtTime(this.computedPlaybackRate, modEndTime);
+		// begin original gree
+		//output.gain.cancelScheduledValues(0);
+		//output.gain.linearRampToValueAtTime(0, volEndTime);
+		//bufferSource.playbackRate.cancelScheduledValues(0);
+		//bufferSource.playbackRate.linearRampToValueAtTime(this.computedPlaybackRate, modEndTime);
+
+		//bufferSource.loop = false;
+		//bufferSource.stop(volEndTime);
+		// end original gree
+
+		output.gain.cancelScheduledValues(now);
+		output.gain.linearRampToValueAtTime(0, now);
+		bufferSource.playbackRate.cancelScheduledValues(now);
+		bufferSource.playbackRate.linearRampToValueAtTime(0, now);
 
 		bufferSource.loop = false;
-		bufferSource.stop(volEndTime);
+		bufferSource.stop(now);
 
 		// disconnect
 		setTimeout(
 		  (function(note)
-		  {
-		  	return function()
-		  	{
-		  		note.bufferSource.disconnect(0);
-		  		note.panner.disconnect(0);
-		  		note.gainOutput.disconnect(0);
-		  	};
-		  }(this)),
+			{
+		  		return function()
+		  		{
+		  			note.bufferSource.disconnect(0);
+		  			note.panner.disconnect(0);
+		  			note.gainOutput.disconnect(0);
+		  		};
+			}(this)),
 		  instrument.volRelease * 1000
 		);
 	};

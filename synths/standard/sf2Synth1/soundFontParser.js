@@ -369,7 +369,7 @@ WebMIDI.soundFontParser = (function()
 
 			sampleHeader.push({
 				sampleName: sampleName,
-				/*
+				/* commented out by gree
 				start: start,
 				end: end,
 				*/

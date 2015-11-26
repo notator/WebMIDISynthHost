@@ -170,10 +170,12 @@ WebMIDI.soundFont = (function()
 				sampleId = getModGenAmount(generator, 'sampleID');
 				sampleHeader = parser.sampleHeader[sampleId];
 
+				// begin ji
 				if(sampleHeader.sampleName.indexOf('EOS') < 0 && sampleHeader.startLoop <= 8 && bankIndex === 0 && patchIndex < 128)
 				{
 					console.log("Warning: startLoop <= 8: sampleName=" + sampleHeader.sampleName + " startLoop=" + sampleHeader.startLoop);
 				}
+				// end ji
 
 				preset[i] = {
 					'sample': parser.sample[sampleId],

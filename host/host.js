@@ -9,8 +9,7 @@
 *  or more SoundFonts.
 */
 
-/*jslint bitwise: false, nomen: true, plusplus: true, white: true */
-/*global WebMIDI: false,  WebMIDISynth: false, window: false,  document: false, performance: false, console: false, alert: false, XMLHttpRequest: false */
+/*global WebMIDI, window,  document, performance */
 
 WebMIDI.namespace('WebMIDI.host');
 
@@ -21,6 +20,7 @@ WebMIDI.host = (function(document)
 	var
 	previousNormalChannel = 0, // used when setting/unsetting the percussion channel 9.
 	inputDefaultsCache = [], // used by AllControllersOff control
+	firstSoundFontLoaded = false,
 
 	getElem = function(elemID)
 	{
@@ -37,15 +37,6 @@ WebMIDI.host = (function(document)
 	{
 		var url = "https://github.com/notator/WebMIDISynthHost";
 		openInNewTab(url);
-	},
-
-	waitingForOtherFontsButtonClick = function()
-	{
-		getElem("synthSelectDivButtonDiv").style.display = "none";
-		getElem("synthInfoDiv").style.display = "block";
-		getElem("waitingForFirstFontDiv").style.display = "none";
-		getElem("waitingForOtherFontsDiv").style.display = "none";
-		getElem("controlsDiv").style.display = "block";
 	},
 
 	synthWebsiteButtonClick = function()
@@ -692,25 +683,39 @@ WebMIDI.host = (function(document)
 			synthInfoDiv.style.display = "block";
 		}
 
-		function setSoundFontTableDisplay(synth)
+		function setSoundFontTableDisplay(synth, firstSoundFontLoaded)
 		{
 			var
+			cursorControlDiv = getElem("cursorControlDiv"),
+			waitingForFirstFontDiv = getElem("waitingForFirstFontDiv"),
 			soundFontDiv = getElem("soundFontDiv"),
 			soundFontTable1 = getElem("soundFontTable1"),
 			soundFontTable2 = getElem("soundFontTable2");
 
 			if(synth.setSoundFont === undefined)
 			{
+				cursorControlDiv.style.cursor = "auto";
+				waitingForFirstFontDiv.style.display = "none";
 				soundFontTable1.style.display = "none";
 				soundFontTable2.style.display = "none";
 				soundFontDiv.style.display = "none";
 			}
-			else
+			else if(firstSoundFontLoaded === true)
 			{
+				cursorControlDiv.style.cursor = "auto";
+				waitingForFirstFontDiv.style.display = "none";
 				soundFontTable1.style.display = "block";
 				soundFontTable2.style.display = "block";
 				soundFontDiv.style.display = "block";
-			}	
+			}
+			else
+			{
+				cursorControlDiv.style.cursor = "wait";
+				waitingForFirstFontDiv.style.display = "block";
+				soundFontTable1.style.display = "none";
+				soundFontTable2.style.display = "none";
+				soundFontDiv.style.display = "none";
+			}
 		}
 
 		synthSelect.onchange = onSynthSelectChanged; // activated by synthSelectDivButton 
@@ -719,19 +724,22 @@ WebMIDI.host = (function(document)
 
 		setMonoPolyDisplay(synth);
 
-		setSoundFontTableDisplay(synth);
+		setSoundFontTableDisplay(synth, firstSoundFontLoaded);
 
-		setCommandsAndControlsDivs();
+		if(synth.setSoundFont === undefined || firstSoundFontLoaded === true)
+		{
+			setCommandsAndControlsDivs();
 
-		if(synth.isPolyphonic === true)
-		{
-			getElem("noteDiv1").style.display = "none";
-			getElem("notesDiv2").style.display = "block";
-		}
-		else
-		{
-			getElem("noteDiv1").style.display = "block";
-			getElem("notesDiv2").style.display = "none";
+			if(synth.isPolyphonic === true)
+			{
+				getElem("noteDiv1").style.display = "none";
+				getElem("notesDiv2").style.display = "block";
+			}
+			else
+			{
+				getElem("noteDiv1").style.display = "block";
+				getElem("notesDiv2").style.display = "none";
+			}
 		}
 	},
 
@@ -865,7 +873,6 @@ WebMIDI.host = (function(document)
 			getElem("synthSelectDivButtonDiv").style.display = "block";
 			getElem("synthInfoDiv").style.display = "none";
 			getElem("waitingForFirstFontDiv").style.display = "none";
-			getElem("waitingForOtherFontsDiv").style.display = "none";
 			getElem("soundFontDiv").style.display = "none";
 			getElem("commandsDiv").style.display = "none";
 			getElem("controlsDiv").style.display = "none";
@@ -998,10 +1005,7 @@ WebMIDI.host = (function(document)
 		{
 			var typeIndex,
 				synthSelect = getElem("synthSelect"),
-				cursorControlDiv = getElem("cursorControlDiv"),
-				originSelect = getElem("sf2OriginSelect"),
-				waitingForFirstFontDiv = getElem("waitingForFirstFontDiv"),
-				waitingForOtherFontsDiv = getElem("waitingForOtherFontsDiv");
+				originSelect = getElem("sf2OriginSelect");
 
 			function loadSoundFontsOfThisType(selectOptions, typeIndex)
 			{
@@ -1033,26 +1037,42 @@ WebMIDI.host = (function(document)
 
 					function onLoad()
 					{
-						function switchToWaitingForOtherFontsDiv()
-						{
-							if(waitingForFirstFontDiv.style.display !== "none")
-							{
-								cursorControlDiv.style.cursor = "auto";
-								waitingForFirstFontDiv.style.display = "none";
-								waitingForOtherFontsDiv.style.display = "block";
-							}
-						}
-
-						function loadSynthsWithSoundFont(soundFont)
+						function loadSynthsWithFirstSoundFont(soundFont)
 						{
 							var i, synth;
+							
+							function loadFirstSoundFont(synth, soundFont)
+							{
+								synth.setSoundFont(soundFont);
+
+								// For some reason, the first noteOn to be sent by the host, reacts only after a delay.
+								// This noteOn/noteOff pair is sent so that the *next* noteOn will react immediately.
+								// This is actually a kludge. I have been unable to solve the root problem.
+								// (Is there an uninitialized buffer somewhere?)
+								if(synth.setMasterVolume)
+								{
+									// consoleSf2Synth can't/shouldn't do this.
+									// (It has no setMasterVolume function)
+									synth.setMasterVolume(0);
+									synth.noteOn(0, 64, 100);
+									synth.noteOff(0, 64, 100);
+									// Wait for the above noteOn/noteOff kludge to work.
+									setTimeout(function()
+									{
+										synth.setMasterVolume(16384);
+										firstSoundFontLoaded = true;
+										onSynthSelectChanged();
+										//displayControls();
+									}, 2400);
+								}
+							}
 
 							for(i = 0; i < synthSelect.options.length; ++i)
 							{
 								synth = synthSelect.options[i].synth;
 								if(synth.setSoundFont !== undefined)
 								{
-									synth.setSoundFont(soundFont);
+									loadFirstSoundFont(synth, soundFont);
 								}
 							}
 						}
@@ -1063,8 +1083,7 @@ WebMIDI.host = (function(document)
 						selectOptions[fontIndex].disabled = false;
 						if(typeIndex === 0 && fontIndex === 0)
 						{
-							loadSynthsWithSoundFont(soundFont);
-							switchToWaitingForOtherFontsDiv();
+							loadSynthsWithFirstSoundFont(soundFont);
 						}
 
 						fontIndex++;
@@ -1079,10 +1098,6 @@ WebMIDI.host = (function(document)
 						else
 						{
 							loadLogElem.innerHTML = "";
-							if(waitingForOtherFontsDiv.style.display === "block")
-							{
-								waitingForOtherFontsButtonClick();
-							}
 						}
 					}
 
@@ -1148,7 +1163,6 @@ WebMIDI.host = (function(document)
     	gitHubButtonClick: gitHubButtonClick,
 
     	onSynthSelectChanged: onSynthSelectChanged,
-    	waitingForOtherFontsButtonClick: waitingForOtherFontsButtonClick,
 
     	synthWebsiteButtonClick: synthWebsiteButtonClick,
     	soundFontWebsiteButtonClick: soundFontWebsiteButtonClick,
