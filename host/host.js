@@ -751,7 +751,7 @@ WebMIDI.host = (function(document)
 
 		if((!note1Checkbox.checked) && (!note2Checkbox.checked))
 		{
-			note2Checkbox.checked = true;			
+			note2Checkbox.checked = true;
 		}
 	},
 
@@ -805,7 +805,14 @@ WebMIDI.host = (function(document)
 	{
 		var
 		noteIndexInput = getElem("noteDiv1IndexInput"),
-		noteVelocityInput = getElem("noteDiv1VelocityInput");
+		noteVelocityInput = getElem("noteDiv1VelocityInput"),
+		holdCheckbox1 = getElem("holdCheckbox1"),
+		sendButton1 = getElem("sendButton1");
+
+		if(holdCheckbox1.checked === true)
+		{
+			sendButton1.disabled = true;
+		}
 		
 		sendNoteOn(noteIndexInput, noteVelocityInput);		
 	},
@@ -827,7 +834,14 @@ WebMIDI.host = (function(document)
 		note1VelocityInput = getElem("notesDiv2VelocityInput1"),
 		note2Checkbox = getElem("sendNote2Checkbox"),
 		note2IndexInput = getElem("notesDiv2IndexInput2"),
-		note2VelocityInput = getElem("notesDiv2VelocityInput2");
+		note2VelocityInput = getElem("notesDiv2VelocityInput2"),
+		holdCheckbox2 = getElem("holdCheckbox2"),
+		sendButton2 = getElem("sendButton2");
+
+		if(holdCheckbox2.checked === true)
+		{
+			sendButton2.disabled = true;
+		}
 
 		if(note1Checkbox.checked)
 		{
@@ -856,6 +870,30 @@ WebMIDI.host = (function(document)
 		if(note2Checkbox.checked)
 		{
 			sendNoteOff(note2IndexInput, note2VelocityInput);
+		}
+	},
+
+	holdCheckboxClicked = function()
+	{
+		var
+		holdCheckbox1 = getElem("holdCheckbox1"),
+		holdCheckbox2 = getElem("holdCheckbox2");
+
+		if(getElem("notesDiv2").style.display === "none")
+		{
+			if(holdCheckbox1.checked === false)
+			{
+				doNoteOff();
+				getElem("sendButton1").disabled = false;
+			}
+		}
+		else
+		{
+			if(holdCheckbox2.checked === false)
+			{
+				doNotesOff();
+				getElem("sendButton2").disabled = false;
+			}
 		}
 	},
 
@@ -1173,6 +1211,7 @@ WebMIDI.host = (function(document)
     	onSf2SelectChanged: onSf2SelectChanged,
 
     	noteCheckboxClicked: noteCheckboxClicked,
+    	holdCheckboxClicked: holdCheckboxClicked,
 
     	doNoteOn: doNoteOn,
     	doNoteOff: doNoteOff,

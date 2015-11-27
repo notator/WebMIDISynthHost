@@ -117,7 +117,8 @@
 							<input id="noteDiv1IndexInput" type="number" name="value" class="number" min="0" max="127" value="64">
 							<span>velocity</span>
 							<input id="noteDiv1VelocityInput" type="number" name="value" class="number" min="0" max="127" value="100">
-							<input type="button" class="sendButton" value="send" onmousedown="WebMIDI.host.doNoteOn()" onmouseup="WebMIDI.host.doNoteOff()" />
+							<input id="sendButton1" type="button" class="sendButton" value="send" onmousedown="WebMIDI.host.doNoteOn()" onmouseup="WebMIDI.host.doNoteOff()" />
+							<label><input type="checkbox" id="holdCheckbox1" value="hold" style="vertical-align:middle" onclick="WebMIDI.host.holdCheckboxClicked()" >hold</label>
 						</td>
 					</tr>
 				</table>
@@ -143,11 +144,12 @@
 						</td>
 						<td>
 							<span>note</span>
-							<input id="notesDiv2IndexInput2" type="number" name="value" class="number" min="0" max="127" value="64" >
+							<input id="notesDiv2IndexInput2" type="number" name="value" class="number" min="0" max="127" value="64">
 							<span>velocity</span>
 							<input id="notesDiv2VelocityInput2" type="number" name="value" class="number" min="0" max="127" value="100">
 							<input type="checkbox" id="sendNote2Checkbox" style="vertical-align:middle" onclick="WebMIDI.host.noteCheckboxClicked()" checked />
-							<input type="button" class="sendButton" value="send" onmousedown="WebMIDI.host.doNotesOn()" onmouseup="WebMIDI.host.doNotesOff()" />
+							<input id="sendButton2" type="button" class="sendButton" value="send" onmousedown="WebMIDI.host.doNotesOn()" onmouseup="WebMIDI.host.doNotesOff()" />
+							<label><input type="checkbox" id="holdCheckbox2" value="hold" style="vertical-align:middle" onclick="WebMIDI.host.holdCheckboxClicked()" >hold</label>
 						</td>
 					</tr>
 				</table>
