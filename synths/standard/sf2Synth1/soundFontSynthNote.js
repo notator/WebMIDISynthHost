@@ -92,14 +92,18 @@ WebMIDI.soundFontSynthNote = (function()
 		// This line was originally:
 		//    bufferSource.loop = (this.channel !== 9);
 		// This means that all presets in channels other than 9 should loop, and
-		// assumes that they all have valid loop parameters.
-		// In the Arachno soundFont, the presets Marimba, Banjo and Melodic Tom
-		// use samples that have loops that start at 0 or 8. These must be bugs
-		// in the soundFont.
+		// assumes that they all have valid loop parameters (which they don't).
 		// The Sf2 spec says that loops should start at at least position 8.
 		// If the loop starts too close to the attack, the attack is of course
-		// played again.
-		bufferSource.loop = (this.channel !== 9) && (instrument.loopStart > 8);
+		// played again. Also, loops should be at least 8 data points long.
+		// In the Arachno soundFont, the presets Marimba, Banjo and Melodic Tom
+		// use samples that have loops that start at 0 or 8.
+		// The Harpsichord preset contains loops that are too short (and very late).
+		// The following line sets bufferSource.loop to false in such cases.
+		// I have freely chosen 50 for the lower limit for the start of a loop.
+		// The lowest acceptable value I've found in the Arachno soundFont is 128
+		// (in the Seashore preset).
+		bufferSource.loop = (this.channel !== 9) && (instrument.loopStart > 50) && ((instrument.loopEnd - instrument.loopStart) > 8);
 		/* ji end changes November 2015 */
 		bufferSource.loopStart = loopStart;
 		bufferSource.loopEnd = loopEnd;
@@ -130,6 +134,8 @@ WebMIDI.soundFontSynthNote = (function()
 		//---------------------------------------------------------------------------
 		outputGain.setValueAtTime(0, now);
 		outputGain.linearRampToValueAtTime(this.volume * (this.velocity / 127), volAttack);
+		// ji -- the instrument.volSustain attribute is a level parameter, not like the other
+		// instrument.vol... attributes (which are time values).
 		outputGain.linearRampToValueAtTime(this.volume * (1 - instrument.volSustain), volDecay);
 
 		// begin ji changes November 2015.
@@ -163,11 +169,18 @@ WebMIDI.soundFontSynthNote = (function()
 		instrument = this.instrument,
 		bufferSource = this.bufferSource,
 		output = this.gainOutput,
-		now = this.ctx.currentTime;
-		// begin original gree
-		//var volEndTime = now + instrument.volRelease;
-		//var modEndTime = now + instrument.modRelease;
-		// end original gree
+		now = this.ctx.currentTime,
+		// begin gree
+		//   volEndTime = now + instrument.volRelease,
+		//   modEndTime = now + instrument.modRelease;
+		// end gree
+		// begin ji
+		// instrument.volRelease is 3.08 in preset 0 (grand piano) in the Arachno font.   
+		// It cannot be the case that a piano note only stops 3.08 seconds after a
+		// noteOff arrives. Multiplying these parameters by 0.1 sounds more realistic...
+		volEndTime = now + (instrument.volRelease * 0.1),
+		modEndTime = now + (instrument.modRelease * 0.1);
+		// end ji
 
 		if(!this.audioBuffer)
 		{
@@ -182,18 +195,17 @@ WebMIDI.soundFontSynthNote = (function()
 		//output.gain.linearRampToValueAtTime(0, volEndTime);
 		//bufferSource.playbackRate.cancelScheduledValues(0);
 		//bufferSource.playbackRate.linearRampToValueAtTime(this.computedPlaybackRate, modEndTime);
-
-		//bufferSource.loop = false;
-		//bufferSource.stop(volEndTime);
 		// end original gree
 
-		output.gain.cancelScheduledValues(now);
-		output.gain.linearRampToValueAtTime(0, now);
-		bufferSource.playbackRate.cancelScheduledValues(now);
-		bufferSource.playbackRate.linearRampToValueAtTime(0, now);
+		// begin ji
+		output.gain.cancelScheduledValues(volEndTime);
+		output.gain.linearRampToValueAtTime(0, volEndTime);
+		bufferSource.playbackRate.cancelScheduledValues(modEndTime);
+		bufferSource.playbackRate.linearRampToValueAtTime(this.computedPlaybackRate, modEndTime);
+		// end ji
 
 		bufferSource.loop = false;
-		bufferSource.stop(now);
+		bufferSource.stop(volEndTime);
 
 		// disconnect
 		setTimeout(
