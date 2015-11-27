@@ -1061,8 +1061,10 @@ WebMIDI.host = (function(document)
 									{
 										synth.setMasterVolume(16384);
 										firstSoundFontLoaded = true;
-										onSynthSelectChanged();
-										//displayControls();
+										if(synthSelect.options[synthSelect.selectedIndex].synth === synth)
+										{
+											onSynthSelectChanged();
+										}
 									}, 2400);
 								}
 							}
