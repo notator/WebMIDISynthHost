@@ -6,13 +6,15 @@ This project is unofficial, but is intended to further the discussion about soft
 It can also be used to develope any new Web MIDI Synth [1] without having to create a GUI:
 
 1. clone this project
-2. create a new directory for the new synth's files
+2. create a new directory, at the top level of the project, for the new synth's files
 3. create a file that describes the new synth's interface using one the existing top-level files [2] as a model.
 4. implement the interface, and add the synth's file(s) at the bottom of the host.html file
 
-Web MIDI synths (including the resident synthesizers) can easily be lifted out of this host and used in other Web applications that work "out-of-the-box". Two simple applications, demonstrating how this can be done are at:<br /> [SimpleSoundFontSynthHost](https://github.com/notator/SimpleSoundFontSynthHost),  [(GitHub)](https://github.com/notator/SimpleSoundFontSynthHost) and
+Web MIDI synths (including the resident synthesizers) can easily be lifted out of this host and used in other Web applications that work "out-of-the-box". There are some simple applications, demonstrating how this can be done at:<br /> [SimpleSoundFontSynthHost](https://github.com/notator/SimpleSoundFontSynthHost),  [(GitHub)](https://github.com/notator/SimpleSoundFontSynthHost),
 [SimpleMIDISynthHost](http://james-ingram-act-two.de/open-source/SimpleMIDISynthHost/host.html),
-[(GitHub)](https://github.com/notator/SimpleMIDISynthHost)<br />
+[(GitHub)](https://github.com/notator/SimpleMIDISynthHost) and
+[SimpleMIDISynthHost2](http://james-ingram-act-two.de/open-source/SimpleMIDISynthHost2/host.html),
+[(GitHub)](https://github.com/notator/SimpleMIDISynthHost2)<br />
 
 ####Resident Synthesizers:
 * **Sf2Synth1**<br />
@@ -25,9 +27,14 @@ This is Chris' [MIDI synth](https://webaudiodemos.appspot.com/midi-synth/index.h
 * **monosynth (Chris Wilson)** A very simple synth. The original is [here](https://github.com/cwilso/monosynth).<br />
 
 ####Remarks:
-* The soundFonts directory has been seeded with .sf2 files created from the [Arachno soundfont](http://www.arachnosoft.com/main/soundfont.php) using the [Viena soundfont editor](http://www.synthfont.com/index.html). Any soundFont can, of course, be used.<br />
-* I am not a Web Audio specialist, so would really welcome some help in developing the resident synthesizers' code. I think its especially important that Sf2Synth1 gets optimised.<br />
+ 1. The soundFonts directory has been seeded with .sf2 files created from the [Arachno soundfont](http://www.arachnosoft.com/main/soundfont.php) using the [Viena soundfont editor](http://www.synthfont.com/index.html). Any soundFont can, of course, be used.<br />
+ 2. There are 3 types of issue that can arise:
+    * Issues relating to the WebMIDISynth API should be raised [here](https://github.com/notator/WebMIDISynthHost/issues) in this repository.
+    * Issues relating to my version of Chris' MIDI synth (cwMIDISynth) should be raised in the [SimpleMIDISynthHost](https://github.com/notator/SimpleMIDISynthHost/issues) repository.
+    * Issues relating to my version of the gree sf2Synth.js (sf2Synth1) should be raised in the [SimpleSoundFontSynthHost](https://github.com/notator/SimpleSoundFontSynthHost/issues) repository.
 <br />
+
+I am not a Web Audio specialist, so would really welcome some help in developing the resident synthesizers' code. I think its especially important that Sf2Synth1 gets optimised.<br />
 
 November 2015<br />
 James Ingram
@@ -36,10 +43,10 @@ James Ingram
 
 [2] The top-level files containing Web MIDI Synth interface definitions are:
 ```
-standard/sf2Synth1/sf2synth1.js
-standard/consoleSf2Synth.js
-non-standard/cwMIDISynth/cwMIDISynth.js
-non-standard/cwMonosynth.js
+sf2Synth1/sf2synth1.js
+consoleSf2Synth.js
+cwMIDISynth/cwMIDISynth.js
+cwMonosynth.js
 ```
 
 
