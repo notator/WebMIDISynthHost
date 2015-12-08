@@ -42,11 +42,10 @@ James Ingram
 [1] A "Web MIDI Synth" is a software synth that uses the Web Audio API to implement the Output Device interface defined in the Web MIDI API. Web MIDI Synths can be used online independently of browser implementations of the Web MIDI API. *Standard* Web MIDI Synths can be used interchangeably with the hardware synths supplied by browser implementations of the Web MIDI API.<br />
 
 [2] The top-level files containing Web MIDI Synth interface definitions are:
-```
-sf2Synth1/sf2synth1.js
-consoleSf2Synth.js
-cwMIDISynth/cwMIDISynth.js
-cwMonosynth.js
-```
+* sf2Synth1/sf2synth1.js
+* consoleSf2Synth.js
+* cwMIDISynth/cwMIDISynth.js
+* cwMonosynth.js
+
 
 
