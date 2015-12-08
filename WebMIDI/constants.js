@@ -5,11 +5,12 @@
  *  Code licensed under MIT
  *
  *  The WebMIDI.constants namespace which defines read-only MIDI constants.
- *  I think this could be a standardized file. The CONTROL section needs to be completed.
+ *  ji: The CONTROL objects need to be extended to include other useful standard MIDI controls.
+ *  (Not _all_ the standard MIDI controls are useful for software WebMIDISynths.)
  */
 
-/*jslint bitwise: false, nomen: false, plusplus: false, white: true */
-/*global WebMIDI: false,  window: false,  document: false, performance: false, console: false, alert: false, XMLHttpRequest: false */
+/*jslint bitwise, white */
+/*global WebMIDI */
 
 WebMIDI.namespace('WebMIDI.constants');
 
@@ -18,38 +19,10 @@ WebMIDI.constants = (function()
     "use strict";
     var
     COMMAND = {},
-    REAL_TIME = {},
     CONTROL = {},
-	CUSTOMCONTROL = {},
-    SYSTEM_EXCLUSIVE = {},
-	DEFAULT = {},
-
-    // True if constant is one of the REAL_TIME status bytes, otherwise false
-    isRealTimeStatus = function(constant)
-    {
-        var result = false;
-
-        if ((constant === REAL_TIME.MTC_QUARTER_FRAME)
-        || (constant === REAL_TIME.SONG_POSITION_POINTER)
-        || (constant === REAL_TIME.SONG_SELECT)
-        || (constant === REAL_TIME.TUNE_REQUEST)
-        || (constant === REAL_TIME.MIDI_CLOCK)
-        || (constant === REAL_TIME.MIDI_TICK)
-        || (constant === REAL_TIME.MIDI_START)
-        || (constant === REAL_TIME.MIDI_CONTINUE)
-        || (constant === REAL_TIME.MIDI_STOP)
-        || (constant === REAL_TIME.ACTIVE_SENSE)
-        || (constant === REAL_TIME.RESET))
-        {
-            result = true;
-        }
-        return result;
-    },
-
-	// These are written exactly as defined at MIDI.org: 
+	// These GM_PATCH_NAMES are written here exactly as defined at MIDI.org: 
 	// http://midi.org/techspecs/gm1sound.php
-	// Also define all the percussion names (range 0..127) ??
-	GeneralMIDIInstrumentNames =
+	GM_PATCH_NAMES =
 	[
 		// Piano (1-8)
 		"Acoustic Grand Piano", "Bright Acoustic Piano", "Electric Grand Piano", "Honky-tonk Piano", "Electric Piano 1",
@@ -94,103 +67,210 @@ WebMIDI.constants = (function()
 		"Gunshot"
 	],
 
+	// These GM_PERCUSSION_NAMES are written here exactly as defined at MIDI.org: 
+	// http://midi.org/techspecs/gm1sound.php
+	GM_PERCUSSION_NAMES =
+	[
+		"Acoustic Bass Drum",// noteIndex 34
+		"Bass Drum 1",   // 35
+		"Side Stick",    // 36
+		"Acoustic Snare",// 37
+		"Hand Clap",     // 38
+		"Electric Snare",// 39
+		"Low Floor Tom", // 40
+		"Closed Hi Hat", // 41
+		"High Floor Tom",// 42
+		"Pedal Hi-Hat",  // 43
+		"Low Tom",       // 44
+		"Open Hi-Hat",   // 45
+		"Low-Mid Tom",   // 46
+		"Hi-Mid Tom",    // 47
+		"Crash Cymbal 1",// 48
+		"High Tom",      // 49
+		"Ride Cymbal 1", // 50
+		"Chinese Cymbal",// 51
+		"Ride Bell",     // 52
+		"Tambourine",    // 53
+		"Splash Cymbal", // 54
+		"Cowbell",       // 55
+		"Crash Cymbal 2",// 56
+		"Vibraslap",     // 57
+		"Ride Cymbal 2", // 58
+		"Hi Bongo",      // 59
+		"Low Bongo",     // 60
+		"Mute Hi Conga", // 61
+		"Open Hi Conga", // 62
+		"Low Conga",     // 63
+		"High Timbale",  // 64
+		"Low Timbale",   // 65
+		"High Agogo",    // 66
+		"Low Agogo",     // 67
+		"Cabasa",        // 68
+		"Maracas",       // 69
+		"Short Whistle", // 70
+		"Long Whistle",  // 71
+		"Short Guiro",   // 72
+		"Long Guiro",    // 73
+		"Claves",        // 74
+		"Hi Wood Block", // 75
+		"Low Wood Block",// 76
+		"Mute Cuica",    // 77
+		"Open Cuica",    // 78
+		"Mute Triangle", // 79
+		"Open Triangle"  // 80	 
+	],
+
+	commandName = function(command)
+	{
+		switch(command)
+		{
+			case COMMAND.NOTE_OFF:
+				return ("noteOff");
+			case COMMAND.NOTE_ON:
+				return ("noteOn");
+			case COMMAND.AFTERTOUCH:
+				return ("aftertouch");
+			case COMMAND.CONTROL_CHANGE:
+				return ("controlChange");
+			case COMMAND.PATCH:
+				return ("patch");
+			case COMMAND.CHANNEL_PRESSURE:
+				return ("channelPressure");
+			case COMMAND.PITCHWHEEL:
+				return ("pitchWheel");
+			default:
+				console.warn("Bad argument");
+				break;
+		}
+	},
+	// Only AFTERTOUCH, PATCH, CHANNEL_PRESSURE and PITCHWHEEL have default values.
+	commandDefaultValue = function(command)
+	{
+		switch(command)
+		{
+			case COMMAND.AFTERTOUCH:
+			case COMMAND.PATCH:
+			case COMMAND.CHANNEL_PRESSURE:
+				return (0);
+			case COMMAND.PITCHWHEEL:
+				return (64);
+			default:
+				console.warn("Bad argument.");
+				break;
+		}
+	},
+	
+	controlName = function(control)
+	{
+		switch(control)
+		{
+			case CONTROL.BANK:
+				return ("bank");
+			case CONTROL.MODWHEEL:
+				return ("modWheel");
+			case CONTROL.PITCHWHEEL_DEVIATION:
+				return ("pitchWheelDeviation");
+			case CONTROL.VOLUME:
+				return ("volume");
+			case CONTROL.PAN:
+				return ("pan");
+			case CONTROL.ALL_SOUND_OFF:
+				return ("allSoundOff");
+			case CONTROL.ALL_CONTROLLERS_OFF:
+				return ("allControllersOff");
+			case CONTROL.ALL_NOTES_OFF:
+				return ("allNotesOff");
+		}
+	},
+	// Only 3-byte controls have default values.
+	// The return value is undefined for 2-byte controls.
+	controlDefaultValue = function(control)
+	{
+		switch(control)
+		{
+			case CONTROL.BANK:
+			case CONTROL.MODWHEEL:
+				return (0);
+			case CONTROL.PITCHWHEEL_DEVIATION:
+				return (2);
+			case CONTROL.VOLUME:
+				return (100);
+			case CONTROL.PAN:
+				return (64);
+			default:
+				break;	// return undefined
+		}
+	},
+
+	generalMIDIPatchName = function(patchIndex)
+	{
+		var patchName;
+		if(patchIndex >= 0 && patchIndex <= GM_PATCH_NAMES.length)
+		{
+			patchName = GM_PATCH_NAMES[patchIndex];
+		}
+		else
+		{
+			console.warn("Bad argument");
+		}
+		return patchName;
+	},
+
+	generalMIDIPercussionName = function(noteIndex)
+	{
+		var
+		percussionName,
+		indexOfFirstPercussionName = 34,
+		index = noteIndex - indexOfFirstPercussionName;
+
+		if(index >= 0 && index <= GM_PERCUSSION_NAMES.length)
+		{
+			percussionName = GM_PERCUSSION_NAMES[index];
+		}
+		else
+		{
+			console.warn("Bad argument");
+		}
+		return percussionName;
+	},
+
     API =
     {
         COMMAND: COMMAND,
-        REAL_TIME: REAL_TIME,
         CONTROL: CONTROL,
-        CUSTOMCONTROL: CUSTOMCONTROL,
-        SYSTEM_EXCLUSIVE: SYSTEM_EXCLUSIVE,
-        DEFAULT: DEFAULT,
-        isRealTimeStatus: isRealTimeStatus,
-    	GeneralMIDIInstrumentNames: GeneralMIDIInstrumentNames
+        commandName: commandName,
+        commandDefaultValue: commandDefaultValue,
+        controlName: controlName,
+        controlDefaultValue: controlDefaultValue,
+        generalMIDIPatchName: generalMIDIPatchName,
+        generalMIDIPercussionName: generalMIDIPercussionName
     };
 
+	// COMMAND
     Object.defineProperty(COMMAND, "NOTE_OFF", { value: 0x80, writable: false });
     Object.defineProperty(COMMAND, "NOTE_ON", { value: 0x90, writable: false });
-    Object.defineProperty(COMMAND, "CUSTOMCONTROL_CHANGE", { value: 0xA0, writable: false }); // was AFTERTOUCH -- see utilities.js
+    Object.defineProperty(COMMAND, "AFTERTOUCH", { value: 0xA0, writable: false });
     Object.defineProperty(COMMAND, "CONTROL_CHANGE", { value: 0xB0, writable: false });
-    Object.defineProperty(COMMAND, "PATCH_CHANGE", { value: 0xC0, writable: false });
+    Object.defineProperty(COMMAND, "PATCH", { value: 0xC0, writable: false });
     Object.defineProperty(COMMAND, "CHANNEL_PRESSURE", { value: 0xD0, writable: false });
     Object.defineProperty(COMMAND, "PITCHWHEEL", { value: 0xE0, writable: false });
 
-    // REAL_TIME
-    // These constants can be received or sent live during performances.
-    // They are not stored in files.
-    // The MIDI standard does not define 0xF4, 0xF5 or 0xFD.
-    //
-    // 0xF0 is SYSTEM_EXCLUSIVE.START (used in Standard MIDI Files)
-    Object.defineProperty(REAL_TIME, "MTC_QUARTER_FRAME", { value: 0xF1, writable: false });
-    Object.defineProperty(REAL_TIME, "SONG_POSITION_POINTER", { value: 0xF2, writable: false });
-    Object.defineProperty(REAL_TIME, "SONG_SELECT", { value: 0xF3, writable: false });
-    // 0xF4 is not defined by the MIDI standard
-    // 0xF5 is not defined by the MIDI standard
-    Object.defineProperty(REAL_TIME, "TUNE_REQUEST", { value: 0xF6, writable: false });
-    // 0xF7 is SYSTEM_EXCLUSIVE.END (used in Standard MIDI Files) 
-    Object.defineProperty(REAL_TIME, "MIDI_CLOCK", { value: 0xF8, writable: false });
-    Object.defineProperty(REAL_TIME, "MIDI_TICK", { value: 0xF9, writable: false });
-    Object.defineProperty(REAL_TIME, "MIDI_START", { value: 0xFA, writable: false });
-    Object.defineProperty(REAL_TIME, "MIDI_CONTINUE", { value: 0xFB, writable: false });
-    Object.defineProperty(REAL_TIME, "MIDI_STOP", { value: 0xFC, writable: false });
-    // 0xFD is not defined by the MIDI standard
-    Object.defineProperty(REAL_TIME, "ACTIVE_SENSE", { value: 0xFE, writable: false });
-    Object.defineProperty(REAL_TIME, "RESET", { value: 0xFF, writable: false });
-
     // CONTROL
-    // These are all I use for the moment (Feb. 2013).
-    // This list could be easily be extended/completed.
-	// Note that I am currently only using the "coarse" versions of these controls
-    Object.defineProperty(CONTROL, "BANK_SELECT", { value: 0, writable: false });
+	// Note that I am currently only using the "coarse" versions of these controls.
+	// I think the corresponding "fine" controls should be named with a "_LO" suffix
+	// (e.g. MODWHEEL_LO).
+    Object.defineProperty(CONTROL, "BANK", { value: 0, writable: false });
     Object.defineProperty(CONTROL, "MODWHEEL", { value: 1, writable: false });
-	/***********************************************************************************/
-	// Proposal: new control. slots 3 and 35 are undefined in the MIDI standard,
-	// so we could use them here for PITCHWHEEL_DEVIATION and PITCHWHEEL_DEVIATION_LO.
-	// See WebMIDI/utilities.js
-    Object.defineProperty(CONTROL, "PITCHWHEEL_DEVIATION", { value: 3, writable: false });
-	/***********************************************************************************/
-    Object.defineProperty(CONTROL, "DATA_ENTRY_COARSE", { value: 6, writable: false });
+	// ji: added PITCHWHEEL_DEVIATION for (software) WebMIDISynths only.
+	// This file defines WebMIDI.constants, and many software synths will want to define
+	// their own function for this control. I think it should have a standard value
+	// for all WebMIDISynths. CC9 is not used in the MIDI standard.
+    Object.defineProperty(CONTROL, "PITCHWHEEL_DEVIATION", { value: 9, writable: false });
     Object.defineProperty(CONTROL, "VOLUME", { value: 7, writable: false });
     Object.defineProperty(CONTROL, "PAN", { value: 10, writable: false });
-    Object.defineProperty(CONTROL, "EXPRESSION", { value: 11, writable: false });
-    Object.defineProperty(CONTROL, "TIMBRE", { value: 71, writable: false });
-    Object.defineProperty(CONTROL, "BRIGHTNESS", { value: 74, writable: false });
-    Object.defineProperty(CONTROL, "EFFECTS", { value: 91, writable: false });
-    Object.defineProperty(CONTROL, "TREMOLO", { value: 92, writable: false });
-    Object.defineProperty(CONTROL, "CHORUS", { value: 93, writable: false });
-    Object.defineProperty(CONTROL, "CELESTE", { value: 94, writable: false });
-    Object.defineProperty(CONTROL, "PHASER", { value: 95, writable: false });
-    Object.defineProperty(CONTROL, "REGISTERED_PARAMETER_FINE", { value: 100, writable: false });
-    Object.defineProperty(CONTROL, "REGISTERED_PARAMETER_COARSE", { value: 101, writable: false });
     Object.defineProperty(CONTROL, "ALL_SOUND_OFF", { value: 120, writable: false });
     Object.defineProperty(CONTROL, "ALL_CONTROLLERS_OFF", { value: 121, writable: false });
     Object.defineProperty(CONTROL, "ALL_NOTES_OFF", { value: 123, writable: false });
-
-	// CUSTOMCONTROL
-	// These two values are reserved for custom controls that set Aftertouch (see utilities.js)
-	// Other custom controls can be freely defined in the range [0..125].
-    Object.defineProperty(CUSTOMCONTROL, "AFTERTOUCH_KEY", { value: 126, writable: false });
-    Object.defineProperty(CUSTOMCONTROL, "AFTERTOUCH_PRESSURE", { value: 127, writable: false });
-
-    // SYSTEM_EXCLUSIVE
-    Object.defineProperty(SYSTEM_EXCLUSIVE, "START", { value: 0xF0, writable: false });
-    Object.defineProperty(SYSTEM_EXCLUSIVE, "END", { value: 0xF7, writable: false });
-
-	// DEFAULT
-	// The values that should be set by an ALL_CONTROLLERS_OFF message.
-	// Commands:
-    Object.defineProperty(DEFAULT, "AFTERTOUCH", { value: 0, writable: false }); // all notes
-    Object.defineProperty(DEFAULT, "CHANNEL_PRESSURE", { value: 0, writable: false });
-    Object.defineProperty(DEFAULT, "PITCHWHEEL", { value: 64, writable: false });
-	// Controllers:
-	// All standard MIDI controllers use GENERIC_MIDI, except the others defined here.
-	// These values should be set both in the HI-byte controller, and in the LO-byte
-	// controller, if used.
-    Object.defineProperty(DEFAULT, "GENERIC_MIDI", { value: 0, writable: false });
-    Object.defineProperty(DEFAULT, "PITCHWHEEL_DEVIATION", { value: 2, writable: false });
-    Object.defineProperty(DEFAULT, "VOLUME", { value: 100, writable: false });
-    Object.defineProperty(DEFAULT, "PAN", { value: 64, writable: false });
-    Object.defineProperty(DEFAULT, "EXPRESSION", { value: 127, writable: false });
-
     return API;
 
 } ());

@@ -7,8 +7,8 @@
  *  
  */
 
-/*jslint bitwise: false, nomen: false, plusplus: true, white: true */
-/*global WebMIDI: false,  window: false,  document: false, performance: false, console: false, alert: false, XMLHttpRequest: false */
+/*jslint white */
+/*global WebMIDI */
 
 var WebMIDI = WebMIDI || {};
 

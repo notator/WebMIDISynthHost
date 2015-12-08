@@ -493,7 +493,7 @@ WebMIDI.soundFont = (function()
 			for(i = 0; i < presetIndices.length; ++i)
 			{
 				presetIndex = presetIndices[i];
-				name = WebMIDI.constants.GeneralMIDIInstrumentNames[presetIndex];
+				name = WebMIDI.constants.generalMIDIPatchName(presetIndex);
 				soundFontPresets.push({ name: name, presetIndex: presetIndex });
 			}
 			return soundFontPresets;

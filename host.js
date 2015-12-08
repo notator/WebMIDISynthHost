@@ -19,7 +19,8 @@ WebMIDI.host = (function(document)
 
 	var
 	previousNormalChannel = 0, // used when setting/unsetting the percussion channel 9.
-	inputDefaultsCache = [], // used by AllControllersOff control
+	commandInputIDs = [], // used by AllControllersOff control
+	longInputControlIDs = [], // used by AllControllersOff control
 	firstSoundFontLoaded = false,
 
 	getElem = function(elemID)
@@ -64,8 +65,7 @@ WebMIDI.host = (function(document)
 			synth, channel, bank, patch, status, data1, message;
 
 		synth = synthSelect.options[synthSelect.selectedIndex].synth;
-		channel = parseInt(channelSelect[channelSelect.selectedIndex].value, 10);
-
+		channel = channelSelect.selectedIndex;
 		bank = presetSelect.options[presetSelect.selectedIndex].bank;
 		patch = presetSelect.options[presetSelect.selectedIndex].patch;
 
@@ -92,13 +92,12 @@ WebMIDI.host = (function(document)
 			}
 		}
 
-
 		status = CMD.CONTROL_CHANGE + channel;
-		data1 = CTL.BANK_SELECT;
+		data1 = CTL.BANK;
 		message = new Uint8Array([status, data1, bank]);
 		synth.send(message, performance.now());
 
-		status = CMD.PATCH_CHANGE + channel;
+		status = CMD.PATCH + channel;
 		message = new Uint8Array([status, patch]);
 		synth.send(message, performance.now());
 	},
@@ -107,7 +106,7 @@ WebMIDI.host = (function(document)
 	{
 		var i;
 
-		for(i = select.options.length - 1; i >= 0; i--)
+		for(i = select.options.length - 1; i >= 0; --i)
 		{
 			select.remove(i);
 		}
@@ -120,15 +119,45 @@ WebMIDI.host = (function(document)
 		select.selectedIndex = 0;
 	},
 
-	setCommandsAndControlsDivs = function()
+	sendCommand = function(command, data1, data2)
 	{
 		var CMD = WebMIDI.constants.COMMAND,
-		    CTL = WebMIDI.constants.CONTROL,
-			DEFAULT = WebMIDI.constants.DEFAULT,
-			hasStdCommands, hasControls,
 			synthSelect = getElem("synthSelect"),
 			synth = synthSelect[synthSelect.selectedIndex].synth,
 			channelSelect = getElem("channelSelect"),
+			channelIndex = parseInt(channelSelect[channelSelect.selectedIndex].value, 10),
+			status = command + channelIndex,
+			message;
+
+		switch(command)
+		{
+			case CMD.NOTE_ON:
+			case CMD.NOTE_OFF:
+			case CMD.CONTROL_CHANGE:
+			case CMD.AFTERTOUCH:
+				message = new Uint8Array([status, data1, data2]);
+				break;
+			case CMD.PATCH:
+			case CMD.CHANNEL_PRESSURE:
+				message = new Uint8Array([status, data1]);
+				break;
+			case CMD.PITCHWHEEL:
+				// This host uses the same 7-bit MSB (0..127) for data1 and data2.
+				// Doing this means that the available pitchWheel values are equally spaced
+				// and span the complete pitchWheel deviation range.
+				message = new Uint8Array([status, data1, data1]);
+				break;
+			default:
+				console.warn("Error: Not a command, or attempt to set the value of a command that has no value.");
+		}
+		synth.send(message, performance.now());
+	},
+
+	setCommandsAndControlsDivs = function()
+	{
+		var CMD = WebMIDI.constants.COMMAND,
+			synthSelect = getElem("synthSelect"),
+			synth = synthSelect[synthSelect.selectedIndex].synth,
 			sf2Select = getElem("sf2Select"),
 			commandsDiv = getElem("commandsDiv"),
 			commandsTitleDiv = getElem("commandsTitleDiv"),
@@ -153,207 +182,110 @@ WebMIDI.host = (function(document)
 			empty(controlsTable);
 		}
 
-		function sendCommand(command, data1, data2)
+		// sends aftertouch to the notes currently set in the notes controls
+		function sendAftertouch(pressure)
 		{
-			var synth = synthSelect[synthSelect.selectedIndex].synth,
-				channelIndex = parseInt(channelSelect[channelSelect.selectedIndex].value, 10),
-				status = command + channelIndex,
-				message;
+			var
+			singleNoteIndex = getElem("noteDiv1IndexInput").valueAsNumber,
+			note1Checkbox = getElem("sendNote1Checkbox"),
+			note1Index = getElem("notesDiv2IndexInput1").valueAsNumber,
+			note2Checkbox = getElem("sendNote2Checkbox"),
+			note2Index = getElem("notesDiv2IndexInput2").valueAsNumber;
 
-			switch(command)
+			if(getElem("notesDiv2").display === "none")
 			{
-				case CMD.CUSTOMCONTROL_CHANGE:
-					message = new Uint8Array([status, data1, data2]); // data1 is customControlIndex, data2 is the control's value
-					break;
-				case CMD.CHANNEL_PRESSURE:
-					message = new Uint8Array([status, data1]);
-					break;
-				case CMD.PITCHWHEEL:
-					// This host uses the same 7-bit MSB (0..127) for data1 and data2.
-					// Doing this means that the available pitchWheel values are equally spaced
-					// and span the complete pitchWheel deviation range.
-					message = new Uint8Array([status, data1, data1]);
-					break;
-				default:
-					throw "Error: Not a command, or attempt to set the value of a command that has no value.";
+				sendCommand(CMD.AFTERTOUCH, singleNoteIndex, pressure);
 			}
-			synth.send(message, performance.now());
+			else
+			{
+				if(note1Checkbox.checked)
+				{
+					sendCommand(CMD.AFTERTOUCH, note1Index, pressure);
+				}
+				if(note2Checkbox.checked)
+				{
+					sendCommand(CMD.AFTERTOUCH, note2Index, pressure);
+				}
+			}
 		}
 
 		function sendLongControl(controlIndex, value)
 		{
-			var synth = synthSelect[synthSelect.selectedIndex].synth,
-				channelIndex = parseInt(channelSelect[channelSelect.selectedIndex].value, 10),
-				status = CMD.CONTROL_CHANGE + channelIndex,
-				message = new Uint8Array([status, controlIndex, value]);
-
-			synth.send(message, performance.now());
-		}
-
-		function sendLongCustomControl(controlIndex, value)
-		{
-			var synth = synthSelect[synthSelect.selectedIndex].synth,
-				channelIndex = parseInt(channelSelect[channelSelect.selectedIndex].value, 10),
-				status = CMD.CUSTOMCONTROL_CHANGE + channelIndex,
-				message = new Uint8Array([status, controlIndex, value]);
-
-			synth.send(message, performance.now());
+			sendCommand(CMD.CONTROL_CHANGE, controlIndex, value);
 		}
 
 		function sendShortControl(controlIndex)
 		{
-			var synth = synthSelect[synthSelect.selectedIndex].synth,
-				channelIndex = parseInt(channelSelect[channelSelect.selectedIndex].value, 10),
-				status = CMD.CONTROL_CHANGE + channelIndex,
-				message = new Uint8Array([status, controlIndex]);
+			var
+			synthSelect = getElem("synthSelect"),
+			synth = synthSelect[synthSelect.selectedIndex].synth,
+			commandDefaultValue = WebMIDI.constants.commandDefaultValue, // function
+			commands = synth.commands;
 
 			function resetHostGUI()
 			{
-				var i, inputID, defaultValue, elem;
+				var i, inputID, numberInputElem;
 
-				for(i = 0; i < inputDefaultsCache.length; ++i)
+				for(i = 0; i < commandInputIDs.length; ++i)
 				{
-					inputID = inputDefaultsCache[i].inputID;
-					defaultValue = inputDefaultsCache[i].defaultValue;
-					elem = getElem(inputID);
-					elem.value = defaultValue;
+					inputID = commandInputIDs[i];
+					numberInputElem = getElem(inputID);
+					numberInputElem.value = numberInputElem.defaultValue;
+				}
+
+				for(i = 0; i < longInputControlIDs.length; ++i)
+				{
+					inputID = longInputControlIDs[i];
+					numberInputElem = getElem(inputID);
+					numberInputElem.value = numberInputElem.uControl.defaultValue;
 				}
 			}
 
 			if(controlIndex === WebMIDI.constants.CONTROL.ALL_CONTROLLERS_OFF)
 			{
 				resetHostGUI();
+
+				if(commands.indexOf(CMD.PATCH) >= 0)
+				{
+					sendCommand(CMD.PATCH, commandDefaultValue(CMD.PATCH));
+				}
+				if(commands.indexOf(CMD.CHANNEL_PRESSURE) >= 0)
+				{
+					sendCommand(CMD.CHANNEL_PRESSURE, commandDefaultValue(CMD.CHANNEL_PRESSURE));
+				}
+				if(commands.indexOf(CMD.PITCHWHEEL) >= 0)
+				{
+					sendCommand(CMD.PITCHWHEEL, commandDefaultValue(CMD.PITCHWHEEL));
+				}
+				if(commands.indexOf(CMD.AFTERTOUCH) >= 0)
+				{
+					sendAftertouch(commandDefaultValue(CMD.AFTERTOUCH));
+				}
 			}
-			synth.send(message, performance.now());
+
+			sendCommand(CMD.CONTROL_CHANGE, controlIndex);
 		}
 
-		function sendShortCustomControl(controlIndex)
-		{
-			var synth = synthSelect[synthSelect.selectedIndex].synth,
-				channelIndex = parseInt(channelSelect[channelSelect.selectedIndex].value, 10),
-				status = CMD.CUSTOMCONTROL_CHANGE + channelIndex,
-				message = new Uint8Array([status, controlIndex]);
-
-			synth.send(message, performance.now());
-		}
-
-		function getRow(namestr, command, longControl, shortControl, sendFunction, defaultValue, nDiscreteItems)
-		{
-			var tr = document.createElement("tr"),
-			td, input, button;
-
-			function onInputChanged(event)
-			{
-				var numberInput = event.currentTarget,
-					send = numberInput.sendFunction;
-
-				if(numberInput.command !== null && numberInput.command !== undefined)
-				{
-					send(numberInput.command, numberInput.valueAsNumber);
-				}
-				else if(numberInput.longControl !== null && numberInput.longControl !== undefined)
-				{
-					send(numberInput.longControl, numberInput.valueAsNumber);
-				}
-			}
-
-			function onSendAgainButtonClick(event)
-			{
-				var inputID = event.currentTarget.inputID,
-					numberInput = getElem(inputID),
-					send = numberInput.sendFunction;
-
-				if(numberInput.command !== null && numberInput.command !== undefined)
-				{
-					send(numberInput.command, numberInput.valueAsNumber);
-				}
-				else if(numberInput.longControl !== null && numberInput.longControl !== undefined)
-				{
-					send(numberInput.longControl, numberInput.valueAsNumber);
-				}
-			}
-
-			function onSendShortControlButtonClick(event)
-			{
-				var control = event.currentTarget.control;
-
-				sendShortControl(control);
-			}
-
-			td = document.createElement("td");
-			tr.appendChild(td);
-			td.className = "left";
-			td.innerHTML = namestr;
-
-			td = document.createElement("td");
-			tr.appendChild(td);
-			if(shortControl === null)
-			{
-				if(command !== null || longControl !== null)
-				{
-					input = document.createElement("input");
-					//<input type="number" name="quantity" min="0" max="127">
-					input.type = "number";
-					input.name = "value";
-					input.id = namestr.concat("_numberInput");
-					input.value = defaultValue;
-					input.className = "number";
-					input.min = 0;
-					if(nDiscreteItems === undefined)
-					{
-						input.max = 127;
-					}
-					else
-					{
-						input.max = nDiscreteItems - 1;
-					}
-					if(command !== null)
-					{
-						input.command = command;
-					}
-					else
-					{
-						input.longControl = longControl;
-					}
-					input.onchange = onInputChanged;
-					input.sendFunction = sendFunction;
-					td.appendChild(input);
-
-					button = document.createElement("input");
-					button.type = "button";
-					button.className = "sendAgainButton";
-					button.value = "send again";
-					button.inputID = input.id;
-					button.onclick = onSendAgainButtonClick;
-					td.appendChild(button);
-
-					inputDefaultsCache.push({ inputID: input.id, defaultValue: defaultValue });
-				}
-			}
-			else // short control
-			{
-				button = document.createElement("input");
-				button.type = "button";
-				button.className = "sendButton";
-				button.value = "send";
-				button.control = shortControl;
-				button.onclick = onSendShortControlButtonClick;
-				td.appendChild(button);
-			}
-
-			return tr;
-		}
-
-		// Returns true if the synth defines one or more of the following commands:
-		// PATCH_CHANGE, CHANNEL_PRESSURE, PITCHWHEEL
-		function hasStandardCommands(commands)
+		// Returns true if the synth implements one or more of the following commands:
+		// PATCH, CHANNEL_PRESSURE, PITCHWHEEL, AFTERTOUCH.
+		// These are the only commands to be displayed in the Commands Div.
+		// None of these commands MUST be implemented, so hasCommandsDiv() may return false. 
+		// Other commands:
+		// If CONTROL_CHANGE is implemented, the Controls Div will be displayed.										  ccs
+		// NOTE_ON MUST be implemented, otherwise the host can't play anything.
+		// The Notes Div is therefore always displayed.
+		// Whether the synth implements NOTE_OFF or not only needs to be determined inside the sendNoteOff function.
+		function hasCommandsDiv(commands)
 		{
 			var i, rval = false;
 			if(commands !== undefined)
 			{
 				for(i = 0; i < commands.length; ++i)
 				{
-					if(commands[i] === CMD.PATCH_CHANGE || commands[i] === CMD.CHANNEL_PRESSURE || commands[i] === CMD.PITCHWHEEL)
+					if(commands[i] === CMD.PATCH
+					|| commands[i] === CMD.CHANNEL_PRESSURE
+					|| commands[i] === CMD.PITCHWHEEL
+					|| commands[i] === CMD.AFTERTOUCH)
 					{
 						rval = true;
 						break;
@@ -397,24 +329,98 @@ WebMIDI.host = (function(document)
 			onChangePreset();
 		}
 
-		function appendCommandRows(table, commands)
+		function appendCommandRows(table, synthCommands)
 		{
-			var i;
+			var i, command, row = 0;
 
-			function appendCommandRow(table, command, sendCommand)
+			function appendCommandRow(table, command, i)
 			{
-				var tr;
+				var tr, 
+				commandDefaultValue = WebMIDI.constants.commandDefaultValue; // function;
+
+				function getCommandRow(namestr, command, defaultValue, i)
+				{
+					var
+					tr = document.createElement("tr"),
+					td, input, button;
+
+					function sendMessageFromInput(numberInput)
+					{
+						var value = numberInput.valueAsNumber;
+
+						if(numberInput.command === CMD.AFTERTOUCH)
+						{
+							sendAftertouch(value);
+						}
+						else // can only be CHANNEL_PRESSURE or PITCHWHEEL
+						{
+							sendCommand(numberInput.command, value);
+						}
+					}
+
+					function onInputChanged(event)
+					{
+						var numberInput = event.currentTarget;
+
+						sendMessageFromInput(numberInput);
+					}
+
+					function onSendAgainButtonClick(event)
+					{
+						var inputID = event.currentTarget.inputID,
+							numberInput = getElem(inputID);
+
+						sendMessageFromInput(numberInput);
+					}
+
+					td = document.createElement("td");
+					tr.appendChild(td);
+					td.className = "left";
+					td.innerHTML = namestr;
+
+					td = document.createElement("td");
+					tr.appendChild(td);
+
+					input = document.createElement("input");
+					input.type = "number";
+					input.name = "value";
+					input.id = "commandNumberInput" + i.toString(10);
+					input.min = 0;
+					input.max = 127;
+					input.value = defaultValue;
+					input.command = command;
+					input.defaultValue = defaultValue;
+					input.className = "number";
+					input.onchange = onInputChanged;
+					td.appendChild(input);
+
+					button = document.createElement("input");
+					button.type = "button";
+					button.className = "sendAgainButton";
+					button.value = "send again"; 
+					button.inputID = input.id;
+					button.onclick = onSendAgainButtonClick;
+					td.appendChild(button);
+
+					commandInputIDs.push(input.id);
+
+					return tr;
+				}
 
 				// These are the only commands that need handling here.
 				switch(command)
 				{
+					case CMD.PATCH:
+						tr = getCommandRow("patch", CMD.PATCH, commandDefaultValue(CMD.PATCH), i);
+						break;
 					case CMD.CHANNEL_PRESSURE:
-						tr = getRow("channel pressure", CMD.CHANNEL_PRESSURE, null, null, sendCommand, DEFAULT.CHANNEL_PRESSURE);
-						sendCommand(CMD.CHANNEL_PRESSURE, DEFAULT.CHANNEL_PRESSURE);
+						tr = getCommandRow("channel pressure", CMD.CHANNEL_PRESSURE, commandDefaultValue(CMD.CHANNEL_PRESSURE), i);
 						break;
 					case CMD.PITCHWHEEL:
-						tr = getRow("pitchWheel", CMD.PITCHWHEEL, null, null, sendCommand, DEFAULT.PITCHWHEEL);
-						sendCommand(CMD.PITCHWHEEL, DEFAULT.PITCHWHEEL);
+						tr = getCommandRow("pitchWheel", CMD.PITCHWHEEL, commandDefaultValue(CMD.PITCHWHEEL), i);
+						break;
+					case CMD.AFTERTOUCH:
+						tr = getCommandRow("aftertouch", CMD.AFTERTOUCH, commandDefaultValue(CMD.AFTERTOUCH), i);
 						break;
 					default:
 						break;
@@ -425,180 +431,292 @@ WebMIDI.host = (function(document)
 				}
 			}
 
-			for(i = 0; i < commands.length; ++i)
+			for(i = 0; i < synthCommands.length; ++i)
 			{
-				appendCommandRow(table, commands[i], sendCommand);
+				command = synthCommands[i];
+				if(command === CMD.PATCH)
+				{
+					if(synth.supportsGeneralMIDI)
+					{
+						appendSoundFontPresetCommandRow(commandsTable, sf2Select[sf2Select.selectedIndex].presetOptions);
+						row++;
+					}
+					else
+					{
+						appendCommandRow(table, synthCommands[i], row++);
+					}
+				}
+				else
+				if(command === CMD.CHANNEL_PRESSURE
+				|| command === CMD.PITCHWHEEL
+				|| command === CMD.AFTERTOUCH)
+				{
+					appendCommandRow(table, synthCommands[i], row++);
+				}
 			}
 		}
 
 		function appendControlRows(table, controls)
 		{
-			var i, control;
+			var i, tr, controlRows;
 
-			// 3-byte standard MIDI controls
-			function appendLongStandardMIDIControlRow(table, control, sendLongControl)
+			// returns an array of tr elements
+			function getControlRows(controls)
 			{
-				var tr;
+				var i, uControls, tr, rval = [], uControl;
 
-				switch(control)
+				// Returns an array of unique controls.
+				// Each unique control has a ccs array attribute containing the unique control's cc indices.
+				// The unique control's other attributes (name, defaultValue and nItems) are the same as
+				// for the original non-unique controls (for which these attributes are all the same).
+				function getUniqueControls(nonUniqueControls)
 				{
-					// These are the only commands (of those currently defined in WebMIDI.constants) that need handling here.
-					// Note that not all the standard 3-byte MIDI controllers are currently defined in WebMIDI.constants.
-					// If further 3-byte controllers are added, they should also be added to this switch.
-					case CTL.PITCHWHEEL_DEVIATION:
-						tr = getRow("pitchWheel deviation", null, control, null, sendLongControl, DEFAULT.PITCHWHEEL_DEVIATION);
-						sendLongControl(control, DEFAULT.PITCHWHEEL_DEVIATION);
-						break;
-					case CTL.VOLUME:
-						tr = getRow("volume", null, control, null, sendLongControl, DEFAULT.VOLUME);
-						sendLongControl(control, DEFAULT.VOLUME);
-						break;
-					case CTL.PAN:
-						tr = getRow("pan", null, control, null, sendLongControl, DEFAULT.PAN);
-						sendLongControl(control, DEFAULT.PAN);
-						break;
-					case CTL.EXPRESSION:
-						tr = getRow("expression", null, control, null, sendLongControl, DEFAULT.EXPRESSION);
-						sendLongControl(control, DEFAULT.EXPRESSION);
-						break;
-					case CTL.MODWHEEL:
-						tr = getRow("modWheel", null, control, null, sendLongControl, DEFAULT.GENERIC_MIDI);
-						sendLongControl(control, DEFAULT.GENERIC_MIDI);
-						break;
-					case CTL.TIMBRE:
-						tr = getRow("timbre", null, control, null, sendLongControl, DEFAULT.GENERIC_MIDI);
-						sendLongControl(control, DEFAULT.GENERIC_MIDI);
-						break;
-					case CTL.BRIGHTNESS:
-						tr = getRow("brightness", null, control, null, sendLongControl, DEFAULT.GENERIC_MIDI);
-						sendLongControl(control, DEFAULT.GENERIC_MIDI);
-						break;
-					case CTL.EFFECTS:
-						tr = getRow("effects", null, control, null, sendLongControl, DEFAULT.GENERIC_MIDI);
-						sendLongControl(control, DEFAULT.GENERIC_MIDI);
-						break;
-					case CTL.TREMOLO:
-						tr = getRow("tremolo", null, control, null, sendLongControl, DEFAULT.GENERIC_MIDI);
-						sendLongControl(control, DEFAULT.GENERIC_MIDI);
-						break;
-					case CTL.CHORUS:
-						tr = getRow("chorus", null, control, null, sendLongControl, DEFAULT.GENERIC_MIDI);
-						sendLongControl(control, DEFAULT.GENERIC_MIDI);
-						break;
-					case CTL.CELESTE:
-						tr = getRow("celeste", null, control, null, sendLongControl, DEFAULT.GENERIC_MIDI);
-						sendLongControl(control, DEFAULT.GENERIC_MIDI);
-						break;
-					case CTL.PHASER:
-						tr = getRow("phaser", null, control, null, sendLongControl, DEFAULT.GENERIC_MIDI);
-						sendLongControl(control, DEFAULT.GENERIC_MIDI);
-						break;
-					default:
-						break;
+					var i, nuControl, uniqueControls = [], uniqueControl;
+
+					function newStandardControl(standardControlIndex)
+					{
+						var standardControl = {}, defaultValue;
+
+						standardControl.name = WebMIDI.constants.controlName(standardControlIndex);
+						standardControl.index = standardControlIndex;
+						defaultValue = WebMIDI.constants.controlDefaultValue(standardControlIndex);
+						if(defaultValue !== undefined)
+						{
+							standardControl.defaultValue = defaultValue;
+						}
+						return standardControl;
+					}
+					function findUniqueControl(name, uniqueControls)
+					{
+						var i, uControl = null;
+
+						for(i = 0; i < uniqueControls.length; ++i)
+						{
+							if(uniqueControls[i].name === name)
+							{
+								uControl = uniqueControls[i];
+								break;
+							}
+						}
+						return uControl;
+					}
+
+					function newUniqueControl(nuControl)
+					{
+						var uniqueControl = {};
+
+						uniqueControl.name = nuControl.name;
+						uniqueControl.ccs = [];
+						uniqueControl.ccs.push(nuControl.index);
+						if(nuControl.defaultValue !== undefined)
+						{
+							uniqueControl.defaultValue = nuControl.defaultValue;
+						}
+						if(nuControl.nItems !== undefined)
+						{
+							uniqueControl.nItems = nuControl.nItems;
+						}
+						return uniqueControl;
+					}
+					
+					for(i = 0; i < nonUniqueControls.length; ++i)
+					{
+						nuControl = nonUniqueControls[i];
+						if(typeof nuControl === "number")
+						{
+							nuControl = newStandardControl(nuControl);
+						}
+						uniqueControl = findUniqueControl(nuControl.name, uniqueControls);
+						if(uniqueControl === null)
+						{
+							uniqueControl = newUniqueControl(nuControl);
+							uniqueControls.push(uniqueControl);
+						}
+						else
+						{
+							uniqueControl.ccs.push(nuControl.index);
+						}
+					}
+
+					return uniqueControls;
 				}
-				if(tr !== undefined)
+
+				function ccString(ccs)
 				{
-					table.appendChild(tr);
+					var i, rval = "CC ";
+					
+					for(i = 0; i < ccs.length; ++i)
+					{
+						rval += ccs[i].toString(10);
+						rval += ", ";
+					}
+					rval = rval.substring(0, rval.length - 2);
+
+					return rval;
 				}
+
+				// 3-byte controls
+				function setLongControlRow(tr, uControl, i)
+				{
+					var td, input, button;
+
+					function sendMessageFromInput(numberInput)
+					{
+						var
+						value = numberInput.valueAsNumber,
+						uControl = numberInput.uControl;
+						
+						// returns a value in range [0..127] for an index in range [0..nItems-1]
+						function valueFromIndex(index, nItems)
+						{
+							var partitionSize = 127 / nItems;
+							
+							return Math.round((partitionSize / 2) + (partitionSize * index));
+						}
+						
+						if(uControl.nItems !== undefined)
+						{
+							value = valueFromIndex(value, uControl.nItems);
+						}
+
+						sendLongControl(numberInput.uControl.ccs[0], value);
+					}
+
+					function onInputChanged(event)
+					{
+						var	numberInput = event.currentTarget;
+
+						sendMessageFromInput(numberInput);
+					}
+
+					function onSendAgainButtonClick(event)
+					{
+						var inputID = event.currentTarget.inputID,
+							numberInput = getElem(inputID);
+						
+						sendMessageFromInput(numberInput);
+					}
+
+					td = document.createElement("td");
+					tr.appendChild(td);
+					td.className = "left";
+					td.innerHTML = uControl.name;
+
+					td = document.createElement("td");
+					tr.appendChild(td);
+
+					input = document.createElement("input");
+					input.type = "number";
+					input.name = "value";
+					input.id = "controlNumberInput" + i.toString(10);
+					input.value = uControl.defaultValue;
+					input.uControl = uControl;
+					input.className = "number";
+					input.min = 0;
+					if(uControl.nItems === undefined)
+					{
+						input.max = 127;
+					}
+					else
+					{
+						input.max = uControl.nItems - 1;
+					}
+					input.onchange = onInputChanged;
+					td.appendChild(input);
+
+					button = document.createElement("input");
+					button.type = "button";
+					button.className = "sendAgainButton";
+					button.value = "send again";
+					button.inputID = input.id;
+					button.onclick = onSendAgainButtonClick;
+					td.appendChild(button);
+
+					td = document.createElement("td");
+					tr.appendChild(td);
+					td.innerHTML = ccString(uControl.ccs);
+
+					longInputControlIDs.push(input.id);
+
+					return tr;
+				}
+				// 2-byte uControls
+				function setShortControlRow(tr, uControl)
+				{
+					var 
+					button,
+					td = document.createElement("td");
+
+					function onSendShortControlButtonClick(event)
+					{
+						var uControl = event.currentTarget.uControl;
+
+						sendShortControl(uControl.ccs[0]);
+					}
+
+					tr.appendChild(td);
+					td.className = "left";
+					td.innerHTML = uControl.name;
+
+					td = document.createElement("td");
+					tr.appendChild(td);
+					button = document.createElement("input");
+					button.type = "button";
+					button.className = "sendButton";
+					button.value = "send";
+					button.uControl = uControl;
+					button.onclick = onSendShortControlButtonClick;
+					//button.style.marginLeft = "4px";
+					//button.style.marginRight = "4px";
+					td.appendChild(button);
+
+					td = document.createElement("td");
+					tr.appendChild(td);
+					td.innerHTML = ccString(uControl.ccs);
+				}
+
+				uControls = getUniqueControls(controls);
+
+				for(i = 0; i < uControls.length; ++i)
+				{
+					uControl = uControls[i];
+					tr = document.createElement("tr");
+					rval.push(tr);
+					if(uControl.defaultValue === undefined)
+					{
+						setShortControlRow(tr, uControl);
+					}
+					else
+					{
+						if(!(uControl.ccs[0] === WebMIDI.constants.CONTROL.BANK && synth.supportsGeneralMIDI))
+						{
+							setLongControlRow(tr, uControl, i);
+						}
+					}
+				}
+
+				return rval;
 			}
-			// 2-byte standard MIDI controls
-			function appendShortStandardMIDIControlRow(table, control, sendShortControl)
-			{
-				var controlName, tr;
 
-				switch(control)
-				{
-					case CTL.ALL_SOUND_OFF:
-						controlName = "all sound off";
-						break;
-					case CTL.ALL_CONTROLLERS_OFF:
-						controlName = "all controllers off";
-						break;
-					case CTL.ALL_NOTES_OFF:
-						controlName = "all notes off";
-						break;
-					default:
-						throw "Unexpected control.";
-				}
-				tr = getRow(controlName, null, null, control, sendShortControl);
+			controlRows = getControlRows(controls);
+			for(i = 0; i < controlRows.length; ++i)
+			{
+				tr = controlRows[i];
 				table.appendChild(tr);
-				sendShortControl(control);
-			}
-
-			// 3-byte custom controls
-			function appendLongCustomControlRow(table, control, sendLongCustomControl)
-			{
-				var tr;
-
-				tr = getRow(control.name, null, control.index, null, sendLongCustomControl, control.defaultValue, control.nDiscreteItems);
-				sendLongCustomControl(control.index, control.defaultValue);
-				if(tr !== undefined)
-				{
-					table.appendChild(tr);
-				}
-			}
-			// 2-byte custom controls
-			function appendShortCustomControlRow(table, control, sendShortCustomControl)
-			{
-				var tr;
-
-				tr = getRow(control.name, null, null, control.index, sendShortCustomControl);
-				sendShortCustomControl(control.index);
-				if(tr !== undefined)
-				{
-					table.appendChild(tr);
-				}
-			}
-
-			for(i = 0; i < controls.length; ++i)
-			{
-				control = controls[i];
-				if(typeof control === "number")
-				{
-					if(control === CTL.ALL_SOUND_OFF || control === CTL.ALL_CONTROLLERS_OFF || control === CTL.ALL_NOTES_OFF)
-					{
-						appendShortStandardMIDIControlRow(table, control, sendShortControl);
-					}
-					else
-					{
-						appendLongStandardMIDIControlRow(table, control, sendLongControl);
-					}		
-				}
-				else
-				{
-					if(control.defaultValue === undefined)
-					{
-						appendShortCustomControlRow(table, control, sendShortCustomControl);
-					}
-					else
-					{
-						appendLongCustomControlRow(table, control, sendLongCustomControl);
-					}				
-				}
 			}
 		}
 
-		inputDefaultsCache.length = 0;
+		commandInputIDs.length = 0;
+		longInputControlIDs.length = 0;
 
 		emptyTables(commandsTable, controlsTable);
 
-		hasStdCommands = hasStandardCommands(synth.commands);
-		hasControls = (synth.controls !== undefined && synth.controls.length > 0);
-
-		if(hasStdCommands)
+		if(hasCommandsDiv(synth.commands))
 		{
 			commandsDiv.style.display = "block";
 			commandsTitleDiv.style.display = "block";
 			commandsTable.style.display = "table";
 
-			if(synth.commands.indexOf(CMD.PATCH_CHANGE) >= 0)
-			{
-				if(synth.setSoundFont !== undefined)
-				{
-					appendSoundFontPresetCommandRow(commandsTable, sf2Select[sf2Select.selectedIndex].presetOptions);
-				}
-				// TODO handle synths that have presets, but don't use soundFonts, here
-			}
 			appendCommandRows(commandsTable, synth.commands);
 		}
 		else
@@ -608,7 +726,7 @@ WebMIDI.host = (function(document)
 			commandsTable.style.display = "none";
 		}
 
-		if(hasControls)
+		if(synth.controls !== undefined && synth.controls.length > 0)
 		{
 			controlsDiv.style.display = "block";
 			controlsTitleDiv.style.display = "block";
@@ -622,6 +740,8 @@ WebMIDI.host = (function(document)
 			controlsTitleDiv.style.display = "none";
 			controlsTable.style.display = "none";
 		}
+
+		sendShortControl(WebMIDI.constants.CONTROL.ALL_CONTROLLERS_OFF);
 	},
 
 	// exported
@@ -755,57 +875,34 @@ WebMIDI.host = (function(document)
 		}
 	},
 
-	sendNoteOn = function(noteIndexInput, noteVelocityInput)
+	sendNoteOn = function(noteIndex, noteVelocity)
 	{
-		var
-			NOTE_ON = WebMIDI.constants.COMMAND.NOTE_ON,
-			synthSelect = getElem("synthSelect"),
-			channelSelect = getElem("channelSelect"),
-			synth, channel, status, noteIndex, noteVelocity, message;
-
-		synth = synthSelect[synthSelect.selectedIndex].synth;
-		channel = parseInt(channelSelect[channelSelect.selectedIndex].value, 10);
-		status = NOTE_ON + channel;
-		noteIndex = noteIndexInput.valueAsNumber;
-		noteVelocity = noteVelocityInput.valueAsNumber;
-
-		message = new Uint8Array([status, noteIndex, noteVelocity]);
-		synth.send(message, performance.now());  // interface function		
+		sendCommand(WebMIDI.constants.COMMAND.NOTE_ON, noteIndex, noteVelocity);
 	},
 
-	sendNoteOff = function(noteIndexInput, noteVelocityInput)
+	sendNoteOff = function(noteIndex, noteVelocity)
 	{
 		var
 		NOTE_ON = WebMIDI.constants.COMMAND.NOTE_ON,
 		NOTE_OFF = WebMIDI.constants.COMMAND.NOTE_OFF,
 		synthSelect = getElem("synthSelect"),
-		channelSelect = getElem("channelSelect"),
-		synth, channel, status, noteIndex, noteVelocity, message;
-
 		synth = synthSelect[synthSelect.selectedIndex].synth;
-		channel = parseInt(channelSelect[channelSelect.selectedIndex].value, 10);
-		status = NOTE_ON + channel;
-		noteIndex = noteIndexInput.valueAsNumber;
-		noteVelocity = noteVelocityInput.valueAsNumber;
 
 		if(synth.commands.indexOf(NOTE_OFF) >= 0)
 		{
-			status = NOTE_OFF + channel;
-			message = new Uint8Array([status, noteIndex, noteVelocity]);
+			sendCommand(NOTE_OFF, noteIndex, noteVelocity);
 		}
 		else
 		{
-			status = NOTE_ON + channel;
-			message = new Uint8Array([status, noteIndex, 0]);
+			sendCommand(NOTE_ON, noteIndex, 0);
 		}
-		synth.send(message, performance.now());
 	},
 
 	doNoteOn = function()
 	{
 		var
-		noteIndexInput = getElem("noteDiv1IndexInput"),
-		noteVelocityInput = getElem("noteDiv1VelocityInput"),
+		noteIndex = getElem("noteDiv1IndexInput").valueAsNumber,
+		noteVelocity = getElem("noteDiv1VelocityInput").valueAsNumber,
 		holdCheckbox1 = getElem("holdCheckbox1"),
 		sendButton1 = getElem("sendButton1");
 
@@ -814,27 +911,27 @@ WebMIDI.host = (function(document)
 			sendButton1.disabled = true;
 		}
 		
-		sendNoteOn(noteIndexInput, noteVelocityInput);		
+		sendNoteOn(noteIndex, noteVelocity);		
 	},
 
 	doNoteOff = function()
 	{
 		var
-		noteIndexInput = getElem("noteDiv1IndexInput"),
-		noteVelocityInput = getElem("noteDiv1VelocityInput");
+		noteIndex = getElem("noteDiv1IndexInput").valueAsNumber,
+		noteVelocity = getElem("noteDiv1VelocityInput").valueAsNumber;
 
-		sendNoteOff(noteIndexInput, noteVelocityInput);
+		sendNoteOff(noteIndex, noteVelocity);
 	},
 
 	doNotesOn = function()
 	{
 		var
 		note1Checkbox = getElem("sendNote1Checkbox"),
-		note1IndexInput = getElem("notesDiv2IndexInput1"),
-		note1VelocityInput = getElem("notesDiv2VelocityInput1"),
+		note1Index = getElem("notesDiv2IndexInput1").valueAsNumber,
+		note1Velocity = getElem("notesDiv2VelocityInput1").valueAsNumber,
 		note2Checkbox = getElem("sendNote2Checkbox"),
-		note2IndexInput = getElem("notesDiv2IndexInput2"),
-		note2VelocityInput = getElem("notesDiv2VelocityInput2"),
+		note2Index = getElem("notesDiv2IndexInput2").valueAsNumber,
+		note2Velocity = getElem("notesDiv2VelocityInput2").valueAsNumber,
 		holdCheckbox2 = getElem("holdCheckbox2"),
 		sendButton2 = getElem("sendButton2");
 
@@ -845,11 +942,11 @@ WebMIDI.host = (function(document)
 
 		if(note1Checkbox.checked)
 		{
-			sendNoteOn(note1IndexInput, note1VelocityInput);
+			sendNoteOn(note1Index, note1Velocity);
 		}
 		if(note2Checkbox.checked)
 		{
-			sendNoteOn(note2IndexInput, note2VelocityInput);
+			sendNoteOn(note2Index, note2Velocity);
 		}
 	},
 
@@ -857,19 +954,19 @@ WebMIDI.host = (function(document)
 	{
 		var
 		note1Checkbox = getElem("sendNote1Checkbox"),
-		note1IndexInput = getElem("notesDiv2IndexInput1"),
-		note1VelocityInput = getElem("notesDiv2VelocityInput1"),
+		note1Index = getElem("notesDiv2IndexInput1").valueAsNumber,
+		note1Velocity = getElem("notesDiv2VelocityInput1").valueAsNumber,
 		note2Checkbox = getElem("sendNote2Checkbox"),
-		note2IndexInput = getElem("notesDiv2IndexInput2"),
-		note2VelocityInput = getElem("notesDiv2VelocityInput2");
+		note2Index = getElem("notesDiv2IndexInput2").valueAsNumber,
+		note2Velocity = getElem("notesDiv2VelocityInput2").valueAsNumber;
 
 		if(note1Checkbox.checked)
 		{
-			sendNoteOff(note1IndexInput, note1VelocityInput);
+			sendNoteOff(note1Index, note1Velocity);
 		}
 		if(note2Checkbox.checked)
 		{
-			sendNoteOff(note2IndexInput, note2VelocityInput);
+			sendNoteOff(note2Index, note2Velocity);
 		}
 	},
 
@@ -930,7 +1027,7 @@ WebMIDI.host = (function(document)
 			// of which has a bank and patch attribute, and whose innerHTML has been set to bank:patch name.
 			function setSf2SelectPresetOptions(sf2SelectOptions)
 			{
-				var i, j, standardPatchNames = WebMIDI.constants.GeneralMIDIInstrumentNames,
+				var i, j, generalMIDIPatchName = WebMIDI.constants.generalMIDIPatchName,
 				bank, patch, name, presetOption,
 				sf2SelectOption, presetInfo, presetsArray, nPresets, presetOptions, stringArray;
 
@@ -961,7 +1058,7 @@ WebMIDI.host = (function(document)
 						{
 							bank = 0;
 							patch = presetInfo;
-							name = standardPatchNames[patch];
+							name = generalMIDIPatchName(patch);
 						}
 						else if(typeof presetInfo === "string")
 						{
@@ -972,7 +1069,7 @@ WebMIDI.host = (function(document)
 						}
 						else
 						{
-							throw "Illegal preset info type";
+							console.warn("Illegal preset info type");
 						}
 						presetOption = document.createElement("option");
 						presetOption.bank = bank;
@@ -1132,7 +1229,7 @@ WebMIDI.host = (function(document)
 							soundFontURL = selectOptions[fontIndex].url;
 							soundFontName = selectOptions[fontIndex].text;
 							presetIndices = getPresetIndices(selectOptions[fontIndex].presetOptions);
-							loadLogElem.innerHTML = "loading the ".concat('"', soundFontName, '" soundFont (', (nFontsOfThisTypeLoaded + 1), "/", nFontsOfThisType, ")...");
+							loadLogElem.innerHTML = 'loading the "' + soundFontName + '" soundFont (' + (nFontsOfThisTypeLoaded + 1) + "/" + nFontsOfThisType + ")...";
 							loadSoundFontAsynch();
 						}
 						else

@@ -11,8 +11,8 @@
 *  Unused material has been deleted. Only the necessary functions are exposed.
 */
 
-/*jslint bitwise: false, nomen: true, plusplus: true, white: true */
-/*global WebMIDI: false,  window: false,  navigator: false,  document: false, performance: false, console: false, alert: false, XMLHttpRequest: false */
+/*jslint white */
+/*global WebMIDI, window */
 
 WebMIDI.namespace('WebMIDI.cwMIDISynthCore');
 
@@ -22,7 +22,6 @@ WebMIDI.cwMIDISynthCore = (function(window)
 
 	var
 	WaveShaper = WebMIDI.waveShaper.WaveShaper,
-	CUSTOMCONTROL = WebMIDI.constants.CUSTOMCONTROL,
 	voices = [],
 	audioContext = null,
 	isMobile = false,	// we have to disable the convolver on mobile for performance reasons.
@@ -36,12 +35,12 @@ WebMIDI.cwMIDISynthCore = (function(window)
 	currentOsc1Waveform = 2, // SAW
 	currentOsc1Octave = 0,  // 32'
 	currentOsc1Detune = 0,	// 0
-	currentOsc1Mix = 50.0,	// 50%
+	currentOsc1Mix = 50.0,	// 50% -- ji: JSLint says this isn't being used. Delete?
 
 	currentOsc2Waveform = 2, // SAW
 	currentOsc2Octave = 0,  // 16'
 	currentOsc2Detune = -25,	// fat detune makes pretty analogue-y sound.  :)
-	currentOsc2Mix = 50.0,	// 0%
+	currentOsc2Mix = 50.0,	// 0% -- ji: JSLint says this isn't being used. Delete?
 
 	currentFilterCutoff = 8,
 	currentFilterQ = 7.0,
@@ -71,12 +70,12 @@ WebMIDI.cwMIDISynthCore = (function(window)
 	revBypassGain = null,
 	compressor = null,
 
-	currentOctave = 3,
+	currentOctave = 3, // ji: JSLint says this isn't being used. Delete?
 	modOscFreqMultiplier = 1,
 	moDouble = false,
 	moQuadruple = false,
 
-	aftertouchKey = 0,
+	aftertouchKey = 0, // ji: JSLint says this isn't being used. Delete?
 
 	frequencyFromNoteNumber = function(note) {
 		return 440 * Math.pow(2,(note-69)/12);
@@ -484,126 +483,116 @@ WebMIDI.cwMIDISynthCore = (function(window)
 	// 'value' is in range [0..127].
 	controller = function(controllerIndex, value)
 	{
-		/* The synth does not have an x1 or x2 button,
-		 * so I don't know what to do with these cases
-		 * from the original synth.js file.
-		 * 	case 33: // "x1" button
-			case 51:
-				moDouble = (value > 0);
-				changeModMultiplier();
-				return;
-			case 34: // "x2" button
-			case 52:
-				moQuadruple = (value > 0);
-				changeModMultiplier();
-				return;
-		 */
-		var index = value; // used in discrete controls
+		var
+		CWCC = WebMIDI.cwConstants.CW_CCINDEX,
+		index = value; // used in discrete controls
 		value /= 127; // value now in range [0..1]
-		switch (controllerIndex) // ji controller indices
+		switch (controllerIndex)
 		{
-			case 0:
+			case CWCC.MASTER_DRIVE1:
+			case CWCC.MASTER_DRIVE2:
+			case CWCC.MASTER_DRIVE3:
+				onUpdateDrive(100 * value);
+				break;
+			case CWCC.MASTER_REVERB1:
+			case CWCC.MASTER_REVERB2:
+			case CWCC.MASTER_REVERB3:
+				onUpdateReverb(100 * value);
+				break;
+			case CWCC.MASTER_VOLUME:
+				onUpdateVolume(100 * value);
+				break;
+
+			case CWCC.MOD_WAVEFORM:
 				onUpdateModWaveform(index);
 				break;
-			case 1:
+			case CWCC.MOD_FREQ1:
+			case CWCC.MOD_FREQ2:
 				onUpdateModFrequency(10 * value);
 				break;
-			case 2:
+			case CWCC.MOD_OSC1_TREMOLO:
 				onUpdateModOsc1(100 * value);
 				break;
-			case 3:
+			case CWCC.MOD_OSC2_TREMOLO:
 				onUpdateModOsc2(100 * value);
 				break;
 
-			case 4:
+			case CWCC.OSC1_WAVEFORM:
 				onUpdateOsc1Wave(index);
 				break;
-			case 5:
+			case CWCC.OSC1_OCTAVE:
 				onUpdateOsc1Octave(index);
 				break;
-			case 6:
+			case CWCC.OSC1_DETUNE:
 				onUpdateOsc1Detune((value * 2400) - 1200);  // value in range [0..1], arg in range [-1200..1200]
 				break;
-			case 7:
+			case CWCC.OSC1_MIX:
 				onUpdateOsc1Mix(100 * value);
 				break;
 
-			case 8:
+			case CWCC.OSC2_WAVEFORM:
 				onUpdateOsc2Wave(index);
 				break;
-			case 9:
+			case CWCC.OSC2_OCTAVE:
 				onUpdateOsc2Octave(index);
 				break;
-			case 10:
+			case CWCC.OSC2_DETUNE:
 				onUpdateOsc2Detune((value * 2400) - 1200); // value in range [0..1], arg in range [-1200..1200]
 				break;
-			case 11:
+			case CWCC.OSC2_MIX:
 				onUpdateOsc2Mix(100 * value);
 				break;
 
-			case 12:
+			case CWCC.FILTER_CUTOFF:
 				onUpdateFilterCutoff(100 * value);
 				break;
-			case 13:
+			case CWCC.FILTER_Q1:
+			case CWCC.FILTER_Q2:
 				onUpdateFilterQ(20 * value);
 				break;
-			case 14:
+			case CWCC.FILTER_MOD:
 				onUpdateFilterMod(100 * value);
 				break;
-			case 15:
+			case CWCC.FILTER_ENV:
 				onUpdateFilterEnv(100 * value);
 				break;
 
-			case 16:
+			case CWCC.FILTERENV_ATTACK:
 				onUpdateFilterEnvA(100 * value);
 				break;
-			case 17:
+			case CWCC.FILTERENV_DECAY:
 				onUpdateFilterEnvD(100 * value);
 				break;
-			case 18:
+			case CWCC.FILTERENV_SUSTAIN:
 				onUpdateFilterEnvS(100 * value);
 				break;
-			case 19:
+			case CWCC.FILTERENV_RELEASE:
 				onUpdateFilterEnvR(100 * value);
 				break;
 
-			case 20:
+			case CWCC.VOLUMEENV_ATTACK:
 				onUpdateEnvA(100 * value);
 				break;
-			case 21:
+			case CWCC.VOLUMEENV_DECAY:
 				onUpdateEnvD(100 * value);
 				break;
-			case 22:
+			case CWCC.VOLUMEENV_SUSTAIN:
 				onUpdateEnvS(100 * value);
 				break;
-			case 23:
+			case CWCC.VOLUMEENV_RELEASE:
 				onUpdateEnvR(100 * value);
 				break;
 
-			case 24:
-				onUpdateDrive(100 * value);
+			case CWCC.X1BUTTON1:
+			case CWCC.X1BUTTON2:
+				moDouble = (value > 0);
+				changeModMultiplier();
 				break;
-			case 25:
-				onUpdateReverb(100 * value);
+			case CWCC.X2BUTTON1:
+			case CWCC.X2BUTTON2:
+				moQuadruple = (value > 0);
+				changeModMultiplier();
 				break;
-			case 26:
-				onUpdateVolume(100 * value);
-				break;
-			case CUSTOMCONTROL.AFTERTOUCH_KEY:
-				aftertouchKey = index;
-				break;
-			case CUSTOMCONTROL.AFTERTOUCH_PRESSURE:
-				if(aftertouchKey >= 0)
-				{
-					polyPressure(aftertouchKey, value);
-					aftertouchKey = -1;
-				}
-				else
-				{
-					throw "Error: AftertouchKey must be set before setting AftertouchPressure";
-				}
-				break;
-
 		}
 	},
 
@@ -633,7 +622,7 @@ WebMIDI.cwMIDISynthCore = (function(window)
 	initAudio = function() {
 		window.AudioContext = window.AudioContext || window.webkitAudioContext;
 		try {
-			audioContext = new AudioContext();
+			audioContext = new window.AudioContext();
 		}
 		catch(e) {
 			alert('The Web Audio API is apparently not supported in this browser.');
@@ -671,8 +660,8 @@ WebMIDI.cwMIDISynthCore = (function(window)
 		onUpdateVolume(currentVol);
 
 		if (!isMobile) {
-			var irRRequest = new XMLHttpRequest();			
-			irRRequest.open("GET", "synths/non-standard/cwMIDISynth/sounds/irRoom.wav", true);
+			var irRRequest = new XMLHttpRequest();
+			irRRequest.open("GET", "cwMIDISynth/sounds/irRoom.wav", true);
 			irRRequest.responseType = "arraybuffer";
 			irRRequest.onload = function()
 			{
@@ -694,6 +683,7 @@ WebMIDI.cwMIDISynthCore = (function(window)
     	noteOn: noteOn,
     	noteOff: noteOff,
     	controller: controller,
+    	polyPressure: polyPressure,
     	pitchWheel: pitchWheel
     };
 
@@ -722,7 +712,7 @@ WebMIDI.cwMIDISynthCore = (function(window)
 		this.osc1.type = value;
 	};
 
-	Voice.prototype.updateOsc1Frequency = function(value)
+	Voice.prototype.updateOsc1Frequency = function(value)  // value not used
 	{
 		this.osc1.frequency.value = (this.originalFrequency * Math.pow(2, currentOsc1Octave - 2));  // -2 because osc1 is 32', 16', 8'
 		this.osc1.detune.value = currentOsc1Detune + currentPitchWheel * 500;	// value in cents - detune major fifth.
@@ -738,7 +728,7 @@ WebMIDI.cwMIDISynthCore = (function(window)
 		this.osc2.type = value;
 	};
 
-	Voice.prototype.updateOsc2Frequency = function(value)
+	Voice.prototype.updateOsc2Frequency = function(value)  // value not used
 	{
 		this.osc2.frequency.value = (this.originalFrequency * Math.pow(2, currentOsc2Octave - 1));
 		this.osc2.detune.value = currentOsc2Detune + currentPitchWheel * 500;	// value in cents - detune major fifth.
@@ -751,7 +741,7 @@ WebMIDI.cwMIDISynthCore = (function(window)
 
 	Voice.prototype.setFilterCutoff = function(value)
 	{
-		var now = audioContext.currentTime,
+		var now = audioContext.currentTime, // ji: now isnt used. Delete?
 		    filterFrequency = Math.pow(2, value);
 		//	console.log("Filter cutoff: orig:" + this.filter1.frequency.value + " new:" + filterFrequency + " value: " + value);
 		this.filter1.frequency.value = filterFrequency;
@@ -764,7 +754,7 @@ WebMIDI.cwMIDISynthCore = (function(window)
 		this.filter2.Q.value = value;
 	};
 
-	Voice.prototype.setFilterMod = function(value)
+	Voice.prototype.setFilterMod = function(value)	 // value isn't used.
 	{
 		this.modFilterGain.gain.value = currentFilterMod * 24;
 		//	console.log("filterMod.gain=" + currentFilterMod*24);
@@ -775,6 +765,8 @@ WebMIDI.cwMIDISynthCore = (function(window)
 		var now = audioContext.currentTime,
 			release = now + (currentEnvR / 10.0),
 			initFilter = filterFrequencyFromCutoff(this.originalFrequency, currentFilterCutoff / 100 * (1.0 - (currentFilterEnv / 100.0)));
+
+		// initFilter isn't used in this function
 
 		//    console.log("noteoff: now: " + now + " val: " + this.filter1.frequency.value + " initF: " + initFilter + " fR: " + currentFilterEnvR/100);
 		this.envelope.gain.cancelScheduledValues(now);
