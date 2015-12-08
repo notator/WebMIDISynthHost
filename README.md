@@ -36,7 +36,7 @@ This is Chris' [MIDI synth](https://webaudiodemos.appspot.com/midi-synth/index.h
 
 I am not a Web Audio specialist, so would really welcome some help in developing the resident synthesizers' code. I think its especially important that Sf2Synth1 gets optimised.<br />
 
-November 2015<br />
+December 2015<br />
 James Ingram
 
 [1] A "Web MIDI Synth" is a software synth that uses the Web Audio API to implement the Output Device interface defined in the Web MIDI API. Web MIDI Synths can be used online independently of browser implementations of the Web MIDI API. *Standard* Web MIDI Synths can be used interchangeably with the hardware synths supplied by browser implementations of the Web MIDI API.<br />
