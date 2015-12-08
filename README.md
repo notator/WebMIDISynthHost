@@ -8,7 +8,7 @@ It can also be used to develope any new Web MIDI Synth [1] without having to cre
 1. clone this project
 2. create a new directory, at the top level of the project, for the new synth's files
 3. create a file that describes the new synth's interface using one the existing top-level files [2] as a model.
-4. implement the interface, and add the synth's file(s) at the bottom of the host.html file
+4. implement the interface, and include the synth's file(s) at the bottom of the host.html file
 
 Web MIDI synths (including the resident synthesizers) can easily be lifted out of this host and used in other Web applications that work "out-of-the-box". There are some simple applications, demonstrating how this can be done at:<br /> [SimpleSoundFontSynthHost](https://github.com/notator/SimpleSoundFontSynthHost),  [(GitHub)](https://github.com/notator/SimpleSoundFontSynthHost),
 [SimpleMIDISynthHost](http://james-ingram-act-two.de/open-source/SimpleMIDISynthHost/host.html),
