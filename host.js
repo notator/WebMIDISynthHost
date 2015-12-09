@@ -219,12 +219,18 @@ WebMIDI.host = (function(document)
 			var
 			synthSelect = getElem("synthSelect"),
 			synth = synthSelect[synthSelect.selectedIndex].synth,
+			presetSelect = getElem("presetSelect"),
 			commandDefaultValue = WebMIDI.constants.commandDefaultValue, // function
 			commands = synth.commands;
 
 			function resetHostGUI()
 			{
 				var i, inputID, numberInputElem;
+
+				if(presetSelect !== undefined)
+				{	
+					presetSelect.selectedIndex = 0;
+				}
 
 				for(i = 0; i < commandInputIDs.length; ++i)
 				{
@@ -247,8 +253,16 @@ WebMIDI.host = (function(document)
 
 				if(commands.indexOf(CMD.PATCH) >= 0)
 				{
-					sendCommand(CMD.PATCH, commandDefaultValue(CMD.PATCH));
+					if(presetSelect !== undefined)
+					{
+						sendCommand(CMD.PATCH, presetSelect[0].patch);
+					}
+					else
+					{
+						sendCommand(CMD.PATCH, commandDefaultValue(CMD.PATCH));
+					}
 				}
+
 				if(commands.indexOf(CMD.CHANNEL_PRESSURE) >= 0)
 				{
 					sendCommand(CMD.CHANNEL_PRESSURE, commandDefaultValue(CMD.CHANNEL_PRESSURE));

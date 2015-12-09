@@ -138,6 +138,7 @@ WebMIDI.soundFont = (function()
 		modDecay,
 		modSustain,
 		modRelease,
+		loop, // ji
 		tune,
 		scale,
 		freqVibLFO,
@@ -155,6 +156,7 @@ WebMIDI.soundFont = (function()
 		modDecay   = getModGenAmount(generator, 'decayModEnv',   -12000);
 		modSustain = getModGenAmount(generator, 'sustainModEnv');
 		modRelease = getModGenAmount(generator, 'releaseModEnv', -12000);
+		loop	   = getModGenAmount(generator, 'sampleModes', 0);	// ji
 
 		tune = (
 		  getModGenAmount(generator, 'coarseTune') +
@@ -196,6 +198,7 @@ WebMIDI.soundFont = (function()
 					'end':
 					  getModGenAmount(generator, 'endAddrsCoarseOffset') * 32768 +
 						getModGenAmount(generator, 'endAddrsOffset'),
+					'doLoop': (loop === 1 || loop === 3), // ji
 					'loopStart': (
 					  //(sampleHeader.startLoop - sampleHeader.start) +
 					  (sampleHeader.startLoop) +

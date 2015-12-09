@@ -69,8 +69,8 @@ WebMIDI.soundFontSynthNote = (function()
 		modAttack = now + instrument.modAttack,
 		volDecay = volAttack + instrument.volDecay,
 		modDecay = modAttack + instrument.modDecay,
-		loopStart = instrument.loopStart / this.sampleRate,
-		loopEnd = instrument.loopEnd / this.sampleRate,
+		loopStart = 0,
+		loopEnd = 0,
 		startTime = instrument.start / this.sampleRate;
 
 		function amountToFreq(val)
@@ -78,6 +78,11 @@ WebMIDI.soundFontSynthNote = (function()
 			return Math.pow(2, (val - 6900) / 1200) * 440;
 		}
 
+		if(instrument.doLoop === true)
+		{
+			loopStart = instrument.loopStart / this.sampleRate;
+			loopEnd = instrument.loopEnd / this.sampleRate;
+		}
 		sample = sample.subarray(0, sample.length + instrument.end);
 		this.audioBuffer = ctx.createBuffer(1, sample.length, this.sampleRate);
 		buffer = this.audioBuffer;
@@ -88,23 +93,11 @@ WebMIDI.soundFontSynthNote = (function()
 		this.bufferSource = ctx.createBufferSource();
 		bufferSource = this.bufferSource;
 		bufferSource.buffer = buffer;
-		/* ji begin changes November 2015 */
+		/* ji begin changes December 2015 */
 		// This line was originally:
 		//    bufferSource.loop = (this.channel !== 9);
-		// This means that all presets in channels other than 9 should loop, and
-		// assumes that they all have valid loop parameters (which they don't).
-		// The Sf2 spec says that loops should start at at least position 8.
-		// If the loop starts too close to the attack, the attack is of course
-		// played again. Also, loops should be at least 8 data points long.
-		// In the Arachno soundFont, the presets Marimba, Banjo and Melodic Tom
-		// use samples that have loops that start at 0 or 8.
-		// The Harpsichord preset contains loops that are too short (and very late).
-		// The following line sets bufferSource.loop to false in such cases.
-		// I have freely chosen 50 for the lower limit for the start of a loop.
-		// The lowest acceptable value I've found in the Arachno soundFont is 128
-		// (in the Seashore preset).
-		bufferSource.loop = (this.channel !== 9) && (instrument.loopStart > 50) && ((instrument.loopEnd - instrument.loopStart) > 8);
-		/* ji end changes November 2015 */
+		bufferSource.loop = (this.channel !== 9) && (instrument.doLoop === true);
+		/* ji end changes December 2015 */
 		bufferSource.loopStart = loopStart;
 		bufferSource.loopEnd = loopEnd;
 		this.updatePitchBend(this.pitchBend);

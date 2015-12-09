@@ -386,7 +386,7 @@ WebMIDI.sf2Synth1 = (function(window)
 		{
 			bnk = (channel === 9) ? 128 : this.bank;
 			bankStr = bnk.toString(10);
-			instrStr = (this.channelInstrument[channel]).toString(10);
+			instrStr = (channelInstrument[channel]).toString(10);
 			channelStr = channel.toString(10);
 			console.warn("instrument not found: bank=" + bankStr + " instrument=" + instrStr + " channel=" + channelStr);
 		}
@@ -397,7 +397,7 @@ WebMIDI.sf2Synth1 = (function(window)
 		{
 	  		bnk = (channel === 9) ? 128 : this.bank;
 			bankStr = bnk.toString(10);
-			instrStr = (this.channelInstrument[channel]).toString(10);
+			instrStr = (channelInstrument[channel]).toString(10);
 			channelStr = channel.toString(10);
 			console.warn("instrument key not found: bank=" + bankStr + " instrument=" + instrStr + " channel=" + channelStr + " key=" + key);
 
