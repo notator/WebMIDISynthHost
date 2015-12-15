@@ -108,7 +108,9 @@ WebMIDI.sf2Synth1 = (function(window)
 			return new Sf2Synth1();
 		}
 
-		/** WebMIDIAPI §10 -- MIDIPort interface **/
+		// WebMIDIAPI §4.6 -- MIDIPort interface
+		// See https://github.com/notator/WebMIDISynthHost/issues/23
+		// and https://github.com/notator/WebMIDISynthHost/issues/24
 		Object.defineProperty(this, "id", { value: "Sf2Synth01", writable: false });
 		Object.defineProperty(this, "manufacturer", { value: "gree & ji", writable: false });
 		Object.defineProperty(this, "name", { value: "Sf2Synth1 (gree & ji)", writable: false });
@@ -168,6 +170,20 @@ WebMIDI.sf2Synth1 = (function(window)
     	Sf2Synth1: Sf2Synth1 // constructor
     };
 	// end var
+
+	// WebMIDIAPI §4.6 -- MIDIPort interface
+	// See https://github.com/notator/WebMIDISynthHost/issues/24
+	Sf2Synth1.prototype.open = function()
+	{
+		console.log("sf2Synth1 opened.");
+	};
+
+	// WebMIDIAPI §4.6 -- MIDIPort interface
+	// See https://github.com/notator/WebMIDISynthHost/issues/24
+	Sf2Synth1.prototype.close = function()
+	{
+		console.log("sf2Synth1 closed.");
+	};
 
 	// WebMIDIAPI MIDIOutput send()
 	// This synth does not yet support timestamps (05.11.2015)

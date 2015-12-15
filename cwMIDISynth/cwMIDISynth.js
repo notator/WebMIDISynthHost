@@ -109,7 +109,9 @@ WebMIDI.cwMIDISynth = (function()
 			return new CWMIDISynth();
 		}
 
-		/** WebMIDIAPI §10 -- MIDIPort interface **/
+		// WebMIDIAPI §4.6 -- MIDIPort interface
+		// See https://github.com/notator/WebMIDISynthHost/issues/23
+		// and https://github.com/notator/WebMIDISynthHost/issues/24
 		Object.defineProperty(this, "id", { value: "cwMIDISynth", writable: false });
 		Object.defineProperty(this, "manufacturer", { value: "chris wilson", writable: false });
 		Object.defineProperty(this, "name", { value: "MIDI synth (Chris Wilson)", writable: false });
@@ -141,6 +143,20 @@ WebMIDI.cwMIDISynth = (function()
 	{
 		this.core.initAudio();
 		console.log("cwMIDISynth initialised.");
+	};
+
+	// WebMIDIAPI §4.6 -- MIDIPort interface
+	// See https://github.com/notator/WebMIDISynthHost/issues/24
+	CWMIDISynth.prototype.open = function()
+	{
+		console.log("cwMIDISynth opened.");
+	};
+
+	// WebMIDIAPI §4.6 -- MIDIPort interface
+	// See https://github.com/notator/WebMIDISynthHost/issues/24
+	CWMIDISynth.prototype.close = function()
+	{
+		console.log("cwMIDISynth closed.");
 	};
 
 	// WebMIDIAPI MIDIOutput send()
