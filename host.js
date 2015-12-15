@@ -227,7 +227,7 @@ WebMIDI.host = (function(document)
 			{
 				var i, inputID, numberInputElem;
 
-				if(presetSelect !== undefined)
+				if(presetSelect !== null)
 				{	
 					presetSelect.selectedIndex = 0;
 				}
@@ -253,7 +253,7 @@ WebMIDI.host = (function(document)
 
 				if(commands.indexOf(CMD.PATCH) >= 0)
 				{
-					if(presetSelect !== undefined)
+					if(presetSelect !== null)
 					{
 						sendCommand(CMD.PATCH, presetSelect[0].patch);
 					}
