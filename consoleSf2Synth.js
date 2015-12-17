@@ -11,17 +11,17 @@
 *  The object of having this code is to be able to discuss and improve the interface.
 */
 
-/*jslint bitwise: false, nomen: true, plusplus: true, white: true */
-/*global WebMIDI: false,  window: false,  document: false, performance: false, console: false, alert: false, XMLHttpRequest: false */
+/*jslint bitwise, white: true */
+/*global WebMIDI */
 
 WebMIDI.namespace('WebMIDI.consoleSf2Synth');
 
-WebMIDI.consoleSf2Synth = (function(document)
+WebMIDI.consoleSf2Synth = (function()
 {
 	"use strict";
 
 	var
-	bank = 0, // CTL.BANK_SELECT implementation.
+	bank = 0, // CTL.BANK implementation.
 
 	CMD = WebMIDI.constants.COMMAND,
 	CTL = WebMIDI.constants.CONTROL,
@@ -30,15 +30,14 @@ WebMIDI.consoleSf2Synth = (function(document)
 	[
 		CMD.NOTE_OFF,
 		CMD.NOTE_ON, 
-		CMD.CUSTOMCONTROL_CHANGE, /** Proposal: see GitHub issues, WebMIDI/constants.js and WebMIDI/utilities.js **/
 		CMD.CONTROL_CHANGE,
-		CMD.PATCH_CHANGE,
+		CMD.PATCH,
 		CMD.CHANNEL_PRESSURE,
 		CMD.PITCHWHEEL
 	],
 	controls =
 	[
-		CTL.BANK_SELECT,
+		CTL.BANK,
 		CTL.MODWHEEL,
 		CTL.PITCHWHEEL_DEVIATION, /** Proposal: see GitHub issues, WebMIDI/constants.js and WebMIDI/utilities.js **/
 		CTL.PAN,
@@ -85,6 +84,20 @@ WebMIDI.consoleSf2Synth = (function(document)
 		console.log("consoleSf2Synth initialised.");
 	};
 
+	// WebMIDIAPI §4.6 -- MIDIPort interface
+	// See https://github.com/notator/WebMIDISynthHost/issues/24
+	ConsoleSf2Synth.prototype.open = function()
+	{
+		console.log("consoleSf2Synth opened.");
+	};
+
+	// WebMIDIAPI §4.6 -- MIDIPort interface
+	// See https://github.com/notator/WebMIDISynthHost/issues/24
+	ConsoleSf2Synth.prototype.close = function()
+	{
+		console.log("consoleSf2Synth closed.");
+	};
+
 	// This synth does not support timestamps
 	ConsoleSf2Synth.prototype.send = function(message, ignoredTimestamp)
 	{
@@ -99,23 +112,18 @@ WebMIDI.consoleSf2Synth = (function(document)
 			var index = commands.indexOf(command);
 			if(index < 0)
 			{
-				throw "Error: ".concat("Command ", command.toString(10), " (0x", command.toString(16), ") is not being exported.");
+				console.warn("Command " + command.toString(10) + " (0x" + command.toString(16) + ") is not being exported.");
 			}
 		}
 		function handleNoteOff(channel, data1, data2)
 		{
-			console.log("consoleSf2Synth NoteOff:".concat(" channel:", channel, " note:", data1, " velocity:", data2));
+			console.log("consoleSf2Synth NoteOff: channel:" + channel + " note:" + data1 + " velocity:" + data2);
 		}
 		function handleNoteOn(channel, data1, data2)
 		{
-			console.log("consoleSf2Synth NoteOn:".concat(" channel:", channel, " note:", data1, " velocity:", data2));
+			console.log("consoleSf2Synth NoteOn: channel:" + channel + " note:" + data1 + " velocity:" + data2);
 		}
-		// CUSTOMCONTROL_CHANGE.data[1] is the MIDIpitch to which to apply the aftertouch
-		// CUSTOMCONTROL_CHANGE.data[2] is the amount of pressure 0..127.
-		function handleCustomControlChange(channel, data1, data2)
-		{
-			console.log("consoleSf2Synth Aftertouch:".concat(" channel:", channel, " note:", data1, " value:", data2));
-		}
+
 		function handleControl(channel, data1, data2)
 		{
 			function checkControlExport(control)
@@ -123,39 +131,39 @@ WebMIDI.consoleSf2Synth = (function(document)
 				var index = controls.indexOf(control);
 				if(index < 0)
 				{
-					throw "Error: ".concat("Controller ", control.toString(10), " (0x", control.toString(16), ") is not being exported.");
+					console.warn("Controller " + control.toString(10) + " (0x" + control.toString(16) + ") is not being exported.");
 				}
 			}
 			function setBank(channel, value)
 			{
 				bank = value; // this is the complete implementation!
-				console.log("consoleSf2Synth Bank:".concat(" channel:", channel, " value:", value));
+				console.log("consoleSf2Synth Bank: channel:" + channel.toString(10) + " value:" + value.toString(10));
 			}
 			function setModWheel(channel, value)
 			{
-				console.log("consoleSf2Synth ModWheel:".concat(" channel:", channel, " value:", value));
+				console.log("consoleSf2Synth ModWheel: channel:" + channel.toString(10) + " value:" + value.toString(10));
 			}
 			function setPitchWheelDeviation(channel, value)
 			{
-				console.log("consoleSf2Synth PitchWheelDeviation:".concat(" channel:", channel, " value:", value));
+				console.log("consoleSf2Synth PitchWheelDeviation: channel:" + channel.toString(10) + " value:" + value.toString(10));
 			}
 			function setPan(channel, value)
 			{
-				console.log("consoleSf2Synth Pan:".concat(" channel:", channel, " value:", value));
+				console.log("consoleSf2Synth Pan: channel:" + channel.toString(10) + " value:" + value.toString(10));
 			}
 			function setAllControllersOff(channel)
 			{
-				console.log("consoleSf2Synth AllControllersOff: channel:".concat(channel));
+				console.log("consoleSf2Synth AllControllersOff: channel:" + channel.toString(10));
 			}
 			function setAllNotesOff(channel)
 			{
-				console.log("consoleSf2Synth AllNotesOff: channel:".concat(channel));
+				console.log("consoleSf2Synth AllNotesOff: channel:" + channel.toString(10));
 			}
 			// If the controller is not present in the controllers info array, it is ignored here
 			switch(data1)
 			{
-				case CTL.BANK_SELECT:
-					checkControlExport(CTL.BANK_SELECT);
+				case CTL.BANK:
+					checkControlExport(CTL.BANK);
 					setBank(channel, data2);
 					break;
 				case CTL.MODWHEEL:
@@ -179,21 +187,21 @@ WebMIDI.consoleSf2Synth = (function(document)
 					setAllNotesOff(channel);
 					break;
 				default:
-					throw "Error: ".concat("Controller ", data1.toString(10), " (0x", data1.toString(16), ") is not defined.");
+					console.warn("Controller " + data1.toString(10) + " (0x" + data1.toString(16) + ") is not defined.");
 			}
 		}
 		function handlePatchChange(channel, data1)
 		{
-			console.log("consoleSf2Synth Patch:".concat(" channel:", channel, " value:", data1));
+			console.log("consoleSf2Synth Patch: channel:" + channel + " value:" + data1);
 		}
 		// CHANNEL_PRESSURE.data[1] is the amount of pressure 0..127.
 		function handleChannelPressure(channel, data1)
 		{
-			console.log("consoleSf2Synth ChannelPressure:".concat(" channel:", channel, " value:", data1));
+			console.log("consoleSf2Synth ChannelPressure: channel:" + channel + " value:" + data1);
 		}
 		function handlePitchWheel(channel, data1, data2)
 		{
-			console.log("consoleSf2Synth PitchWheel:".concat(" channel:", channel, " value:", data1));
+			console.log("consoleSf2Synth PitchWheel: channel:" + channel + " value:" + data1);
 		}
 
 		switch(command)
@@ -206,18 +214,12 @@ WebMIDI.consoleSf2Synth = (function(document)
 				checkCommandExport(CMD.NOTE_ON);
 				handleNoteOn(channel, data1, data2);
 				break;
-			case CMD.CUSTOMCONTROL_CHANGE:
-				checkCommandExport(CMD.CUSTOMCONTROL_CHANGE);
-				// CUSTOMCONTROL_CHANGE.data[1] is the MIDIpitch to which to apply the aftertouch
-				// CUSTOMCONTROL_CHANGE.data[2] is the amount of pressure 0..127.
-				handleCustomControlChange(channel, data1, data2);
-				break;
 			case CMD.CONTROL_CHANGE:
 				checkCommandExport(CMD.CONTROL_CHANGE);
 				handleControl(channel, data1, data2);
 				break;
-			case CMD.PATCH_CHANGE:
-				checkCommandExport(CMD.PATCH_CHANGE);
+			case CMD.PATCH:
+				checkCommandExport(CMD.PATCH);
 				handlePatchChange(channel, data1);
 				break;
 			case CMD.CHANNEL_PRESSURE:
@@ -231,7 +233,7 @@ WebMIDI.consoleSf2Synth = (function(document)
 				break;
 
 			default:
-				throw "Error: ".concat("Command ", command.toString(10), " (0x", command.toString(16), ") is not defined.");
+				console.warn("Error: Command "+ command.toString(10) + " (0x" + command.toString(16) + ") is not defined.");
 		}
 	};
 

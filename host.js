@@ -1205,17 +1205,21 @@ WebMIDI.host = (function(document)
 									synth.setMasterVolume(0);
 									synth.noteOn(0, 64, 100);
 									synth.noteOff(0, 64, 100);
-									// Wait for the above noteOn/noteOff kludge to work.
-									setTimeout(function()
+								}
+								// Wait for the above noteOn/noteOff kludge to work.
+								// consoleSf2Synth must call onSynthSelectChanged().
+								setTimeout(function()
+								{
+									if(synth.setMasterVolume)
 									{
 										synth.setMasterVolume(16384);
-										firstSoundFontLoaded = true;
-										if(synthSelect.options[synthSelect.selectedIndex].synth === synth)
-										{
-											onSynthSelectChanged();
-										}
-									}, 2400);
-								}
+									}
+									firstSoundFontLoaded = true;
+									if(synthSelect.options[synthSelect.selectedIndex].synth === synth)
+									{
+										onSynthSelectChanged();
+									}
+								}, 2400);
 							}
 
 							for(i = 0; i < synthSelect.options.length; ++i)

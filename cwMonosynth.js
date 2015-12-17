@@ -12,12 +12,12 @@
 *  making it usable on the web without having any attached MIDI hardware.
 */
 
-/*jslint bitwise: false, nomen: true, plusplus: true, white: true */
-/*global WebMIDI: false,  window: false,  document: false, performance: false, console: false, alert: false, XMLHttpRequest: false */
+/*jslint bitwise, white */
+/*global WebMIDI, window */
 
 WebMIDI.namespace('WebMIDI.cwMonosynth');
 
-WebMIDI.cwMonosynth = (function(document)
+WebMIDI.cwMonosynth = (function()
 {
 	"use strict";
 
@@ -98,6 +98,20 @@ WebMIDI.cwMonosynth = (function(document)
 		console.log("cwMonosynth initialised.");
 	};
 
+	// WebMIDIAPI §4.6 -- MIDIPort interface
+	// See https://github.com/notator/WebMIDISynthHost/issues/24
+	CWMonosynth.prototype.open = function()
+	{
+		console.log("cwMonosynth opened.");
+	};
+
+	// WebMIDIAPI §4.6 -- MIDIPort interface
+	// See https://github.com/notator/WebMIDISynthHost/issues/24
+	CWMonosynth.prototype.close = function()
+	{
+		console.log("cwMonosynth closed.");
+	};
+
 	// WebMIDIAPI MIDIOutput send()
 	// This synth does not support timestamps.
 	// It also ignores both channel info and velocity.
@@ -115,20 +129,20 @@ WebMIDI.cwMonosynth = (function(document)
 			var index = commands.indexOf(command);
 			if(index < 0)
 			{
-				throw "Error: ".concat("Command ", command.toString(10), " (0x", command.toString(16), ") is not being exported.");
+				console.warn("Command " + command.toString(10) + " (0x" + command.toString(16) + ") is not being exported.");
 			}
 		}
 		function handleNoteOff(channel, data1, data2)
 		{
 			checkCommandExport(CMD.NOTE_OFF);
 			that.noteOff(data1);
-			console.log("cwMonosynth NoteOff:".concat(" channel:", channel, " note:", data1, " velocity:", data2, " (This synth ignores channel and velocity info.)"));
+			console.log("cwMonosynth NoteOff: channel:" + channel + " note:" + data1 + " velocity:" + data2 + " (This synth ignores channel and velocity info.)");
 		}
 		function handleNoteOn(channel, data1, data2)
 		{
 			checkCommandExport(CMD.NOTE_ON);
 			that.noteOn(data1);
-			console.log("cwMonosynth NoteOn:".concat(" channel:", channel, " note:", data1, " velocity:", data2, " (This synth ignores channel and velocity info.)"));
+			console.log("cwMonosynth NoteOn: channel:" + channel + " note:" + data1 + " velocity:" + data2 + " (This synth ignores channel and velocity info.)");
 		}
 
 		switch(command)
@@ -141,9 +155,11 @@ WebMIDI.cwMonosynth = (function(document)
 				checkCommandExport(CMD.NOTE_ON);
 				handleNoteOn(channel, data1, data2);
 				break;
-
+			case CMD.CONTROL_CHANGE:
+				console.log("cwMonosynth: this synth has no controls!");
+				break;
 			default:
-				throw "Error: ".concat("Command ", command.toString(10), " (0x", command.toString(16), ") is not defined.");
+				console.warn("Command " + command.toString(10) + " (0x" + command.toString(16) + ") is not defined.");
 		}
 	};
 
