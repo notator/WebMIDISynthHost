@@ -389,34 +389,41 @@ WebMIDI.sf2Synth1 = (function(window)
 
 	};
 
+	// Note that channel 9 *always* uses bank 128.
 	Sf2Synth1.prototype.noteOn = function(channel, key, velocity)
 	{
-		var bank = bankSet[(channel === 9) ? 128 : bankIndex],
-		instrument = bank[channelInstrument[channel]],
+		var bnkIndex = (channel === 9) ? 128 : bankIndex,
+		bank = bankSet[bnkIndex],
+		instrument,
 		instrumentKey,
 		note,
 		panpot = channelPanpot[channel] - 64,
-		bnk, bankStr, instrStr, channelStr;
+		bankIndexStr, instrStr, channelStr;
 
-		if(!instrument)
+		if(bank === undefined)
 		{
-			bnk = (channel === 9) ? 128 : this.bank;
-			bankStr = bnk.toString(10);
+			console.warn("bank " + bnkIndex.toString(10) + " not found.");
+			return;
+		}
+
+		instrument = bank[channelInstrument[channel]];
+		if(instrument === undefined)
+		{
+			bankIndexStr = bnkIndex.toString(10);
 			instrStr = (channelInstrument[channel]).toString(10);
 			channelStr = channel.toString(10);
-			console.warn("instrument not found: bank=" + bankStr + " instrument=" + instrStr + " channel=" + channelStr);
+			console.warn("instrument not found: bank=" + bankIndexStr + " instrument=" + instrStr + " channel=" + channelStr);
+			return;
 		}
 
 		instrumentKey = instrument[key];
-
 		if(!instrumentKey)
 		{
-	  		bnk = (channel === 9) ? 128 : this.bank;
-			bankStr = bnk.toString(10);
+			bankIndexStr = bnkIndex.toString(10);
 			instrStr = (channelInstrument[channel]).toString(10);
 			channelStr = channel.toString(10);
-			console.warn("instrument key not found: bank=" + bankStr + " instrument=" + instrStr + " channel=" + channelStr + " key=" + key);
-
+			console.warn("instrument key not found: bank=" + bankIndexStr + " instrument=" + instrStr + " channel=" + channelStr + " key=" + key);
+			return;
 		}
 
 		panpot /= panpot < 0 ? 64 : 63;
@@ -438,12 +445,18 @@ WebMIDI.sf2Synth1 = (function(window)
 	Sf2Synth1.prototype.noteOff = function(channel, key, velocity)
 	{
 		var bank = bankSet[channel === 9 ? 128 : bankIndex],
-			instrument = bank[channelInstrument[channel]],
+			instrument,
 			i, il,
 			currentNoteOn = currentNoteOns[channel],
 			note;
 
-		if(!instrument)
+		if(bank === undefined)
+		{
+			return;
+		}
+
+		instrument = bank[channelInstrument[channel]];
+		if(instrument === undefined)
 		{
 			return;
 		}
