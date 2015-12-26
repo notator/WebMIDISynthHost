@@ -402,7 +402,11 @@ WebMIDI.sf2Synth1 = (function(window)
 
 		if(bank === undefined)
 		{
-			console.warn("bank " + bnkIndex.toString(10) + " not found.");
+			if(channel !== 9)
+			{
+				console.warn("bank " + bnkIndex.toString(10) + " not found.");
+			}
+			// return with no comment when channel === 9
 			return;
 		}
 
