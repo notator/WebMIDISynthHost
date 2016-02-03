@@ -20,7 +20,7 @@ Web MIDI synths can easily be lifted out of this host and used in other Web appl
 * **Sf2Synth1**<br />
 This is almost entirely gree's [sf2synth.js](https://github.com/gree/sf2synth.js) synthesizer, but I have changed both the soundFont and synthesizer code so that soundFonts can be cached and changed at runtime. Issues relating to this synthesizer can be raised in the [SimpleSoundFontSynthHost](https://github.com/notator/SimpleSoundFontSynthHost/issues) repository, but it is essentially archived pending further discussion about the Web MIDI API.
 * **ResidentSf2Synth**<br />
-This is initially a clone of Sf2Synth1, but it is stored outside the WebMIDISynthHost directory, where it can be hosted by my Assistant Performer application ([repository](https://github.com/notator/assistant-performer), [application](http://james-ingram-act-two.de/open-source/assistantPerformer/assistantPerformer.html)). The ResidentSf2Synth may change/develop in future. Issues with this synthesizer should be raised in the [ResidentSf2Synth](https://github.com/notator/ResidentSf2Synth/issues) repository.
+This is initially a clone of Sf2Synth1, but it is stored outside the WebMIDISynthHost directory, where it can be hosted by my Assistant Performer application ([repository](https://github.com/notator/assistant-performer), [application](http://james-ingram-act-two.de/open-source/assistantPerformer/assistantPerformer.html)). The ResidentSf2Synth may change/develop in future. It has its own [repository](https://github.com/notator/residentSf2Synth) where pull requests can be made and issues reported. I am not a Web Audio specialist, so would especially welcome any help in developing the code.
 * **consoleSf2Synth**<br />
 This is a minimal synth that simply echoes the messages it receives to the console without producing sound.
 It could be used as a stub when writing a new synthesizer.
@@ -32,8 +32,6 @@ This is Chris' [MIDI synth](https://webaudiodemos.appspot.com/midi-synth/index.h
  1. The soundFonts directory has been seeded with .sf2 files created from the [Arachno soundfont](http://www.arachnosoft.com/main/soundfont.php) using the [Viena soundfont editor](http://www.synthfont.com/index.html). Any soundFont can, of course, be used.<br />
  2. Issues relating to the WebMIDISynth API should be raised [here, in this repository](https://github.com/notator/WebMIDISynthHost/issues).
 <br />
-
-I am not a Web Audio specialist, so would especially welcome any help in developing the ResidentSf2Synth's code.<br />
 
 December 2015 (updated February 2016)<br />
 James Ingram
