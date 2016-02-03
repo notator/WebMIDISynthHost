@@ -1291,7 +1291,7 @@ WebMIDI.host = (function(document)
 		synthSelect.add(option);
 
 		option = document.createElement("option");
-		option.synth = new WebMIDI.residentSoundFontSynth.ResidentSoundFontSynth();
+		option.synth = new WebMIDI.residentSf2Synth.ResidentSf2Synth();
 		option.synth.init();
 		option.text = option.synth.name;
 		synthSelect.add(option);
