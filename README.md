@@ -10,7 +10,7 @@ It can also be used to develop any new Web MIDI Synth [1] without having to crea
 3. create a file that describes the new synth's interface using one the existing synth definition files [2] as a model.
 4. implement the interface, and include the synth's file(s) at the bottom of the host.html file
 
-Web MIDI synths can easily be lifted out of this host and used in other Web applications that work "out-of-the-box". There are some simple applications, demonstrating how this can be done at:<br /> [SimpleSoundFontSynthHost](https://github.com/notator/SimpleSoundFontSynthHost),  [(GitHub)](https://github.com/notator/SimpleSoundFontSynthHost),
+Web MIDI synths can easily be lifted out of this host and used in other Web applications that work "out-of-the-box". There are some simple applications, demonstrating how this can be done at:<br /> [SimpleSoundFontSynthHost](http://james-ingram-act-two.de/open-source/SimpleSoundFontSynthHost/host.html),  [(GitHub)](https://github.com/notator/SimpleSoundFontSynthHost),
 [SimpleMIDISynthHost](http://james-ingram-act-two.de/open-source/SimpleMIDISynthHost/host.html),
 [(GitHub)](https://github.com/notator/SimpleMIDISynthHost) and
 [SimpleMIDISynthHost2](http://james-ingram-act-two.de/open-source/SimpleMIDISynthHost2/host.html),
@@ -45,6 +45,3 @@ James Ingram
 * consoleSf2Synth.js
 * cwMIDISynth/cwMIDISynth.js
 * cwMonosynth.js
-
-
-
