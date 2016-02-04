@@ -15,28 +15,29 @@ Web MIDI synths can easily be lifted out of this host and used in other Web appl
 [(GitHub)](https://github.com/notator/SimpleMIDISynthHost) and
 [SimpleMIDISynthHost2](http://james-ingram-act-two.de/open-source/SimpleMIDISynthHost2/host.html),
 [(GitHub)](https://github.com/notator/SimpleMIDISynthHost2)<br />
+The ResidentSf2Synth has its own repository, and can easily be cloned from there (see below).
 
 ####Synthesizers:
 * **Sf2Synth1**<br />
-This is almost entirely gree's [sf2synth.js](https://github.com/gree/sf2synth.js) synthesizer, but I have changed both the soundFont and synthesizer code so that soundFonts can be cached and changed at runtime. Issues relating to this synthesizer can be raised in the [SimpleSoundFontSynthHost](https://github.com/notator/SimpleSoundFontSynthHost/issues) repository, but it is essentially archived pending further discussion about the Web MIDI API.
+This is almost entirely gree's [sf2synth.js](https://github.com/gree/sf2synth.js) synthesizer, but I changed both the soundFont and synthesizer code so that soundFonts can be cached and changed at runtime. Essentially, this synth has been archived pending further discussion about the Web MIDI API. Issues relating to its code should now be raised in the ResidentSf2Synth's repository.
 * **ResidentSf2Synth**<br />
 This is initially a clone of Sf2Synth1, but it is stored outside the WebMIDISynthHost directory, where it can be hosted by my Assistant Performer application ([repository](https://github.com/notator/assistant-performer), [application](http://james-ingram-act-two.de/open-source/assistantPerformer/assistantPerformer.html)). The ResidentSf2Synth may change/develop in future. It has its own [repository](https://github.com/notator/residentSf2Synth) where pull requests can be made and issues reported. I am not a Web Audio specialist, so would especially welcome any help in developing the code.
 * **consoleSf2Synth**<br />
 This is a minimal synth that simply echoes the messages it receives to the console without producing sound.
 It could be used as a stub when writing a new synthesizer.
 * **MIDI synth (Chris Wilson)**<br />
-This is Chris' [MIDI synth](https://webaudiodemos.appspot.com/midi-synth/index.html) without its original GUI. I have tried to keep closely to the code in the original files while using simple MIDI controls whose values are in the range 0..127. It would, of course, be possible to get nearer to the original settings by using hi- and lo-byte controllers (as standard MIDI does). Issues with this synthesizer should be raised in the [SimpleMIDISynthHost](https://github.com/notator/SimpleMIDISynthHost/issues) repository.
+This is Chris' MIDI synth ([repository](https://github.com/cwilso/midi-synth), [application](https://webaudiodemos.appspot.com/midi-synth/index.html)) without its original GUI. I have tried to keep closely to the code in the original files while using simple MIDI controls whose values are in the range 0..127. It would, of course, be possible to get nearer to the original settings by using hi- and lo-byte controllers (as standard MIDI does). Issues with this synthesizer should be raised at its own [repository](https://github.com/cwilso/midi-synth).
 * **monosynth (Chris Wilson)** A very simple synth. The original is [here](https://github.com/cwilso/monosynth).<br />
 
 ####Remarks:
- 1. The soundFonts directory has been seeded with .sf2 files created from the [Arachno soundfont](http://www.arachnosoft.com/main/soundfont.php) using the [Viena soundfont editor](http://www.synthfont.com/index.html). Any soundFont can, of course, be used.<br />
+ 1. The soundFonts directory has been seeded with sf2 soundFont files created from the [Arachno soundFont](http://www.arachnosoft.com/main/soundfont.php) using the [Viena soundFont editor](http://www.synthfont.com/index.html). Any sf2 soundFont can, of course, be used.<br />
  2. Issues relating to the WebMIDISynth API should be raised [here, in this repository](https://github.com/notator/WebMIDISynthHost/issues).
 <br />
 
 December 2015 (updated February 2016)<br />
 James Ingram
 
-[1] A "Web MIDI Synth" is a software synth that uses the Web Audio API to implement the Output Device interface defined in the Web MIDI API. Web MIDI Synths can be used online independently of browser implementations of the Web MIDI API. *Standard* Web MIDI Synths can be used interchangeably with the hardware synths supplied by browser implementations of the Web MIDI API.<br />
+[1] A "Web MIDI Synth" is a software synth that uses the Web Audio API to implement the Output Device interface defined in the Web MIDI API. Web MIDI Synths can be used online independently of browser implementations of the Web MIDI API.<br />
 
 [2] Web MIDI Synth interface definitions can be found in:
 * sf2Synth1/sf2synth1.js
