@@ -35,8 +35,7 @@
 // Only the WaveShaper constructor and its setDrive(drive) function are exposed.
 /************************************************************************/
 
-/*jslint white */
-/*global WebMIDI */
+/* eslint no-unused-vars: 0 */
 
 WebMIDI.namespace('WebMIDI.waveShaper');
 

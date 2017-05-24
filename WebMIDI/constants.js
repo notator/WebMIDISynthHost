@@ -9,9 +9,6 @@
  *  (Not _all_ the standard MIDI controls are useful for software WebMIDISynths.)
  */
 
-/*jslint bitwise, white */
-/*global WebMIDI */
-
 WebMIDI.namespace('WebMIDI.constants');
 
 WebMIDI.constants = (function()

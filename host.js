@@ -9,8 +9,6 @@
 *  or more SoundFonts.
 */
 
-/*global WebMIDI, window,  document, performance */
-
 WebMIDI.namespace('WebMIDI.host');
 
 WebMIDI.host = (function(document)

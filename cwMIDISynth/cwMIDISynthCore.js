@@ -11,8 +11,7 @@
 *  Unused material has been deleted. Only the necessary functions are exposed.
 */
 
-/*jslint white */
-/*global WebMIDI, window */
+/* eslint no-unused-vars: 0 */
 
 WebMIDI.namespace('WebMIDI.cwMIDISynthCore');
 

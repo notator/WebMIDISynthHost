@@ -14,8 +14,7 @@
 *  https://github.com/cwilso/midi-synth
 */
 
-/*jslint bitwise, white */
-/*global WebMIDI */
+/* eslint no-unused-vars: 0 */
 
 WebMIDI.namespace('WebMIDI.cwMIDISynth');
 

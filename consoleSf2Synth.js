@@ -11,8 +11,7 @@
 *  The object of having this code is to be able to discuss and improve the interface.
 */
 
-/*jslint bitwise, white: true */
-/*global WebMIDI */
+/* eslint no-unused-vars: 0 */
 
 WebMIDI.namespace('WebMIDI.consoleSf2Synth');
 

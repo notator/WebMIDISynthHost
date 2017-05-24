@@ -7,9 +7,6 @@
 *  The WebMIDI.utilities namespace which defines generally useful functions.   
 */
 
-/*jslint bitwise, white */
-/*global WebMIDI, performance */
-
 WebMIDI.namespace('WebMIDI.utilities');
 
 WebMIDI.utilities = (function()
