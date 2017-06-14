@@ -15,7 +15,6 @@ Web MIDI synths can easily be lifted out of this host and used in other Web appl
 [(GitHub)](https://github.com/notator/SimpleMIDISynthHost) and
 [SimpleMIDISynthHost2](http://james-ingram-act-two.de/open-source/SimpleMIDISynthHost2/host.html),
 [(GitHub)](https://github.com/notator/SimpleMIDISynthHost2)<br />
-The ResidentSf2Synth has its own repository, and can easily be cloned from there (see below).
 
 #### Synthesizers:
 * **MIDI synth (Chris Wilson)**<br />
