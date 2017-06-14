@@ -1,4 +1,4 @@
-###Web MIDI Synth Host
+### Web MIDI Synth Host
 This is a Web MIDI application, written in HTML5 and Javascript. It can be tried out at <br />
 http://james-ingram-act-two.de/open-source/WebMIDISynthHost/host.html <br />
 <br />
@@ -17,7 +17,7 @@ Web MIDI synths can easily be lifted out of this host and used in other Web appl
 [(GitHub)](https://github.com/notator/SimpleMIDISynthHost2)<br />
 The ResidentSf2Synth has its own repository, and can easily be cloned from there (see below).
 
-####Synthesizers:
+#### Synthesizers:
 * **MIDI synth (Chris Wilson)**<br />
 This is Chris' MIDI synth ([repository](https://github.com/cwilso/midi-synth), [application](https://webaudiodemos.appspot.com/midi-synth/index.html)) without its original GUI. I have tried to keep closely to the code in the original files while using simple MIDI controls whose values are in the range 0..127. It would, of course, be possible to get nearer to the original settings by using hi- and lo-byte controllers (as standard MIDI does). Issues with this synthesizer should be raised at its own [repository](https://github.com/cwilso/midi-synth).
 * **monosynth (Chris Wilson)** A very simple synth. The original is [here](https://github.com/cwilso/monosynth).<br />
@@ -28,7 +28,7 @@ This synth is maintained in a separate [repository](https://github.com/notator/r
 This is a minimal synth that simply echoes the messages it receives to the console without producing sound.
 It could be used as a stub when writing a new synthesizer.
 
-####Remarks:
+#### Remarks:
  1. The soundFonts directory has been seeded with sf2 soundFont files created from the [Arachno soundFont](http://www.arachnosoft.com/main/soundfont.php) using the [Viena soundFont editor](http://www.synthfont.com/index.html). Any sf2 soundFont can, of course, be used.<br />
  2. Issues relating to the WebMIDISynth API should be raised [here, in this repository](https://github.com/notator/WebMIDISynthHost/issues).
 <br />
@@ -41,5 +41,5 @@ James Ingram
 [2] Web MIDI Synth interface definitions can be found in:
 * cwMIDISynth/cwMIDISynth.js
 * cwMonosynth.js
-* ../residentSf2Synth/residentSf2Synth.js
+* residentSf2Synth/residentSf2Synth.js
 * consoleSf2Synth.js
