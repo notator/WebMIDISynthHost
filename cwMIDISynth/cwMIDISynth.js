@@ -14,7 +14,8 @@
 *  https://github.com/cwilso/midi-synth
 */
 
-/* eslint no-unused-vars: 0 */
+/*jslint bitwise, white */
+/*global WebMIDI */
 
 WebMIDI.namespace('WebMIDI.cwMIDISynth');
 
@@ -544,7 +545,7 @@ WebMIDI.cwMIDISynth = (function()
 					console.warn( "There is no control defined with index " + data1.toString(10) + " (0x" + data1.toString(16) + ")");
 			}
 		}
-		function handlePitchWheel(channel, data1, data2)
+		function handlePitchWheel(channel, data1)
 		{
 			var value = ((data1 * 2) / 127) - 1; // data1 is in range [0..127]
 			that.core.pitchWheel(value); // value is in range [-1..1]
@@ -589,7 +590,7 @@ WebMIDI.cwMIDISynth = (function()
 				break;
 			case CMD.PITCHWHEEL:
 				checkCommandExport(CMD.PITCHWHEEL);
-				handlePitchWheel(channel, data1, data2);
+				handlePitchWheel(channel, data1);
 				break;
 			default:
 				console.warn( "Command " + command.toString(10) + " (0x" + command.toString(16) + ") is not defined.");

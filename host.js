@@ -9,6 +9,8 @@
 *  or more SoundFonts.
 */
 
+/*global WebMIDI, window,  document, performance */
+
 WebMIDI.namespace('WebMIDI.host');
 
 WebMIDI.host = (function(document)
@@ -119,7 +121,7 @@ WebMIDI.host = (function(document)
 
 	sendCommand = function(command, data1, data2)
 	{
-		var CMD = WebMIDI.constants.COMMAND,
+	    var CMD = WebMIDI.constants.COMMAND,
 			synthSelect = getElem("synthSelect"),
 			synth = synthSelect[synthSelect.selectedIndex].synth,
 			channelSelect = getElem("channelSelect"),
@@ -131,9 +133,9 @@ WebMIDI.host = (function(document)
 		{
 			case CMD.NOTE_ON:
 			case CMD.NOTE_OFF:
-			case CMD.CONTROL_CHANGE:
-			case CMD.AFTERTOUCH:
-				message = new Uint8Array([status, data1, data2]);
+		    case CMD.AFTERTOUCH:
+		    case CMD.CONTROL_CHANGE:
+				message = new Uint8Array([status, data1, data2]); // data1 can be RegisteredParameter or DataEntry controls
 				break;
 			case CMD.PATCH:
 			case CMD.CHANNEL_PRESSURE:
@@ -483,7 +485,9 @@ WebMIDI.host = (function(document)
 				// for the original non-unique controls (for which these attributes are all the same).
 				function getUniqueControls(nonUniqueControls)
 				{
-					var i, nuControl, uniqueControls = [], uniqueControl;
+				    var i, nuControl, uniqueControls = [], uniqueControl,
+				        registeredParameterCoarseName = WebMIDI.constants.controlName(WebMIDI.constants.CONTROL.REGISTERED_PARAMETER_COARSE),
+				        dataEntryCoarseName = WebMIDI.constants.controlName(WebMIDI.constants.CONTROL.DATA_ENTRY_COARSE);
 
 					function newStandardControl(standardControlIndex)
 					{
@@ -541,8 +545,16 @@ WebMIDI.host = (function(document)
 						uniqueControl = findUniqueControl(nuControl.name, uniqueControls);
 						if(uniqueControl === null)
 						{
-							uniqueControl = newUniqueControl(nuControl);
-							uniqueControls.push(uniqueControl);
+						    uniqueControl = newUniqueControl(nuControl);
+						    
+						    if(uniqueControl.name !== registeredParameterCoarseName)
+						    {
+						        if(uniqueControl.name === dataEntryCoarseName)
+						        {
+						            uniqueControl.name = dataEntryCoarseName + " (pitchBendSensitivity)";
+						        }
+						        uniqueControls.push(uniqueControl);
+						    }
 						}
 						else
 						{

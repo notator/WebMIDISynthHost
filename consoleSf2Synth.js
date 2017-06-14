@@ -11,7 +11,8 @@
 *  The object of having this code is to be able to discuss and improve the interface.
 */
 
-/* eslint no-unused-vars: 0 */
+/*jslint bitwise, white: true */
+/*global WebMIDI */
 
 WebMIDI.namespace('WebMIDI.consoleSf2Synth');
 
@@ -38,10 +39,13 @@ WebMIDI.consoleSf2Synth = (function()
 	[
 		CTL.BANK,
 		CTL.MODWHEEL,
-		CTL.PITCHWHEEL_DEVIATION, /** Proposal: see GitHub issues, WebMIDI/constants.js and WebMIDI/utilities.js **/
 		CTL.PAN,
-		CTL.ALL_CONTROLLERS_OFF,
-		CTL.ALL_NOTES_OFF
+
+		CTL.REGISTERED_PARAMETER_COARSE, // coarse parameter is coarse pitchWheelDeviation (=semitones)
+		CTL.DATA_ENTRY_COARSE, // default coarse pitchWheelDeviation is 2 semitones
+
+        CTL.ALL_CONTROLLERS_OFF,
+		CTL.ALL_NOTES_OFF,
 	],
 
 	ConsoleSf2Synth = function()
@@ -142,10 +146,7 @@ WebMIDI.consoleSf2Synth = (function()
 			{
 				console.log("consoleSf2Synth ModWheel: channel:" + channel.toString(10) + " value:" + value.toString(10));
 			}
-			function setPitchWheelDeviation(channel, value)
-			{
-				console.log("consoleSf2Synth PitchWheelDeviation: channel:" + channel.toString(10) + " value:" + value.toString(10));
-			}
+
 			function setPan(channel, value)
 			{
 				console.log("consoleSf2Synth Pan: channel:" + channel.toString(10) + " value:" + value.toString(10));
@@ -158,6 +159,14 @@ WebMIDI.consoleSf2Synth = (function()
 			{
 				console.log("consoleSf2Synth AllNotesOff: channel:" + channel.toString(10));
 			}
+			function setRegisteredParameterCoarse(channel, value)
+			{
+			    console.log("consoleSf2Synth RegisteredParameterCoarse: channel:" + channel.toString(10) + " value:" + value.toString(10));
+			}
+			function setDataEntryCoarse(channel, value)
+			{
+			    console.log("consoleSf2Synth DataEntryCoarse: channel:" + channel.toString(10) + " value:" + value.toString(10));
+			}
 			// If the controller is not present in the controllers info array, it is ignored here
 			switch(data1)
 			{
@@ -168,10 +177,6 @@ WebMIDI.consoleSf2Synth = (function()
 				case CTL.MODWHEEL:
 					checkControlExport(CTL.MODWHEEL);
 					setModWheel(channel, data2);
-					break;
-				case CTL.PITCHWHEEL_DEVIATION: /** Proposal: see WebMIDI/constants.js and WebMIDI/utilities.js*/
-					checkControlExport(CTL.PITCHWHEEL_DEVIATION);
-					setPitchWheelDeviation(channel, data2);
 					break;
 				case CTL.PAN:
 					checkControlExport(CTL.PAN);
@@ -185,6 +190,15 @@ WebMIDI.consoleSf2Synth = (function()
 					checkControlExport(CTL.ALL_NOTES_OFF);
 					setAllNotesOff(channel);
 					break;
+			    case CTL.REGISTERED_PARAMETER_COARSE: // coarse parameter is coarse pitchWheelDeviation (=semitones)
+			        checkControlExport(CTL.REGISTERED_PARAMETER_COARSE);
+			        setRegisteredParameterCoarse(channel, data2);
+			        break;
+			    case CTL.DATA_ENTRY_COARSE: // default coarse pitchWheelDeviation is 2 semitones
+			        checkControlExport(CTL.DATA_ENTRY_COARSE);
+			        setDataEntryCoarse(channel, data2);
+			        break;
+
 				default:
 					console.warn("Controller " + data1.toString(10) + " (0x" + data1.toString(16) + ") is not defined.");
 			}
@@ -198,7 +212,7 @@ WebMIDI.consoleSf2Synth = (function()
 		{
 			console.log("consoleSf2Synth ChannelPressure: channel:" + channel + " value:" + data1);
 		}
-		function handlePitchWheel(channel, data1, data2)
+		function handlePitchWheel(channel, data1)
 		{
 			console.log("consoleSf2Synth PitchWheel: channel:" + channel + " value:" + data1);
 		}
@@ -228,7 +242,7 @@ WebMIDI.consoleSf2Synth = (function()
 				break;
 			case CMD.PITCHWHEEL:
 				checkCommandExport(CMD.PITCHWHEEL);
-				handlePitchWheel(channel, data1, data2);
+				handlePitchWheel(channel, data1);
 				break;
 
 			default:

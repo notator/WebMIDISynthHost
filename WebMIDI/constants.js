@@ -9,6 +9,9 @@
  *  (Not _all_ the standard MIDI controls are useful for software WebMIDISynths.)
  */
 
+/*jslint bitwise, white */
+/*global WebMIDI */
+
 WebMIDI.namespace('WebMIDI.constants');
 
 WebMIDI.constants = (function()
@@ -165,8 +168,6 @@ WebMIDI.constants = (function()
 				return ("bank");
 			case CONTROL.MODWHEEL:
 				return ("modWheel");
-			case CONTROL.PITCHWHEEL_DEVIATION:
-				return ("pitchWheelDeviation");
 			case CONTROL.VOLUME:
 				return ("volume");
 			case CONTROL.PAN:
@@ -176,7 +177,16 @@ WebMIDI.constants = (function()
 			case CONTROL.ALL_CONTROLLERS_OFF:
 				return ("allControllersOff");
 			case CONTROL.ALL_NOTES_OFF:
-				return ("allNotesOff");
+			    return ("allNotesOff");
+
+		    case CONTROL.REGISTERED_PARAMETER_FINE:
+		        return ("registeredParameterFine");
+		    case CONTROL.REGISTERED_PARAMETER_COARSE:
+		        return ("registeredParameterCoarse");
+		    case CONTROL.DATA_ENTRY_FINE:
+		        return ("dataEntryFine");
+		    case CONTROL.DATA_ENTRY_COARSE:
+		        return ("dataEntryCoarse");
 		}
 	},
 	// Only 3-byte controls have default values.
@@ -188,12 +198,19 @@ WebMIDI.constants = (function()
 			case CONTROL.BANK:
 			case CONTROL.MODWHEEL:
 				return (0);
-			case CONTROL.PITCHWHEEL_DEVIATION:
-				return (2);
 			case CONTROL.VOLUME:
 				return (100);
 			case CONTROL.PAN:
-				return (64);
+			    return (64);
+
+		    case CONTROL.REGISTERED_PARAMETER_FINE:
+		        return (0); // fine parameter is fine pitchWheelDeviation (=cents)
+		    case CONTROL.REGISTERED_PARAMETER_COARSE:
+		        return (0); // coarse parameter is coarse pitchWheelDeviation (=semitones)
+		    case CONTROL.DATA_ENTRY_FINE:
+		        return (0); // default fine pitchWheelDeviation is 0 cents
+		    case CONTROL.DATA_ENTRY_COARSE:
+		        return (2); // default coarse pitchWheelDeviation is 2 semitones
 			default:
 				break;	// return undefined
 		}
@@ -258,13 +275,12 @@ WebMIDI.constants = (function()
 	// (e.g. MODWHEEL_LO).
     Object.defineProperty(CONTROL, "BANK", { value: 0, writable: false });
     Object.defineProperty(CONTROL, "MODWHEEL", { value: 1, writable: false });
-	// ji: added PITCHWHEEL_DEVIATION for (software) WebMIDISynths only.
-	// This file defines WebMIDI.constants, and many software synths will want to define
-	// their own function for this control. I think it should have a standard value
-	// for all WebMIDISynths. CC9 is not used in the MIDI standard.
-    Object.defineProperty(CONTROL, "PITCHWHEEL_DEVIATION", { value: 9, writable: false });
     Object.defineProperty(CONTROL, "VOLUME", { value: 7, writable: false });
     Object.defineProperty(CONTROL, "PAN", { value: 10, writable: false });
+    Object.defineProperty(CONTROL, "DATA_ENTRY_FINE", { value: 38, writable: false });
+    Object.defineProperty(CONTROL, "DATA_ENTRY_COARSE", { value: 6, writable: false });
+    Object.defineProperty(CONTROL, "REGISTERED_PARAMETER_FINE", { value: 100, writable: false });
+    Object.defineProperty(CONTROL, "REGISTERED_PARAMETER_COARSE", { value: 101, writable: false });
     Object.defineProperty(CONTROL, "ALL_SOUND_OFF", { value: 120, writable: false });
     Object.defineProperty(CONTROL, "ALL_CONTROLLERS_OFF", { value: 121, writable: false });
     Object.defineProperty(CONTROL, "ALL_NOTES_OFF", { value: 123, writable: false });

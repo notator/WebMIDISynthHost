@@ -1,5 +1,5 @@
 ﻿
-div.app
+.app
 {
     font-family: Lucida Sans Unicode, Verdana, Arial, Geneva, Sans-Serif;
     font-size: 11px; 
@@ -9,30 +9,30 @@ div.app
 	border:1px solid black;
 }
 
-span.boldTitle
+.boldTitle
 {
 	font-weight: bold;
 	font-size:14px;
 }
 
-span.boldSubtitle
+.boldSubtitle
 {
 	font-weight: bold;
 }
 
-table.midiMessagesTable
+.midiMessagesTable
 {
 	font-size: 11px;
 	margin-left:auto;
 	margin-right:auto;
 }
 
-td.left
+.left
 {
 	text-align:right;
 }
 
-select.synthSelect
+.synthSelect
 {
     font-size: 11px; 
     width: 300px;
@@ -40,21 +40,21 @@ select.synthSelect
 }
 
 
-select.sf2OriginSelect
+.sf2OriginSelect
 {
     font-size: 11px; 
     width: 160px;
     margin-left: 0; 
 }
 
-select.sf2Select
+.sf2Select
 {
     font-size: 11px; 
     width: 135px;
     margin-left: 0; 
 }
 
-select.presetSelect
+.presetSelect
 {
     font-size: 11px; 
     width: 190px;
@@ -62,7 +62,7 @@ select.presetSelect
     margin-left: 0;
 }
 
-select.valueSelector
+.valueSelector
 {
     font-size: 11px; 
     width: 45px;
@@ -70,7 +70,7 @@ select.valueSelector
 	margin-right: 4px;
 }
 
-input.number
+.number
 {
     font-size: 11px;
     width: 41px;
@@ -78,26 +78,26 @@ input.number
 	margin-right: 4px;
 }
 
-input.sendAgainButton
+.sendAgainButton
 {
     font-size: 11px;
 	height:18px;
 }
 
-input.sendButton
+.sendButton
 {
     font-size: 11px;
 	height:18px;
 	width:45px;
 }
 
-input.smallButton
+.smallButton
 {
 	font-size:11px;
 	height:22px;
 }
 
-input.largeButton
+.largeButton
 {
 	font-size:12px;
 	height:24px;

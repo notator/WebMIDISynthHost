@@ -12,7 +12,8 @@
 *  making it usable on the web without having any attached MIDI hardware.
 */
 
-/* eslint no-unused-vars: 0 */
+/*jslint bitwise, white */
+/*global WebMIDI, window */
 
 WebMIDI.namespace('WebMIDI.cwMonosynth');
 

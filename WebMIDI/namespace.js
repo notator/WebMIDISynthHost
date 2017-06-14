@@ -7,6 +7,9 @@
  *  
  */
 
+/*jslint white */
+/*global WebMIDI */
+
 var WebMIDI = WebMIDI || {};
 
 WebMIDI.namespace = function (ns_string)

@@ -6,6 +6,9 @@
  *  The WebMIDI.cwConstants namespace which defines read-only MIDI constants for Chris Wilson's cwMIDISynth.
  */
 
+/*jslint white */
+/*global WebMIDI */
+
 WebMIDI.namespace('WebMIDI.cwConstants');
 
 WebMIDI.cwConstants = (function()
