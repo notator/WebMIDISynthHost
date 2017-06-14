@@ -29,10 +29,10 @@ It could be used as a stub when writing a new synthesizer.
 
 #### Remarks:
  1. The soundFonts directory has been seeded with sf2 soundFont files created from the [Arachno soundFont](http://www.arachnosoft.com/main/soundfont.php) using the [Viena soundFont editor](http://www.synthfont.com/index.html). Any sf2 soundFont can, of course, be used.<br />
- 2. Issues relating to the WebMIDISynth API should be raised [here, in this repository](https://github.com/notator/WebMIDISynthHost/issues).
+ 2. Issues relating to both the ResidentSf2Synth and the WebMIDISynth API should be raised here, in this repository.
 <br />
 
-December 2015 (updated February, November 2016)<br />
+December 2015 (updated February, November 2016, June 2017)<br />
 James Ingram
 
 [1] A "Web MIDI Synth" is a software synth that uses the Web Audio API to implement the Output Device interface defined in the Web MIDI API. Web MIDI Synths can be used online independently of browser implementations of the Web MIDI API.<br />
