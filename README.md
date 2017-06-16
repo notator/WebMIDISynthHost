@@ -25,8 +25,9 @@ Issues with the consoleSf2Synth should be raised here, in this repository.
 #### SoundFonts:
 The soundFonts directory has been seeded with sf2 soundFont files created from the [Arachno soundFont](http://www.arachnosoft.com/main/soundfont.php) using the [Viena soundFont editor](http://www.synthfont.com/index.html). Any sf2 soundFont can, of course, be used.<br />
 
-#### Demo Applications:
-Web MIDI synths can easily be lifted out of this host and used in other Web applications that work "out-of-the-box". There are some simple applications, demonstrating how this can be done at:<br /> [SimpleSoundFontSynthHost](http://james-ingram-act-two.de/open-source/SimpleSoundFontSynthHost/host.html),  [(GitHub)](https://github.com/notator/SimpleSoundFontSynthHost),
+#### Other Host Applications:
+Web MIDI synths can easily be lifted out of this host and used in other Web applications. Simply copy the synth's directory and the WebMIDI directory in parallel somewhere where the new host can access the files, and then link the files to the new host.<br />
+There are some simple applications that implement this pattern at:<br /> [SimpleSoundFontSynthHost](http://james-ingram-act-two.de/open-source/SimpleSoundFontSynthHost/host.html),  [(GitHub)](https://github.com/notator/SimpleSoundFontSynthHost),
 [SimpleMIDISynthHost](http://james-ingram-act-two.de/open-source/SimpleMIDISynthHost/host.html),
 [(GitHub)](https://github.com/notator/SimpleMIDISynthHost) and
 [SimpleMIDISynthHost2](http://james-ingram-act-two.de/open-source/SimpleMIDISynthHost2/host.html),
