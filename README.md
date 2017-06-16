@@ -16,7 +16,7 @@ This is Chris' MIDI synth ([repository](https://github.com/cwilso/midi-synth), [
 * **ResidentSf2Synth**<br />
 This is almost entirely gree's [sf2synth.js](https://github.com/gree/sf2synth.js) synthesizer, but I have adapted the code to my own style, and changed both the soundFont and synthesizer code so that soundFonts can be cached and changed at runtime. 
 I am not a Web Audio or SoundFont specialist, so would especially welcome any help in developing the code.
-Issues with the ResidentSf2synth should be raised here, in this repository.
+Issues with the ResidentSf2Synth should be raised here, in this repository.
 * **consoleSf2Synth**<br />
 This is a minimal synth that simply echoes the messages it receives to the console without producing sound.
 It could be used as a stub when writing a new synthesizer.
