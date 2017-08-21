@@ -67,6 +67,7 @@ WebMIDI.soundFontSynthNote = (function()
 		now = this.ctx.currentTime,
 		volAttack = now + instrument.volAttack,
 		modAttack = now + instrument.modAttack,
+        volLevel = this.volume * Math.pow((this.velocity / 127), 2), // ji 21.08.2017
 		volDecay = volAttack + instrument.volDecay,
 		modDecay = modAttack + instrument.modDecay,
 		loopStart = 0,
@@ -126,10 +127,21 @@ WebMIDI.soundFontSynthNote = (function()
 		// Attack, Decay, Sustain
 		//---------------------------------------------------------------------------
 		outputGain.setValueAtTime(0, now);
-		outputGain.linearRampToValueAtTime(this.volume * (this.velocity / 127), volAttack);
-		// ji -- the instrument.volSustain attribute is a level parameter, not like the other
-		// instrument.vol... attributes (which are time values).
-		outputGain.linearRampToValueAtTime(this.volume * (1 - instrument.volSustain), volDecay);
+
+	    // begin original gree
+		//outputGain.linearRampToValueAtTime(this.volume * (this.velocity / 127), volAttack);
+		//outputGain.linearRampToValueAtTime(this.volume * (1 - instrument.volSustain), volDecay);
+	    // end original gree
+
+	    // begin ji changes August 2017
+        // volLevel is a new variable, defined in the vars above.
+		outputGain.linearRampToValueAtTime(volLevel, volAttack);
+	    // For the following line see https://github.com/notator/WebMIDISynthHost/issues/29
+	    // Thanks @timjrd !
+	    // ji -- the instrument.volSustain attribute is a level parameter, not like the other
+	    // instrument.vol... attributes (which are time values).
+		outputGain.linearRampToValueAtTime(volLevel * (1 - instrument.volSustain), volDecay);
+        // end ji changes August 2017
 
 		// begin ji changes November 2015.
 		// The following original line was a (deliberate, forgotten?) bug that threw an out-of-range
