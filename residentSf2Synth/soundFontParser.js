@@ -234,7 +234,7 @@ WebMIDI.soundFontParser = (function()
 			throw new Error('invalid chunk type:' + chunk.type);
 		}
 
-		this.presetZoneModulator = this.parseModulator(chunk);
+		this.presetZoneModulator = this.parseGeneratorOrModulator(chunk, 1);
 	};
 
 	SoundFontParser.prototype.parsePgen = function(chunk)
@@ -243,7 +243,7 @@ WebMIDI.soundFontParser = (function()
 		{
 			throw new Error('invalid chunk type:' + chunk.type);
 		}
-		this.presetZoneGenerator = this.parseGenerator(chunk);
+		this.presetZoneGenerator = this.parseGeneratorOrModulator(chunk, 0);
 	};
 
 	SoundFontParser.prototype.parseInst = function(chunk)
@@ -297,7 +297,7 @@ WebMIDI.soundFontParser = (function()
 			throw new Error('invalid chunk type:' + chunk.type);
 		}
 
-		this.instrumentZoneModulator = this.parseModulator(chunk);
+		this.instrumentZoneModulator = this.parseGeneratorOrModulator(chunk, 1);
 	};
 
 	SoundFontParser.prototype.parseIgen = function(chunk)
@@ -307,7 +307,7 @@ WebMIDI.soundFontParser = (function()
 			throw new Error('invalid chunk type:' + chunk.type);
 		}
 
-		this.instrumentZoneGenerator = this.parseGenerator(chunk);
+		this.instrumentZoneGenerator = this.parseGeneratorOrModulator(chunk, 0);
 	};
 
 	SoundFontParser.prototype.parseShdr = function(chunk)
@@ -409,7 +409,7 @@ WebMIDI.soundFontParser = (function()
 		};
 	};
 
-	SoundFontParser.prototype.parseModulator = function(chunk)
+	SoundFontParser.prototype.parseGeneratorOrModulator = function(chunk, doParseModulator)
 	{
 		var code, key, output = [],
 		data = this.input,
@@ -418,16 +418,23 @@ WebMIDI.soundFontParser = (function()
 
 		while(ip < size)
 		{
-			// Src  Oper
-			// TODO
-			ip += 2;
+		    if(doParseModulator > 0)
+		    {
+		        // Src  Oper
+		        // TODO
+		        ip += 2;
+		    }
 
 			// Dest Oper
 			code = data[ip++] | (data[ip++] << 8);
 			key = SoundFontParser.GeneratorEnumeratorTable[code];
 			if(key === undefined)
 			{
-				// Amount
+			    // ji comment August 2017
+			    // code is one of the following generator indices: 14, 18,19,20, 42, 49, 55, 59
+			    // The spec says these should be ignored if encountered.
+
+				// Amount (gree comment)
 				output.push({
 					type: key,
 					value: {
@@ -437,15 +444,20 @@ WebMIDI.soundFontParser = (function()
 						hi: data[ip++]
 					}
 				});
-			} else
+			}
+			else
 			{
 				// Amount
 				switch(key)
-				{
-					case 'keyRange': /* FALLTHROUGH */
-					case 'velRange': /* FALLTHROUGH */
-					case 'keynum': /* FALLTHROUGH */
-					case 'velocity':
+			    {
+				    case 'keyRange': // generator index 43, optional, lo is highest valid key, hi is lowest valid key
+				    case 'velRange': // generator index 44, optional, lo is highest valid velocity, hi is lowest valid velocity
+				    // begin original gree
+				    // ji -- I've commented these out, because according to the spec, they are ordinary values (in range 0..127).
+				    // These generators are not used by the rest of the gree code.
+				    //   case 'keynum': // generator index 46 (range 0..127)
+				    //   case 'velocity': // generator index 47 (range 0..127)
+				    // end original gree
 						output.push({
 							type: key,
 							value: {
@@ -465,65 +477,15 @@ WebMIDI.soundFontParser = (function()
 				}
 			}
 
-			// AmtSrcOper
-			// TODO
-			ip += 2;
-
-			// Trans Oper
-			// TODO
-			ip += 2;
-		}
-
-		return output;
-	};
-
-	SoundFontParser.prototype.parseGenerator = function(chunk)
-	{
-		var code, key, output = [],
-		data = this.input,
-		ip = chunk.offset,
-		size = chunk.offset + chunk.size;
-
-		while(ip < size)
-		{
-			code = data[ip++] | (data[ip++] << 8);
-			key = SoundFontParser.GeneratorEnumeratorTable[code];
-			if(key === undefined)
+			if(doParseModulator > 0)
 			{
-				output.push({
-					type: key,
-					value: {
-						code: code,
-						amount: data[ip] | (data[ip + 1] << 8) << 16 >> 16,
-						lo: data[ip++],
-						hi: data[ip++]
-					}
-				});
-				continue;
-			}
+			    // AmtSrcOper
+			    // TODO
+			    ip += 2;
 
-			switch(key)
-			{
-				case 'keynum': /* FALLTHROUGH */
-				case 'keyRange': /* FALLTHROUGH */
-				case 'velRange': /* FALLTHROUGH */
-				case 'velocity':
-					output.push({
-						type: key,
-						value: {
-							lo: data[ip++],
-							hi: data[ip++]
-						}
-					});
-					break;
-				default:
-					output.push({
-						type: key,
-						value: {
-							amount: data[ip++] | (data[ip++] << 8) << 16 >> 16
-						}
-					});
-					break;
+			    // Trans Oper
+			    // TODO
+			    ip += 2;
 			}
 		}
 
