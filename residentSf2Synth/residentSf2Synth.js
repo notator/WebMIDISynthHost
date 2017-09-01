@@ -420,10 +420,11 @@ WebMIDI.residentSf2Synth = (function(window)
 	{
 		var bnkIndex = (channel === 9) ? 128 : bankIndex,
 		bank = bankSet[bnkIndex],
-		instrument,
-		instrumentKey,
+		presetLayers,
+		keyLayers,
 		note,
-		panpot = channelPanpot[channel] - 64,
+        midi = {},
+		pan = channelPanpot[channel] - 64,
 		bankIndexStr, instrStr, channelStr;
 
 	    // *Setting* the pitchBendSensitivity should be done by
@@ -450,38 +451,38 @@ WebMIDI.residentSf2Synth = (function(window)
 			return;
 		}
 
-		instrument = bank[channelInstrument[channel]];
-		if(instrument === undefined)
+		presetLayers = bank[channelInstrument[channel]];
+		if(presetLayers === undefined)
 		{
 			bankIndexStr = bnkIndex.toString(10);
 			instrStr = (channelInstrument[channel]).toString(10);
 			channelStr = channel.toString(10);
-			console.warn("instrument not found: bank=" + bankIndexStr + " instrument=" + instrStr + " channel=" + channelStr);
+			console.warn("presetLayers not found: bank=" + bankIndexStr + " presetLayers=" + instrStr + " channel=" + channelStr);
 			return;
 		}
 
-		instrumentKey = instrument[key];
-		if(!instrumentKey)
+		keyLayers = presetLayers[key];
+		if(!keyLayers)
 		{
 			bankIndexStr = bnkIndex.toString(10);
 			instrStr = (channelInstrument[channel]).toString(10);
 			channelStr = channel.toString(10);
-			console.warn("instrument key not found: bank=" + bankIndexStr + " instrument=" + instrStr + " channel=" + channelStr + " key=" + key);
+			console.warn("presetLayers[key] not found: bank=" + bankIndexStr + " presetLayers=" + instrStr + " channel=" + channelStr + " key=" + key);
 			return;
 		}
 
-		panpot /= panpot < 0 ? 64 : 63;
+		pan /= pan < 0 ? 64 : 63;
 
-		instrumentKey.channel = channel;
-		instrumentKey.key = key;
-		instrumentKey.velocity = velocity;
-		instrumentKey.panpot = panpot;
-		instrumentKey.volume = channelVolume[channel] / 127;
-		instrumentKey.pitchBend = channelPitchBend[channel] - 8192;
-		instrumentKey.pitchBendSensitivity = getPitchBendSensitivity(channel);
+		midi.channel = channel;
+		midi.key = key;
+		midi.velocity = velocity;
+		midi.pan = pan;
+		midi.volume = channelVolume[channel] / 127;
+		midi.pitchBend = channelPitchBend[channel] - 8192;
+		midi.pitchBendSensitivity = getPitchBendSensitivity(channel);
 
 		// note on
-		note = new WebMIDI.soundFontSynthNote.SoundFontSynthNote(ctx, gainMaster, instrumentKey);
+		note = new WebMIDI.soundFontSynthNote.SoundFontSynthNote(ctx, gainMaster, keyLayers, midi);
 		note.noteOn();
 		currentNoteOns[channel].push(note);
 	};
@@ -534,9 +535,9 @@ WebMIDI.residentSf2Synth = (function(window)
 		channelVolume[channel] = volume;
 	};
 
-	ResidentSf2Synth.prototype.panpotChange = function(channel, panpot)
+	ResidentSf2Synth.prototype.panpotChange = function(channel, pan)
 	{
-		channelPanpot[channel] = panpot;
+		channelPanpot[channel] = pan;
 	};
 
 	ResidentSf2Synth.prototype.pitchBend = function(channel, lowerByte, higherByte)

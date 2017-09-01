@@ -90,13 +90,13 @@ WebMIDI.soundFontParser = (function()
 			throw new Error('invalid sfbk structure');
 		}
 
-		// INFO-list
+	    // INFO-list (metadata)
 		this.parseInfoList(parser.getChunk(0));
 
-		// sdta-list
+	    // sdta-list (audio sample data)
 		this.parseSdtaList(parser.getChunk(1));
 
-		// pdta-list
+		// pdta-list (preset data -- generators, modulators etc.)
 		this.parsePdtaList(parser.getChunk(2));
 	};
 
@@ -167,15 +167,15 @@ WebMIDI.soundFontParser = (function()
 			throw new Error('invalid pdta chunk');
 		}
 
-		this.parsePhdr(parser.getChunk(0));
-		this.parsePbag(parser.getChunk(1));
-		this.parsePmod(parser.getChunk(2));
-		this.parsePgen(parser.getChunk(3));
-		this.parseInst(parser.getChunk(4));
-		this.parseIbag(parser.getChunk(5));
-		this.parseImod(parser.getChunk(6));
-		this.parseIgen(parser.getChunk(7));
-		this.parseShdr(parser.getChunk(8));
+		this.parsePhdr(parser.getChunk(0)); // the preset headers chunk
+		this.parsePbag(parser.getChunk(1)); // the preset index list chunk
+		this.parsePmod(parser.getChunk(2)); // the preset modulator list chunk
+		this.parsePgen(parser.getChunk(3)); // the preset generator list chunk
+		this.parseInst(parser.getChunk(4)); // the instrument names and indices chunk
+		this.parseIbag(parser.getChunk(5)); // the instrument index list chunk
+		this.parseImod(parser.getChunk(6)); // the instrument modulator list chunk
+		this.parseIgen(parser.getChunk(7)); // the instrument generator list chunk
+		this.parseShdr(parser.getChunk(8)); // the sample headers chunk
 	};
 
 	SoundFontParser.prototype.parsePhdr = function(chunk)
@@ -234,7 +234,7 @@ WebMIDI.soundFontParser = (function()
 			throw new Error('invalid chunk type:' + chunk.type);
 		}
 
-		this.presetZoneModulator = this.parseGeneratorOrModulator(chunk, 1);
+		this.presetZoneModulator = this.parseGenorModChunk(chunk, 1);
 	};
 
 	SoundFontParser.prototype.parsePgen = function(chunk)
@@ -243,7 +243,7 @@ WebMIDI.soundFontParser = (function()
 		{
 			throw new Error('invalid chunk type:' + chunk.type);
 		}
-		this.presetZoneGenerator = this.parseGeneratorOrModulator(chunk, 0);
+		this.presetZoneGenerator = this.parseGenorModChunk(chunk, 0);
 	};
 
 	SoundFontParser.prototype.parseInst = function(chunk)
@@ -297,7 +297,7 @@ WebMIDI.soundFontParser = (function()
 			throw new Error('invalid chunk type:' + chunk.type);
 		}
 
-		this.instrumentZoneModulator = this.parseGeneratorOrModulator(chunk, 1);
+		this.instrumentZoneModulator = this.parseGenorModChunk(chunk, 1);
 	};
 
 	SoundFontParser.prototype.parseIgen = function(chunk)
@@ -307,7 +307,7 @@ WebMIDI.soundFontParser = (function()
 			throw new Error('invalid chunk type:' + chunk.type);
 		}
 
-		this.instrumentZoneGenerator = this.parseGeneratorOrModulator(chunk, 0);
+		this.instrumentZoneGenerator = this.parseGenorModChunk(chunk, 0);
 	};
 
 	SoundFontParser.prototype.parseShdr = function(chunk)
@@ -409,7 +409,7 @@ WebMIDI.soundFontParser = (function()
 		};
 	};
 
-	SoundFontParser.prototype.parseGeneratorOrModulator = function(chunk, doParseModulator)
+	SoundFontParser.prototype.parseGenorModChunk = function(chunk, doParseModChunk)
 	{
 		var code, key, output = [],
 		data = this.input,
@@ -418,14 +418,25 @@ WebMIDI.soundFontParser = (function()
 
 		while(ip < size)
 		{
-		    if(doParseModulator > 0)
+		    if(doParseModChunk > 0)
 		    {
-		        // Src  Oper
-		        // TODO
-		        ip += 2;
+
+		        // get sfModSrcOper (a 16-bit SFModulator value)
+                // begin gree
+		        //   // TODO
+		        //   ip += 2;
+		        // end gree
+
+		        // begin ji
+		        // See sf2 spec §8.2 for how to interpret the bits in an SFModulator
+		        code = data[ip++] | (data[ip++] << 8);
+		        key = "sfModSrcOper";
+		        output.push({ type: key, value: code });
+                // end ji
 		    }
 
-			// Dest Oper
+		    // sfModDestOper or sfGenOper
+            // and the following 2-byte value (modAmount or genAmount)
 			code = data[ip++] | (data[ip++] << 8);
 			key = SoundFontParser.GeneratorEnumeratorTable[code];
 			if(key === undefined)
@@ -434,7 +445,7 @@ WebMIDI.soundFontParser = (function()
 			    // code is one of the following generator indices: 14, 18,19,20, 42, 49, 55, 59
 			    // The spec says these should be ignored if encountered.
 
-				// Amount (gree comment)
+			    // modAmount or genAmount
 				output.push({
 					type: key,
 					value: {
@@ -447,7 +458,7 @@ WebMIDI.soundFontParser = (function()
 			}
 			else
 			{
-				// Amount
+			    // modAmount or genAmount
 				switch(key)
 			    {
 				    case 'keyRange': // generator index 43, optional, lo is highest valid key, hi is lowest valid key
@@ -477,15 +488,32 @@ WebMIDI.soundFontParser = (function()
 				}
 			}
 
-			if(doParseModulator > 0)
+			if(doParseModChunk > 0)
 			{
-			    // AmtSrcOper
-			    // TODO
-			    ip += 2;
+			    // get sfModAmtSrcOper (a 16-bit SFModulator value)
+                // begin gree
+			    //   // TODO
+			    //   ip += 2;
+			    // end gree
+			    // begin ji
+			    // See sf2 spec §8.2 for how to interpret the bits in an SFModulator
+			    code = data[ip++] | (data[ip++] << 8);
+			    key = "sfModAmtSrcOper";
+			    output.push({ type: key, value: code });
+			    // end ji
 
-			    // Trans Oper
-			    // TODO
-			    ip += 2;
+			    // get sfModTransOper (a 16-bit SFTransform value)
+			    // begin gree
+			    //   // TODO
+			    //   ip += 2;
+			    // end gree
+			    // begin ji
+			    // See sf2 spec §8.3 for how to interpret this value. 
+			    // The value must be either either 0 (=linear) or 2 (=absolute value).
+			    code = data[ip++] | (data[ip++] << 8);
+			    key = "sfModTransOper";
+			    output.push({ type: key, value: code });
+			    // end ji
 			}
 		}
 

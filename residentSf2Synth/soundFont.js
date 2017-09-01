@@ -57,7 +57,7 @@ WebMIDI.soundFont = (function()
 		};
 	},
 
-	createPresetModulator_ = function(parser, zone, index)
+	getPresetModulator_ = function(parser, zone, index)
 	{
 		var modgen = createBagModGen_(
 		  zone[index].presetModulatorIndex,
@@ -71,7 +71,7 @@ WebMIDI.soundFont = (function()
 		};
 	},
 	
-	createPresetGenerator_ = function(parser, zone, index)
+	getPresetGenerator_ = function(parser, zone, index)
 	{
 		var modgen = parser.createBagModGen_(
 		  zone,
@@ -116,110 +116,163 @@ WebMIDI.soundFont = (function()
 		};
 	},
 
-	getModGenAmount = function(generator, enumeratorType, optDefault)
-	{
-		if (optDefault === undefined) {
-			optDefault = 0;
-		}
+    createKeyInfo = function(parser, generator, preset)
+    {
+    	var
+        sampleId,
+        sampleHeader,
+        loopMode,
+        panAmount,
+        tune,
+        scale,
+        freqVibLFO,
+        keyIndex,
+        keyLayers;
 
-		return generator[enumeratorType] ? generator[enumeratorType].amount : optDefault;
-	},
+    	function getModGenAmount(generator, enumeratorType, defaultValue)
+    	{
+    	    if(defaultValue === undefined)
+    	    {
+    	        throw "The default value must be defined.";
+    	    }
 
-	createNoteInfo = function(parser, generator, preset, bankIndex, patchIndex)
-	{
-		var
-		sampleId,
-		sampleHeader,
-		volAttack,
-		volDecay,
-		volSustain,
-		volRelease,
-		modAttack,
-		modDecay,
-		modSustain,
-		modRelease,
-		loop, // ji
-		tune,
-		scale,
-		freqVibLFO,
-		i;
+    	    return generator[enumeratorType] ? generator[enumeratorType].amount : defaultValue;
+    	}
 
-		if (generator.keyRange === undefined || generator.sampleID === undefined) {
-			return;
-		}
+    	function volModParamValue(generator, enumeratorType, defaultValue)
+    	{
+    	    let rVal = getModGenAmount(generator, enumeratorType, defaultValue);
+            
+    	    rVal = (rVal === 0) ? 0 : Math.pow(2, rVal / 1200);
 
-		volAttack  = getModGenAmount(generator, 'attackVolEnv',  -12000);
-		volDecay   = getModGenAmount(generator, 'decayVolEnv',   -12000);
-		volSustain = getModGenAmount(generator, 'sustainVolEnv');
-		volRelease = getModGenAmount(generator, 'releaseVolEnv', -12000);
-		modAttack  = getModGenAmount(generator, 'attackModEnv',  -12000);
-		modDecay   = getModGenAmount(generator, 'decayModEnv',   -12000);
-		modSustain = getModGenAmount(generator, 'sustainModEnv');
-		modRelease = getModGenAmount(generator, 'releaseModEnv', -12000);
-		loop	   = getModGenAmount(generator, 'sampleModes', 0);	// ji
+    	    return rVal;
+    	}
 
-		tune = (
-		  getModGenAmount(generator, 'coarseTune') +
-		  getModGenAmount(generator, 'fineTune') / 100
-		);
-		scale = getModGenAmount(generator, 'scaleTuning', 100) / 100;
-		freqVibLFO = getModGenAmount(generator, 'freqVibLFO');
+    	function range0to1(generator, enumeratorType, defaultValue)
+    	{
+    	    let rVal = getModGenAmount(generator, enumeratorType, defaultValue);
 
-		for(i = generator.keyRange.lo; i <= generator.keyRange.hi; ++i)
-		{
-			if(preset[i] === undefined)
-			{
-				sampleId = getModGenAmount(generator, 'sampleID');
-				sampleHeader = parser.sampleHeader[sampleId];
+    	    return (rVal > 1000 ? 1 : (rVal <= 0 ? 0 : rVal / 1000));
+    	}
 
-				preset[i] = {
-					'sample': parser.sample[sampleId],
-					'sampleRate': sampleHeader.sampleRate,
-					'basePlaybackRate': Math.pow(
-					  Math.pow(2, 1 / 12),
-					  (
-						i -
-						getModGenAmount(generator, 'overridingRootKey', sampleHeader.originalPitch) +
-						tune + (sampleHeader.pitchCorrection / 100)
-					  ) * scale
-					),
-					'modEnvToPitch': getModGenAmount(generator, 'modEnvToPitch') / 100,
-					'scaleTuning': scale,
-					'start':
-					  getModGenAmount(generator, 'startAddrsCoarseOffset') * 32768 +
-						getModGenAmount(generator, 'startAddrsOffset'),
-					'end':
-					  getModGenAmount(generator, 'endAddrsCoarseOffset') * 32768 +
-						getModGenAmount(generator, 'endAddrsOffset'),
-					'doLoop': (loop === 1 || loop === 3), // ji
-					'loopStart': (
-					  //(sampleHeader.startLoop - sampleHeader.start) +
-					  (sampleHeader.startLoop) +
-						getModGenAmount(generator, 'startloopAddrsCoarseOffset') * 32768 +
-						getModGenAmount(generator, 'startloopAddrsOffset')
-					  ),
-					'loopEnd': (
-					  //(sampleHeader.endLoop - sampleHeader.start) +
-					  (sampleHeader.endLoop) +
-						getModGenAmount(generator, 'endloopAddrsCoarseOffset') * 32768 +
-						getModGenAmount(generator, 'endloopAddrsOffset')
-					  ),
-					'volAttack': Math.pow(2, volAttack / 1200),
-					'volDecay': Math.pow(2, volDecay / 1200),
-					'volSustain': volSustain / 1000,
-					'volRelease': Math.pow(2, volRelease / 1200),
-					'modAttack': Math.pow(2, modAttack / 1200),
-					'modDecay': Math.pow(2, modDecay / 1200),
-					'modSustain': modSustain / 1000,
-					'modRelease': Math.pow(2, modRelease / 1200),
-					'initialFilterFc': getModGenAmount(generator, 'initialFilterFc', 13500),
-					'modEnvToFilterFc': getModGenAmount(generator, 'modEnvToFilterFc'),
-					'initialFilterQ': getModGenAmount(generator, 'initialFilterQ'),
-					'freqVibLFO': freqVibLFO ? Math.pow(2, freqVibLFO / 1200) * 8.176 : undefined
-				};
-			}
-		}
-	},
+    	if(generator.keyRange === undefined || generator.sampleID === undefined)
+    	{
+    	    return;
+    	}
+
+    	// See sf2 spec §8.1.3 for the default values set in this function.
+    	loopMode = getModGenAmount(generator, 'sampleModes', 0);
+        panAmount = getModGenAmount(generator, 'pan', 0),
+    	tune = (
+            getModGenAmount(generator, 'coarseTune', 0) +
+            getModGenAmount(generator, 'fineTune', 0) / 100
+        );
+    	scale = getModGenAmount(generator, 'scaleTuning', 100) / 100;
+    	freqVibLFO = getModGenAmount(generator, 'freqVibLFO', 0);
+
+    	for(keyIndex = generator.keyRange.lo; keyIndex <= generator.keyRange.hi; ++keyIndex)
+    	{
+    	    // ji - August 2017
+    	    // The terms presetZone, layer and keylayer:
+    	    // The sfspec says that a "presetZone" is "A subset of a preset containing generators, modulators, and an instrument."
+    	    // The sfspec also says that "layer" is an obsolete term for a "presetZone".
+    	    // The Awave soundfont editor says that a "layer" is "a set of regions with non-overlapping key ranges".
+    	    // The Arachno soundFont contains two "presetZones" in the Grand Piano preset. The first has a pan
+    	    // setting of -500, the second a pan setting of +500.
+    	    // I am therefore assuming that a "presetZone" is a preset-level "channel", that is sent at the same time
+            // as other "presetZones" in the same preset, so as to create a fuller sound.
+    	    // I use the term "keyLayer" to mean the subsection of a presetZone associated with a single key.
+    	    // A keyLayer contains a single audio sample and the parameters (generators) for playing it.
+    	    // There will always be a single MIDI output channel, whose pan position is realised by combining the
+    	    // channel's current pan value with the pan values of the key's (note's) "keyLayers".
+    	    // The sfspec allows an unlimited number of "presetZones" in the pbag chunk, so the number of "keyLayers"
+            // is also unlimted.
+    	    keyLayers = preset[keyIndex];
+    	    if(keyLayers === undefined)
+    	    {
+    	        keyLayers = [];
+    	        preset[keyIndex] = keyLayers;
+    	    }
+
+    	    // the first channel for this key is always at keyLayers[0], i.e. preset[keyIndex][0].
+    	    sampleId = getModGenAmount(generator, 'sampleID', 0);
+    	    sampleHeader = parser.sampleHeader[sampleId];
+
+    	    keyLayers.push({
+    	        'sample': parser.sample[sampleId],
+    	        'sampleRate': sampleHeader.sampleRate,
+    	        'basePlaybackRate': Math.pow(
+                    Math.pow(2, 1 / 12),
+                    (
+                    keyIndex -
+                    getModGenAmount(generator, 'overridingRootKey', sampleHeader.originalPitch) +
+                    tune + (sampleHeader.pitchCorrection / 100)
+                    ) * scale
+                ),
+    	        'modEnvToPitch': volModParamValue(generator, 'modEnvToPitch', -12000) / 100,
+    	        'scaleTuning': scale,
+    	        'start':
+                    getModGenAmount(generator, 'startAddrsCoarseOffset', 0) * 32768 +
+                    getModGenAmount(generator, 'startAddrsOffset', 0),
+    	        'end':
+                    getModGenAmount(generator, 'endAddrsCoarseOffset', 0) * 32768 +
+                    getModGenAmount(generator, 'endAddrsOffset', 0),
+    	        'doLoop': (loopMode === 1 || loopMode === 3), // ji
+    	        'loopStart': (
+                    //(sampleHeader.startLoop - sampleHeader.start) +
+                    (sampleHeader.startLoop) +
+                    getModGenAmount(generator, 'startloopAddrsCoarseOffset', 0) * 32768 +
+                    getModGenAmount(generator, 'startloopAddrsOffset', 0)
+                    ),
+    	        'loopEnd': (
+                    //(sampleHeader.endLoop - sampleHeader.start) +
+                    (sampleHeader.endLoop) +
+                    getModGenAmount(generator, 'endloopAddrsCoarseOffset', 0) * 32768 +
+                    getModGenAmount(generator, 'endloopAddrsOffset', 0)
+                    ),
+
+    	        'volDelay': volModParamValue(generator, 'delayVolEnv', -12000),
+    	        'volAttack': volModParamValue(generator, 'attackVolEnv', -12000),
+    	        'volHold': volModParamValue(generator, 'holdVolEnv', -12000),
+    	        'volDecay': volModParamValue(generator, 'decayVolEnv', -12000),
+    	        'volSustain': range0to1(generator, 'sustainVolEnv', 0), // see spec
+    	        'volRelease': volModParamValue(generator, 'releaseVolEnv', -12000),
+
+    	        'modDelay': volModParamValue(generator, 'delayModEnv', -12000),
+    	        'modAttack': volModParamValue(generator, 'attackModEnv', -12000),
+    	        'modHold': volModParamValue(generator, 'holdModEnv', -12000),
+    	        'modDecay': volModParamValue(generator, 'decayModEnv', -12000),
+    	        'modSustain': range0to1(generator, 'sustainModEnv', 0), // see spec
+    	        'modRelease': volModParamValue(generator, 'releaseModEnv', -12000),
+
+    	        'initialFilterFc': getModGenAmount(generator, 'initialFilterFc', 13500),
+    	        'modEnvToFilterFc': getModGenAmount(generator, 'modEnvToFilterFc', 0) / 100,
+    	        'initialFilterQ': getModGenAmount(generator, 'initialFilterQ', 0) / 100,
+    	        'freqVibLFO': freqVibLFO ? Math.pow(2, freqVibLFO / 1200) * 8.176 : undefined,
+
+    	        // the following were not set by gree
+    	        'modLfoToPitch': volModParamValue(generator, 'modLfoToPitch', -12000) / 100,
+    	        'vibLfoToPitch': volModParamValue(generator, 'vibLfoToPitch', -12000) / 100,
+    	        'modLfoToFilterFc': getModGenAmount(generator, 'modLfoToFilterFc', 0) / 100,
+    	        'modLfoToVolume': getModGenAmount(generator, 'modLfoToVolume', 0) / 100,   	        
+    	        'chorusEffectsSend': range0to1(generator, 'chorusEffectsSend', 0) / 100,
+    	        'reverbEffectsSend': range0to1(generator, 'reverbEffectsSend', 0) / 100,
+    	        'pan' : (panAmount + 500) / 1000,
+    	        'delayModLFO': volModParamValue(generator, 'delayModLFO', -12000), // in Arachno Grand Piano
+    	        'freqModLFO': getModGenAmount(generator, 'freqModLFO', 0),
+    	        'delayVibLFO': volModParamValue(generator, 'delayVibLFO', -12000), // in Arachno Grand Piano
+    	        'keynumToModEnvHold': getModGenAmount(generator, 'keynumToModEnvHold', 0),
+    	        'keynumToModEnvDecay': getModGenAmount(generator, 'keynumToModEnvDecay', 0),
+    	        'keynumToVolEnvHold': getModGenAmount(generator, 'keynumToVolEnvHold', 0),
+    	        'keynumToVolEnvDecay': getModGenAmount(generator, 'keynumToVolEnvDecay', 0),
+    	        'velRange': generator['velRange'], // undefined, or an object like generator.keyRange having lo and hi values
+    	        'keynum': getModGenAmount(generator, 'keynum', -1),
+    	        'velocity': getModGenAmount(generator, 'velocity', -1),
+    	        'initialAttenuation': getModGenAmount(generator, 'initialAttenuation', 0),
+    	        'exclusiveClass': getModGenAmount(generator, 'exclusiveClass', 0)
+    	    }); // end push
+    	}
+    },
 
 	// Parses the Uin8Array to create this soundFont's banks.
 	getBanks = function(uint8Array, nRequiredPresets)
@@ -229,11 +282,13 @@ WebMIDI.soundFont = (function()
 		function createBanks(parser, nRequiredPresets)
 		{
 			var i, j, k,
-			presets, parsersInstruments, instruments,
+			presets, instruments,
 			presetName, patchIndex, bankIndex, instrument,
 			banks = [], bank, instr;
 
-			function createPreset(parser)
+		    // Gets the preset level info that the parser has found in the phdr, pbag, pMod and pGen chunks
+            // This is similar to the getInstrumentBags function (inside the getInstruments function below, but at the preset level.
+			function getPresets(parser)
 			{
 				var i, j,
 				preset = parser.presetHeader,
@@ -256,8 +311,8 @@ WebMIDI.soundFont = (function()
 					// preset bag
 					for(j = bagIndex; j < bagIndexEnd; ++j)
 					{
-						presetGenerator = createPresetGenerator_(parser, zone, j);
-						presetModulator = createPresetModulator_(parser, zone, j);
+						presetGenerator = getPresetGenerator_(parser, zone, j);
+						presetModulator = getPresetModulator_(parser, zone, j);
 
 						zoneInfo.push({
 							generator: presetGenerator.generator,
@@ -265,13 +320,6 @@ WebMIDI.soundFont = (function()
 							modulator: presetModulator.modulator,
 							modulatorSequence: presetModulator.modulatorInfo
 						});
-
-						//instrument =
-						//	presetGenerator.generator['instrument'] !== void 0 ?
-						//	presetGenerator.generator['instrument'].amount :
-						//	presetModulator.modulator['instrument'] !== void 0 ?
-						//	presetModulator.modulator['instrument'].amount :
-						//	null;
 
 						if(presetGenerator.generator.instrument !== undefined)
 						{
@@ -298,134 +346,167 @@ WebMIDI.soundFont = (function()
 				return output;
 			}
 
-			// ji: This is the original gree function, edited to comply with my programming style.
-			// I don't know why it returns all the instrument zones as a single instrument.
-			// It seems to work okay, but needs checking to see that nothing irregular is happening.
-			// Maybe its because the parser is expecting to be given a full set of presets, and only geting a
-			// selection.
-			function createInstrument(parser)
-			{
-				var i, j,
-				instrument = parser.instrument,
-				zone = parser.instrumentZone,
-				output = [],
-				bagIndex,
-				bagIndexEnd,
-				zoneInfo,
-				instrumentGenerator,
-				instrumentModulator;
-
-				// instrument -> instrument bag -> generator / modulator
-				for(i = 0; i < instrument.length; ++i)
-				{
-					bagIndex = instrument[i].instrumentBagIndex;
-					bagIndexEnd = instrument[i + 1] ? instrument[i + 1].instrumentBagIndex : zone.length;
-					zoneInfo = [];
-
-					// instrument bag
-					for(j = bagIndex; j < bagIndexEnd; ++j)
-					{
-						instrumentGenerator = createInstrumentGenerator_(parser, zone, j);
-						instrumentModulator = createInstrumentModulator_(parser, zone, j);
-
-						zoneInfo.push({
-							generator: instrumentGenerator.generator,
-							generatorSequence: instrumentGenerator.generatorInfo,
-							modulator: instrumentModulator.modulator,
-							modulatorSequence: instrumentModulator.modulatorInfo
-						});
-					}
-
-					output.push({
-						name: instrument[i].instrumentName,
-						info: zoneInfo
-					});
-				}
-
-				return output;
-			}
-
 			// ji function:
 			// This function returns an array containing one array per preset. Each preset array contains
-			// a list of instrumentZones, but without a terminating 'EOI' entry. I don't think the terminating
-			// 'EOI' entry is important here, but I may be wrong.
-			function getInstruments(parsersInstruments)
+			// a list of instrumentZones. The end of the list is marked by an empty entry.
+			function getInstruments(parser)
 			{
-				var i = 0, instrIndex = -1, instruments = [], zoneIndexStr, instrZone, zoneName;
+			    var i = 0, parsersInstrumentBags,
+                instrIndex = -1, instruments = [], instrBagIndexString, instrBag, instrBagName;
 
-				// zoneName has invisible 0 charCodes beyond the end of the visible string, so the usual
-				// .length property does not work as expected. Is this unicode, or is the parser simply
-				// setting the name wrongly?
-				// This getZoneIndexString function takes account of the above problem, and returns a
-				// normal string containing the numeric characters visible at the end of the zoneName
-				// argument. The returned string can be empty if there are no visible numeric characters
-				// at the end of zoneName. Numeric characters _inside_ zoneName are _not_ returned.
-				function getZoneIndexString(zoneName)
+			    // ji: This is the original gree "creatInstrument()" function, edited to comply with my programming style.
+			    //
+			    // Useful Definitions:
+			    // A Zone has a single sample, and is associated with a contiguous set of MIDI keys.
+			    // An instrumentBag is a list of (single-channel) Zones.
+			    // The Arachno Grand Piano, for example, has two instrumentBags, each of which contains
+			    // the 20 Zones, for two (mono, left and right) channels.
+			    // The returned records therefore contain *two* entries for each (stereo) preset zone.
+			    // For example: "Grand Piano0        " (left channel) and "GrandPiano1         " (right channel)
+			    // for the Grand Piano preset.
+			    //
+			    // This function returns the instrument level info that the parser has found in the inst, ibag,
+			    // iMod and iGen chunks as a list of records (one record per mono Zone -- see definitions above:
+			    // {
+			    //    name; // instrumentBag name
+			    //    info[];
+			    // }
+			    // where info is a sub-list of records of the form:
+			    // {
+			    //    generator[],
+			    //    generatorSequence[],
+			    //    modulator[],
+			    //    modulatorSequence[]
+			    // }
+			    // The generator[] and generatorSequence[] contain the values of the Generator Enumerators
+			    // (delayModEnv etc. -- see spec) associated with each Zone in the instrumentBag
+			    // The generator entry contains the same information as the generatorSequence entry, except that
+			    // the generatorSequence consists of {string, value} objects, while the generator entry has
+			    // named subentries: i.e.: The value of generator.decayModEnv is the generatorSequence.value.amount
+			    // of the generatorSequence whose generatorSequence.type === "decayModEnv".
+			    // Are both generator[] and generatorSequence[] returned because the order of the sequence in
+			    // generatorSequence is important, while the values in generator[] are more accessible??
+			    // All this is done similarly for modulator and modulatorSequence.
+			    function getInstrumentBags(parser)
+			    {
+			        var i, j,
+                    instrument = parser.instrument,
+                    zone = parser.instrumentZone,
+                    output = [],
+                    bagIndex,
+                    bagIndexEnd,
+                    zoneInfo,
+                    instrumentGenerator,
+                    instrumentModulator;
+
+			        // instrument -> instrument bag -> generator / modulator
+			        for(i = 0; i < instrument.length; ++i)
+			        {
+			            bagIndex = instrument[i].instrumentBagIndex;
+			            bagIndexEnd = instrument[i + 1] ? instrument[i + 1].instrumentBagIndex : zone.length;
+			            zoneInfo = [];
+
+			            // instrument bag
+			            for(j = bagIndex; j < bagIndexEnd; ++j)
+			            {
+			                instrumentGenerator = createInstrumentGenerator_(parser, zone, j);
+			                instrumentModulator = createInstrumentModulator_(parser, zone, j);
+
+			                zoneInfo.push({
+			                    generator: instrumentGenerator.generator,
+			                    generatorSequence: instrumentGenerator.generatorInfo,
+			                    modulator: instrumentModulator.modulator,
+			                    modulatorSequence: instrumentModulator.modulatorInfo
+			                });
+			            }
+
+			            output.push({
+			                name: instrument[i].instrumentName,
+			                info: zoneInfo
+			            });
+			        }
+
+			        return output;
+			    }
+
+			    // The parser leaves instrBagName with invisible 0 charCodes beyond the end of the visible string
+			    // (instrBagName always has 20 chars in the soundFont file), so the usual .length property does
+			    // not work as expected.
+			    // This getBagIndexString function takes account of this problem, and returns a
+			    // normal string containing the numeric characters visible at the end of the instrBagName.
+			    // The returned string can be empty if there are no visible numeric characters
+			    // at the end of instrBagName. Numeric characters _inside_ instrBagName are _not_ returned.
+			    function getBagIndexString(instrBagName)
+			    {
+			        var i, char, charCode, rval = "", lastNumCharIndex = -1, lastAlphaCharIndex = -1;
+
+			        // instrBagName is an unusual string... (unicode?)
+			        // console.log("instrBagName=", instrBagName);
+			        for(i = instrBagName.length - 1; i >= 0; --i)
+			        {
+			            charCode = instrBagName.charCodeAt(i);
+			            // console.log("i=", i, " charCode=", charCode);
+			            // ignore trailing 0 charCodes
+			            if(charCode !== 0)
+			            {
+			                if(lastNumCharIndex === -1)
+			                {
+			                    lastNumCharIndex = i;
+			                }
+			                if(!(charCode >= 48 && charCode <= 57)) // chars '0' to '9'
+			                {
+			                    lastAlphaCharIndex = i;
+			                    break;
+			                }
+			            }
+			        }
+
+			        if(lastAlphaCharIndex < lastNumCharIndex)
+			        {
+			            for(i = lastAlphaCharIndex + 1; i <= lastNumCharIndex; ++i)
+			            {
+			                char = (instrBagName.charCodeAt(i) - 48).toString();
+			                // console.log("char=", char);
+			                rval = rval.concat(char);
+			                // console.log("rval=", rval);
+			            }
+			        }
+			        return rval;
+			    }
+
+			    // See comment at top of the getInstrumentBags function.
+			    parsersInstrumentBags = getInstrumentBags(parser);
+			    // See comment at top of the getInstruments function
+
+				for(i = 0; i < parsersInstrumentBags.length; ++i)
 				{
-					var i, char, charCode, rval = "", lastNumCharIndex = -1, lastAlphaCharIndex = -1;
+					instrBag = parsersInstrumentBags[i];
+					instrBagName = instrBag.name.toString();
 
-					// zoneName is an unusual string... (unicode?)
-					// console.log("zoneName=", zoneName);
-					for(i = zoneName.length - 1; i >= 0; --i)
-					{
-						charCode = zoneName.charCodeAt(i);
-						// console.log("i=", i, " charCode=", charCode);
-						// ignore trailing 0 charCodes
-						if(charCode !== 0)
-						{
-							if(lastNumCharIndex === -1)
-							{
-								lastNumCharIndex = i;
-							}
-							if(!(charCode >= 48 && charCode <= 57)) // chars '0' to '9'
-							{
-								lastAlphaCharIndex = i;
-								break;
-							}
-						}
-					}
-
-					if(lastAlphaCharIndex < lastNumCharIndex)
-					{
-						for(i = lastAlphaCharIndex + 1; i <= lastNumCharIndex; ++i)
-						{
-							char = (zoneName.charCodeAt(i) - 48).toString();
-							// console.log("char=", char);
-							rval = rval.concat(char);
-							// console.log("rval=", rval);
-						}
-					}
-					return rval;
-				}
-
-				for(i = 0; i < parsersInstruments.length; ++i)
-				{
-					instrZone = parsersInstruments[i];
-					zoneName = instrZone.name.toString();
-
-					if(i === parsersInstruments.length - 1)
+					if(i === parsersInstrumentBags.length - 1)
 					{
 						break;
 					}
 
-					zoneIndexStr = getZoneIndexString(zoneName);
-					// zoneIndexStr contains only the visible, trailing numeric characters, if any.
-					if(zoneIndexStr.length === 0 || parseInt(zoneIndexStr, 10) === 0)
+					instrBagIndexString = getBagIndexString(instrBagName);
+					// instrBagIndexString contains only the visible, trailing numeric characters, if any.
+					if(instrBagIndexString.length === 0 || parseInt(instrBagIndexString, 10) === 0)
 					{
 						instrIndex++;
 						instruments[instrIndex] = [];
 					}
-					instruments[instrIndex].push(instrZone);
+					instruments[instrIndex].push(instrBag);
 				}
 
 				return instruments;
 			}
 
-			presets = createPreset(parser);
-			// ji: I'm unsure about this function. See comment on function.
-			parsersInstruments = createInstrument(parser);
-			// ji: I'm unsure about this function. See comment on function.  
-			instruments = getInstruments(parsersInstruments);
+		    // Get the preset level info that the parser has found in the phdr, pbag, pMod and pGen chunks
+			presets = getPresets(parser);
+
+		    // Get the instrument level info that the parser has found in the inst, ibag, iMod and iGen chunks
+            // Each instrument now contains an array containing its instrumenBags (stereo).
+			instruments = getInstruments(parser);
 
 			// the final entry in presets is 'EOP'
 			if(nRequiredPresets !== (presets.length - 1))
@@ -455,7 +536,7 @@ WebMIDI.soundFont = (function()
 					instr = instrument[j];
 					for(k = 0; k < instr.info.length; ++k)
 					{
-						createNoteInfo(parser, instr.info[k].generator, bank[patchIndex], bankIndex, patchIndex);
+						createKeyInfo(parser, instr.info[k].generator, bank[patchIndex]);
 					}
 				}
 			}
