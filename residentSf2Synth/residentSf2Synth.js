@@ -478,7 +478,7 @@ WebMIDI.residentSf2Synth = (function(window)
 		midi.velocity = velocity;
 		midi.pan = pan;
 		midi.volume = channelVolume[channel] / 127;
-		midi.pitchBend = channelPitchBend[channel] - 8192;
+		midi.pitchBend = channelPitchBend[channel]; // a value in range [-8192..+8191]
 		midi.pitchBendSensitivity = getPitchBendSensitivity(channel);
 
 		// note on
@@ -542,20 +542,19 @@ WebMIDI.residentSf2Synth = (function(window)
 
 	ResidentSf2Synth.prototype.pitchBend = function(channel, lowerByte, higherByte)
 	{
-		var bend = (lowerByte & 0x7f) | ((higherByte & 0x7f) << 7),
+	    var pitchBend = ((lowerByte & 0x7f) | ((higherByte & 0x7f) << 7)) - 8192,
 		i, il,
-		currentNoteOn = currentNoteOns[channel],
-		calculated = bend - 8192;
+		currentNoteOn = currentNoteOns[channel];
 
 		if(currentNoteOn !== undefined)
 		{
 			il = currentNoteOn.length;
 			for(i = 0; i < il; ++i)
 			{
-				currentNoteOn[i].updatePitchBend(calculated);
+			    currentNoteOn[i].updatePlaybackRate(pitchBend);
 			}
 		}
-		channelPitchBend[channel] = bend;
+		channelPitchBend[channel] = pitchBend;
 	};
 
     // Both of these should be called by clients, but setting registeredParameterCoarse to anything other than 0
