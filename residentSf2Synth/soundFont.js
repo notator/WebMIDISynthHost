@@ -470,6 +470,7 @@ WebMIDI.soundFont = (function()
 		            rt.scaleTuning_factor = scaleTuning;
 
 		            // set vol values
+		            rt.initialAttenuation_factor = 1 - hundredthsToFloat(kl.initialAttenuation);
 		            rt.volDelayDuration_sec = tcentsToSec(kl.delayVolEnv);
 		            rt.volAttackDuration_sec = tcentsToSec(kl.attackVolEnv);
 		            rt.volHoldDuration_sec = tcentsToSec(kl.holdVolEnv) * tcentsPerKeyToFactor(kl.keynumToVolEnvHold, keyIndex);
@@ -497,6 +498,8 @@ WebMIDI.soundFont = (function()
 		            rt.modLfoDelayDuration_sec = tcentsToSec(kl.delayModLFO);
 		            rt.modLfoFreq_Hz = centsToHz(kl.freqModLFO);
 		            rt.modLfoToPitch_semitones = hundredthsToFloat(kl.modLfoToPitch);
+		            rt.modLfoToFilterFc_factor = hundredthsToFloat(kl.modLfoToFilterFc); // currently unused in soundFontSynthNote.js
+		            rt.modLfoToVolume_factor = hundredthsToFloat(kl.modLfoToVolume); // currently unused in soundFontSynthNote.js
 		            rt.vibLfoDelayDuration_sec = tcentsToSec(kl.delayVibLFO);
 		            rt.vibLfoFreq_Hz = centsToHz(kl.freqVibLFO);
 		            rt.vibLfoToPitch_semitones = hundredthsToFloat(kl.vibLfoToPitch);

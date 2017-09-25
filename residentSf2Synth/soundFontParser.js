@@ -421,100 +421,53 @@ WebMIDI.soundFontParser = (function()
 		{
 		    if(doParseModChunk > 0)
 		    {
-
-		        // get sfModSrcOper (a 16-bit SFModulator value)
-                // begin gree
-		        //   // TODO
-		        //   ip += 2;
-		        // end gree
-
-		        // begin ji
 		        // See sf2 spec §8.2 for how to interpret the bits in an SFModulator
 		        code = data[ip++] | (data[ip++] << 8);
 		        key = "sfModSrcOper";
 		        output.push({ type: key, value: code });
-                // end ji
 		    }
 
 		    // sfModDestOper or sfGenOper
             // and the following 2-byte value (modAmount or genAmount)
 			code = data[ip++] | (data[ip++] << 8);
 			key = generatorTable[code].name;
-			if(key === undefined)
+			// modAmount or genAmount
+			switch(key)
 			{
-			    // ji comment August 2017
-			    // code is one of the following generator indices: 14, 18,19,20, 42, 49, 55, 59
-			    // The spec says these should be ignored if encountered.
-
-			    // modAmount or genAmount
-				output.push({
-					type: key,
-					value: {
-						code: code,
-						amount: data[ip] | (data[ip + 1] << 8) << 16 >> 16,
-						lo: data[ip++],
-						hi: data[ip++]
-					}
-				});
-			}
-			else
-			{
-			    // modAmount or genAmount
-				switch(key)
-			    {
-				    case 'keyRange': // generator index 43, optional, lo is highest valid key, hi is lowest valid key
-				    case 'velRange': // generator index 44, optional, lo is highest valid velocity, hi is lowest valid velocity
-				    // begin original gree
-				    // ji -- I've commented these out, because according to the spec, they are ordinary values (in range 0..127).
-				    // These generators are not used by the rest of the gree code.
-				    //   case 'keynum': // generator index 46 (range 0..127)
-				    //   case 'velocity': // generator index 47 (range 0..127)
-				    // end original gree
-						output.push({
-							type: key,
-							value: {
-								lo: data[ip++],
-								hi: data[ip++]
-							}
-						});
-						break;
-					default:
-						output.push({
-							type: key,
-							value: {
-								amount: data[ip++] | (data[ip++] << 8) << 16 >> 16
-							}
-						});
-						break;
-				}
+				case 'keyRange': // generator index 43, optional, lo is highest valid key, hi is lowest valid key
+				case 'velRange': // generator index 44, optional, lo is highest valid velocity, hi is lowest valid velocity
+					output.push({
+						type: key,
+						value: {
+							lo: data[ip++],
+							hi: data[ip++]
+						}
+					});
+					break;
+				default:
+					output.push({
+						type: key,
+						value: {
+							amount: data[ip++] | (data[ip++] << 8) << 16 >> 16
+						}
+					});
+					break;
 			}
 
 			if(doParseModChunk > 0)
 			{
 			    // get sfModAmtSrcOper (a 16-bit SFModulator value)
-                // begin gree
-			    //   // TODO
-			    //   ip += 2;
-			    // end gree
-			    // begin ji
 			    // See sf2 spec §8.2 for how to interpret the bits in an SFModulator
 			    code = data[ip++] | (data[ip++] << 8);
 			    key = "sfModAmtSrcOper";
 			    output.push({ type: key, value: code });
-			    // end ji
 
 			    // get sfModTransOper (a 16-bit SFTransform value)
-			    // begin gree
-			    //   // TODO
-			    //   ip += 2;
-			    // end gree
-			    // begin ji
 			    // See sf2 spec §8.3 for how to interpret this value. 
 			    // The value must be either either 0 (=linear) or 2 (=absolute value).
 			    code = data[ip++] | (data[ip++] << 8);
 			    key = "sfModTransOper";
 			    output.push({ type: key, value: code });
-			    // end ji
 			}
 		}
 

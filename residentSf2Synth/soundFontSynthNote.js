@@ -101,7 +101,7 @@ WebMIDI.soundFontSynthNote = (function()
         modHoldEndtime = modAttackEndtime + keyLayers[0].modHoldDuration_sec,
         modDecayEndtime = modHoldEndtime + keyLayers[0].modDecayDuration_sec,
 
-        volLevel = this.volume * Math.pow((this.velocity / 127), 2), // ji 21.08.2017
+        volLevel = this.volume * Math.pow((this.velocity / 127), 2) * keyLayers[0].initialAttenuation_factor,
 
 		loopStart = 0,
 		loopEnd = 0,
