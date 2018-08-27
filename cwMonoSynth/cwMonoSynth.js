@@ -1,7 +1,7 @@
 ﻿/*
 *  copyright 2015 Chris Wilson, James Ingram
 *  https://github.com/cwilso
-*  http://james-ingram-act-two.de/
+*  https://james-ingram-act-two.de/
 *
 *  Code licensed under MIT
 *

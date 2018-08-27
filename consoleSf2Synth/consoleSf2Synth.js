@@ -1,6 +1,6 @@
 ﻿/*
 *  copyright 2015 James Ingram
-*  http://james-ingram-act-two.de/
+*  https://james-ingram-act-two.de/
 *
 *  Code licensed under MIT
 *

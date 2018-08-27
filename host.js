@@ -1,6 +1,6 @@
 /*
 *  copyright 2015 James Ingram
-*  http://james-ingram-act-two.de/
+*  https://james-ingram-act-two.de/
 *
 *  Code licensed under MIT
 *
@@ -1107,7 +1107,7 @@ WebMIDI.host = (function(document)
 			// Do the following for each available SoundFont type.
 			if(originName === "Arachno Version 1.0")
 			{
-				sf2OriginPathBase = "http://james-ingram-act-two.de/soundFonts/Arachno/Arachno1.0selection-";
+				sf2OriginPathBase = "https://james-ingram-act-two.de/soundFonts/Arachno/Arachno1.0selection-";
 				sf2SelectOptions = [];
 
 				so = document.createElement("option");

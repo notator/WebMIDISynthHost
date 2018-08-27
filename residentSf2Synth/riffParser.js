@@ -1,6 +1,6 @@
 /*
 * Copyright 2015 James Ingram
-* http://james-ingram-act-two.de/
+* https://james-ingram-act-two.de/
 * 
 * This is almost entirely the riff parser code from
 * https://github.com/gree/sf2synth.js

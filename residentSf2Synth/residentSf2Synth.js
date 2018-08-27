@@ -1,5 +1,5 @@
 ﻿/* Copyright 2015 James Ingram, gree
- * http://james-ingram-act-two.de/
+ * https://james-ingram-act-two.de/
  * https://github.com/gree
  *  
  * This code is based on the gree soundFont synthesizer at
