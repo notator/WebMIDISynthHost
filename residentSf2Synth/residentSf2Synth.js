@@ -181,14 +181,14 @@ WebMIDI.residentSf2Synth = (function(window)
 	// See https://github.com/notator/WebMIDISynthHost/issues/24
 	ResidentSf2Synth.prototype.open = function()
 	{
-		console.log("residentSf2Synth opened.");
+		// console.log("residentSf2Synth opened.");
 	};
 
 	// WebMIDIAPI §4.6 -- MIDIPort interface
 	// See https://github.com/notator/WebMIDISynthHost/issues/24
 	ResidentSf2Synth.prototype.close = function()
 	{
-		console.log("residentSf2Synth closed.");
+		// console.log("residentSf2Synth closed.");
 	};
 
 	// WebMIDIAPI MIDIOutput send()
@@ -213,13 +213,13 @@ WebMIDI.residentSf2Synth = (function(window)
 		function handleNoteOff(channel, data1, data2)
 		{
 			checkCommandExport(CMD.NOTE_OFF);
-			console.log("residentSf2Synth NoteOff: channel:" + channel + " note:" + data1 + " velocity:" + data2);
+			// console.log("residentSf2Synth NoteOff: channel:" + channel + " note:" + data1 + " velocity:" + data2);
 			that.noteOff(channel, data1, data2);
 		}
 		function handleNoteOn(channel, data1, data2)
 		{
 			checkCommandExport(CMD.NOTE_ON);
-			console.log("residentSf2Synth NoteOn: channel:" + channel + " note:" + data1 + " velocity:" + data2);
+			// console.log("residentSf2Synth NoteOn: channel:" + channel + " note:" + data1 + " velocity:" + data2);
 			that.noteOn(channel, data1, data2);
 		}
 		function handleControl(channel, data1, data2)
@@ -235,49 +235,50 @@ WebMIDI.residentSf2Synth = (function(window)
 			function setBank(channel, value)
 			{
 				checkControlExport(CTL.BANK);
-				console.log("residentSf2Synth Bank: channel:" + channel + " value:" + value);
+				// console.log("residentSf2Synth Bank: channel:" + channel + " value:" + value);
 				bankIndex = value; // this is the complete implementation!
 			}
 			function setVolume(channel, value)
 			{
 				checkControlExport(CTL.VOLUME);
-				console.log("residentSf2Synth Volume: channel:" + channel + " value:" + value);
+				// console.log("residentSf2Synth Volume: channel:" + channel + " value:" + value);
 				that.volumeChange(channel, value);
 			}
 			function setPan(channel, value)
 			{
 				checkControlExport(CTL.PAN);
-				console.log("residentSf2Synth Pan: channel:" + channel + " value:" + value);
+				// console.log("residentSf2Synth Pan: channel:" + channel + " value:" + value);
 				that.panpotChange(channel, value);
 			}
 
 			function setAllControllersOff(channel)
 			{
 				checkControlExport(CTL.ALL_CONTROLLERS_OFF);
-				console.log("residentSf2Synth AllControllersOff: channel:" + channel);
+				// console.log("residentSf2Synth AllControllersOff: channel:" + channel);
 				that.resetAllControl(channel);
 			}
 			function setAllSoundOff(channel)
 			{
 				checkControlExport(CTL.ALL_SOUND_OFF);
-				console.log("residentSf2Synth AllSoundOff: channel:" + channel);
+				// console.log("residentSf2Synth AllSoundOff: channel:" + channel);
 				that.allSoundOff(channel);
 			}
 
 			function setRegisteredParameterCoarse(channel, param)
 			{
 			    checkControlExport(CTL.REGISTERED_PARAMETER_COARSE);
-			    console.log("residentSf2Synth RegisteredParameterCoarse: channel:" + channel + " value:" + param);
-			    if(param !== 0)
-			    {
-			        throw "This synth only supports registeredParameterCoarse = 0 (pitchWheelDeviation semitones)";
-			    }
-			    that.registeredParameterCoarse(channel, param);
+			    // console.log("residentSf2Synth RegisteredParameterCoarse: channel:" + channel + " value:" + param);
+				if(param !== 0)
+				{
+					throw "This synth only supports registeredParameterCoarse = 0 (pitchWheelDeviation semitones)";
+				}
+				that.registeredParameterCoarse(channel, param);
 			}
+
 			function setDataEntryCoarse(channel, semitones)
 			{
 			    checkControlExport(CTL.DATA_ENTRY_COARSE);
-			    console.log("residentSf2Synth DataEntryCoarse: channel:" + channel + " value:" + semitones);
+			    // console.log("residentSf2Synth DataEntryCoarse: channel:" + channel + " value:" + semitones);
 			    that.dataEntryCoarse(channel, semitones);
 			}
 
@@ -300,30 +301,27 @@ WebMIDI.residentSf2Synth = (function(window)
 				case CTL.ALL_SOUND_OFF:
 					setAllSoundOff(channel);
 					break;
-
-				// CTL.REGISTERED_PARAMETER_FINE and CTL.DATA_ENTRY_FINE are not defined for
-				// (i.e. are ignored by) this synth.
-				// coarse parameter (data2) is coarse pitchWheelDeviation (=semitones)
-			    case CTL.REGISTERED_PARAMETER_COARSE:
-			        setRegisteredParameterCoarse(channel, data2);
+				// CTL.REGISTERED_PARAMETER_FINE and CTL.DATA_ENTRY_FINE are not supported (i.e. are ignored by) this synth.
+				case CTL.REGISTERED_PARAMETER_COARSE:
+					setRegisteredParameterCoarse(channel, data2);
 			        break;
-			    case CTL.DATA_ENTRY_COARSE: // default coarse pitchWheelDeviation is 2 semitones
+			    case CTL.DATA_ENTRY_COARSE: // default coarse is semitones pitchWheelDeviation when RPC is 0
 			        setDataEntryCoarse(channel, data2);
 			        break;
 				default:
-					console.warn("Controller " + data1.toString(10) + " (0x" + data1.toString(16) + ") is not supported.");
+					console.warn(`Controller ${data1.toString(10)} (0x${data1.toString(16)}) is not supported.`);
 			}
 		}
 		function handlePatchChange(channel, data1)
 		{
 			checkCommandExport(CMD.PATCH);
-			console.log("residentSf2Synth Patch: channel:" + channel, " value:" + data1);
+			// console.log("residentSf2Synth Patch: channel:" + channel, " value:" + data1);
 			that.programChange(channel, data1);
 		}
 		function handlePitchWheel(channel, data1)
 		{
 			checkCommandExport(CMD.PITCHWHEEL);
-			console.log("residentSf2Synth PitchWheel: channel:" + channel, " value:" + data1);
+			// console.log("residentSf2Synth PitchWheel: channel:" + channel, " value:" + data1);
 			that.pitchBend(channel, data1, data2);
 		}
 
@@ -382,7 +380,7 @@ WebMIDI.residentSf2Synth = (function(window)
 			this.setChannelControlDefaults(i);
 		}
 
-		console.log("residentSf2Synth SoundFont set.");
+		// console.log("residentSf2Synth SoundFont set.");
 	};
 
 	// Call this immediately after the synth has been constructed.
@@ -395,7 +393,7 @@ WebMIDI.residentSf2Synth = (function(window)
 		// ji November 2015
 		this.setMasterVolume(16383);
 
-		console.log("residentSf2Synth initialised");
+		// console.log("residentSf2Synth initialised");
 	};
 
 	ResidentSf2Synth.prototype.setMasterVolume = function(volume)
