@@ -80,13 +80,6 @@ WebMIDI.consoleSf2Synth = (function()
     };
 	// end var
 
-	// The init function should be called immediately after the synth has been constructed.
-	// In this case it does nothing, but see jigSf2Synth.
-	ConsoleSf2Synth.prototype.init = function()
-	{
-		console.log("consoleSf2Synth initialised.");
-	};
-
 	// WebMIDIAPI §4.6 -- MIDIPort interface
 	// See https://github.com/notator/WebMIDISynthHost/issues/24
 	ConsoleSf2Synth.prototype.open = function()

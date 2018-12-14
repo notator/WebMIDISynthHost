@@ -138,17 +138,11 @@ WebMIDI.cwMIDISynth = (function()
 	};
 	// end var
 
-	// The init function should be called immediately after the synth has been constructed.
-	CWMIDISynth.prototype.init = function()
-	{
-		this.core.initAudio();
-		console.log("cwMIDISynth initialised.");
-	};
-
 	// WebMIDIAPI §4.6 -- MIDIPort interface
 	// See https://github.com/notator/WebMIDISynthHost/issues/24
 	CWMIDISynth.prototype.open = function()
 	{
+		this.core.initAudio();
 		console.log("cwMIDISynth opened.");
 	};
 

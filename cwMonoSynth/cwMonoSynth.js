@@ -80,8 +80,9 @@ WebMIDI.cwMonosynth = (function()
     };
 	// end var
 
-	// The init function should be called immediately after the synth has been constructed.
-	CWMonosynth.prototype.init = function()
+	// WebMIDIAPI §4.6 -- MIDIPort interface
+	// See https://github.com/notator/WebMIDISynthHost/issues/24
+	CWMonosynth.prototype.open = function()
 	{
 		window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
@@ -95,13 +96,6 @@ WebMIDI.cwMonosynth = (function()
 		envelope.connect(context.destination);
 		envelope.gain.value = 0.0;  // Mute the sound
 		oscillator.start(0);  // Go ahead and start up the oscillator
-		console.log("cwMonosynth initialised.");
-	};
-
-	// WebMIDIAPI §4.6 -- MIDIPort interface
-	// See https://github.com/notator/WebMIDISynthHost/issues/24
-	CWMonosynth.prototype.open = function()
-	{
 		console.log("cwMonosynth opened.");
 	};
 

@@ -862,6 +862,8 @@ WebMIDI.host = (function(document)
 			}
 		}
 
+		synth.open();
+
 		synthSelect.onchange = onSynthSelectChanged; // activated by synthSelectDivButton 
 
 		getElem("synthSelectDivButtonDiv").style.display = "none";
@@ -1204,6 +1206,7 @@ WebMIDI.host = (function(document)
 							{
 								synth.setSoundFont(soundFont);
 
+								/****************************************************
 								// For some reason, the first noteOn to be sent by the host, reacts only after a delay.
 								// This noteOn/noteOff pair is sent so that the *next* noteOn will react immediately.
 								// This is actually a kludge. I have been unable to solve the root problem.
@@ -1216,20 +1219,23 @@ WebMIDI.host = (function(document)
 									synth.noteOn(0, 64, 100);
 									synth.noteOff(0, 64, 100);
 								}
+								***************************************************/
+
 								// Wait for the above noteOn/noteOff kludge to work.
 								// consoleSf2Synth must call onSynthSelectChanged().
 								setTimeout(function()
 								{
-									if(synth.setMasterVolume)
-									{
-										synth.setMasterVolume(16384);
-									}
+									//if(synth.setMasterVolume)
+									//{
+									//	synth.setMasterVolume(16384);
+									//}
 									firstSoundFontLoaded = true;
 									if(synthSelect.options[synthSelect.selectedIndex].synth === synth)
 									{
 										onSynthSelectChanged();
 									}
 								}, 2400);
+								
 							}
 
 							for(i = 0; i < synthSelect.options.length; ++i)
@@ -1284,25 +1290,21 @@ WebMIDI.host = (function(document)
 		// Do the following for each available synth
 		option = document.createElement("option");
 		option.synth = new WebMIDI.cwMIDISynth.CWMIDISynth();
-		option.synth.init();
 		option.text = option.synth.name;
 		synthSelect.add(option);
 
 		option = document.createElement("option");
 		option.synth = new WebMIDI.cwMonosynth.CWMonosynth();
-		option.synth.init();
 		option.text = option.synth.name;
 		synthSelect.add(option);
 
 		option = document.createElement("option");
 		option.synth = new WebMIDI.residentSf2Synth.ResidentSf2Synth();
-		option.synth.init();
 		option.text = option.synth.name;
 		synthSelect.add(option);
 
 		option = document.createElement("option");
 		option.synth = new WebMIDI.consoleSf2Synth.ConsoleSf2Synth();
-		option.synth.init();
 		option.text = option.synth.name;
 		synthSelect.add(option);
 		

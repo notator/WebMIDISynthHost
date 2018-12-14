@@ -34,8 +34,8 @@ WebMIDI.residentSf2Synth = (function(window)
 		 *********************************************************/
 		bankIndex = 0,
 		bankSet,
-		ctx, // set in constructor
-		gainMaster,  // set in constructor (ji)
+		ctx, // set in open()
+		gainMaster,  // set in open() (ji)
 
 		/** ji begin compressor commented out because unused November 2015 */
 		/** @type {DynamicsCompressorNode} */
