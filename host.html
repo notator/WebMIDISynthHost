@@ -10,18 +10,22 @@
     <div id="cursorControlDiv">
         <div id="appDiv" class="app">
             <div id="title">
-                <table width="400">
+                <table style="width:400px">
                     <tr>
                         <td><span class="boldTitle">Web MIDI Synth Host</span></td>
-                        <td align="right"><input class="smallButton" type="button" value="GitHub" width="80" onclick="WebMIDI.host.gitHubButtonClick()" /></td>
+                        <td style="text-align:right"><input class="smallButton" type="button" value="GitHub" style="width:80px" onclick="WebMIDI.host.gitHubButtonClick()" /></td>
                     </tr>
                 </table>
             </div>
             <div id="synthSelectDiv" style="display:block">
                 <hr />
                 <table>
+                    <colgroup>
+                        <col style="width:75px" />
+                        <col />
+                    </colgroup>
                     <tr>
-                        <td width="75"><span class="boldSubtitle">Synth:</span></td>
+                        <td><span class="boldSubtitle">Synth:</span></td>
                         <td>
                             <!--
                             To add a synth, include its code at the bottom of this file, and add it to this
@@ -37,12 +41,16 @@
             </div>
             <div id="synthInfoDiv" style="display:none">
                 <table>
+                    <colgroup>
+                        <col style="width:75px" />
+                        <col />
+                    </colgroup>
                     <tr id="singleChannelSynthInfo">
-                        <td width="75"><input class="smallButton" type="button" value="website" onclick="WebMIDI.host.synthWebsiteButtonClick()" /></td>
+                        <td><input class="smallButton" type="button" value="website" onclick="WebMIDI.host.synthWebsiteButtonClick()" /></td>
                         <td><span>single channel synth -- (ignores channel info)</span></td>
                     </tr>
                     <tr id="multiChannelSynthInfo">
-                        <td width="75"><input class="smallButton" type="button" value="website" onclick="WebMIDI.host.synthWebsiteButtonClick()" /></td>
+                        <td><input class="smallButton" type="button" value="website" onclick="WebMIDI.host.synthWebsiteButtonClick()" /></td>
                         <td>
                             <span>multichannel synth -- channel:</span>
                             <select id="channelSelect" class="valueSelector">
@@ -67,15 +75,15 @@
                     </tr>
                 </table>
             </div>
-            <div id="waitingForFirstFontDiv" style="display:none; margin-top:10px">
-                <hr />
-                <span>Please wait while the first sound font loads...</span>
-            </div>
             <div id="soundFontDiv" style="display:none">
                 <hr />
                 <table id="soundFontTable1">
+                    <colgroup>
+                        <col style="width:75px" />
+                        <col />
+                    </colgroup>
                     <tr>
-                        <td width="75"><span class="boldSubtitle">SoundFont:</span></td>
+                        <td><span class="boldSubtitle">SoundFont:</span></td>
                         <td>
                             <select id="sf2OriginSelect" class="sf2OriginSelect" onchange="WebMIDI.host.onSf2OriginSelectChanged()" />
                         </td>
@@ -89,8 +97,12 @@
                     </tr>
                 </table>
                 <table id="soundFontTable2">
+                    <colgroup>
+                        <col style="width:75px" />
+                        <col />
+                    </colgroup>
                     <tr>
-                        <td width="75"><input class="smallButton" type="button" value="website" onclick="WebMIDI.host.soundFontWebsiteButtonClick()" /></td>
+                        <td><input class="smallButton" type="button" value="website" onclick="WebMIDI.host.soundFontWebsiteButtonClick()" /></td>
                         <td id="loadLog"></td>
                     </tr>
                 </table>
@@ -108,17 +120,21 @@
             <div id="noteDiv1" style="display:none">
                 <hr />
                 <table>
+                    <colgroup>
+                        <col style="width:70px" />
+                        <col />
+                    </colgroup>
                     <tr>
-                        <td width="70">
+                        <td>
                             <span class="boldSubtitle">Note:</span>
                         </td>
                         <td>
                             <span>note</span>
-                            <input id="noteDiv1IndexInput" type="number" name="value" class="number" min="0" max="127" value="64">
+                            <input id="noteDiv1IndexInput" type="number" name="value" class="number" min="0" max="127" value="64" />
                             <span>velocity</span>
-                            <input id="noteDiv1VelocityInput" type="number" name="value" class="number" min="0" max="127" value="100">
+                            <input id="noteDiv1VelocityInput" type="number" name="value" class="number" min="0" max="127" value="100" />
                             <input id="sendButton1" type="button" class="sendButton" value="send" onmousedown="WebMIDI.host.doNoteOn()" onmouseup="WebMIDI.host.doNoteOff()" />
-                            <label><input type="checkbox" id="holdCheckbox1" value="hold" style="vertical-align:middle" onclick="WebMIDI.host.holdCheckboxClicked()" >hold</label>
+                            <label><input type="checkbox" id="holdCheckbox1" value="hold" style="vertical-align:middle" onclick="WebMIDI.host.holdCheckboxClicked()" />hold</label>
                         </td>
                     </tr>
                 </table>
@@ -126,30 +142,34 @@
             <div id="notesDiv2" style="display:none">
                 <hr />
                 <table>
+                    <colgroup>
+                        <col style="width:70px" />
+                        <col />
+                    </colgroup>
                     <tr>
-                        <td width="70">
+                        <td>
                             <span class="boldSubtitle">Note:</span>
                         </td>
                         <td>
                             <span>note</span>
-                            <input id="notesDiv2IndexInput1" type="number" name="value" class="number" min="0" max="127" value="68">
+                            <input id="notesDiv2IndexInput1" type="number" name="value" class="number" min="0" max="127" value="68" />
                             <span>velocity</span>
-                            <input id="notesDiv2VelocityInput1" type="number" name="value" class="number" min="0" max="127" value="0">
+                            <input id="notesDiv2VelocityInput1" type="number" name="value" class="number" min="0" max="127" value="100" />
                             <input type="checkbox" id="sendNote1Checkbox" style="vertical-align:middle" onclick="WebMIDI.host.noteCheckboxClicked()" />
                         </td>
                     </tr>
                     <tr>
-                        <td width="70">
+                        <td>
                             <span>&nbsp;</span>
                         </td>
                         <td>
                             <span>note</span>
-                            <input id="notesDiv2IndexInput2" type="number" name="value" class="number" min="0" max="127" value="64">
+                            <input id="notesDiv2IndexInput2" type="number" name="value" class="number" min="0" max="127" value="64" />
                             <span>velocity</span>
-                            <input id="notesDiv2VelocityInput2" type="number" name="value" class="number" min="0" max="127" value="100">
-                            <input type="checkbox" id="sendNote2Checkbox" style="vertical-align:middle" onclick="WebMIDI.host.noteCheckboxClicked()" checked />
+                            <input id="notesDiv2VelocityInput2" type="number" name="value" class="number" min="0" max="127" value="100" />
+                            <input type="checkbox" id="sendNote2Checkbox" style="vertical-align:middle" onclick="WebMIDI.host.noteCheckboxClicked()" checked="checked" />
                             <input id="sendButton2" type="button" class="sendButton" value="send" onmousedown="WebMIDI.host.doNotesOn()" onmouseup="WebMIDI.host.doNotesOff()" />
-                            <label><input type="checkbox" id="holdCheckbox2" value="hold" style="vertical-align:middle" onclick="WebMIDI.host.holdCheckboxClicked()" >hold</label>
+                            <label><input type="checkbox" id="holdCheckbox2" value="hold" style="vertical-align:middle" onclick="WebMIDI.host.holdCheckboxClicked()" />hold</label>
                         </td>
                     </tr>
                 </table>

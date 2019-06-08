@@ -128,7 +128,7 @@ WebMIDI.residentSf2Synth = (function(window)
 
 			/*** Extensions for software synths ***/
 			// The synth author's webpage hosting the synth. 
-			Object.defineProperty(this, "url", { value: "https://github.com/gree/sf2synth.js", writable: false });
+			Object.defineProperty(this, "url", { value: "https://github.com/notator/WebMIDISynthHost", writable: false });
 			// The commands supported by this synth (see above).
 			Object.defineProperty(this, "commands", { value: commands, writable: false });
 			// The controls supported by this synth (see above).

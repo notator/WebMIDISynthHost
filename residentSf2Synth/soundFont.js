@@ -21,10 +21,6 @@ WebMIDI.soundFont = (function()
 {
 	"use strict";
 	var
-	name, // ji for host
-	presetInfo, // ji for host
-	banks, // export to synth
-
 	createBagModGen_ = function(indexStart, indexEnd, zoneModGen)
 	{
 	    var modgenInfo = [],
@@ -194,7 +190,7 @@ WebMIDI.soundFont = (function()
 			function getInstruments(parser)
 			{
 			    var i = 0, parsersInstrumentBags,
-                instrIndex = -1, instruments = [], instrBagIndexString, instrBag, instrBagName;
+                instrIndex = -1, instruments = [], baseName, instrBag, instrBagName;
 
 			    // ji: This is the original gree "creatInstrument()" function, edited to comply with my programming style.
 			    //
@@ -269,57 +265,47 @@ WebMIDI.soundFont = (function()
 			        }
 
 			        return output;
-			    }
+				}
 
-			    // The parser leaves instrBagName with invisible 0 charCodes beyond the end of the visible string
+				// The parser leaves instrBagName with invisible 0 charCodes beyond the end of the visible string
 			    // (instrBagName always has 20 chars in the soundFont file), so the usual .length property does
 			    // not work as expected.
-			    // This getBagIndexString function takes account of this problem, and returns a
-			    // normal string containing the numeric characters visible at the end of the instrBagName.
-			    // The returned string can be empty if there are no visible numeric characters
-			    // at the end of instrBagName. Numeric characters _inside_ instrBagName are _not_ returned.
-			    function getBagIndexString(instrBagName)
-			    {
-			        var i, char, charCode, rval = "", lastNumCharIndex = -1, lastAlphaCharIndex = -1;
+				// Before the final 0 charCodes, the instrBagName can contain a number (the bagIndexString) that
+				// distinguishes this particular bag.
+				// This getBagBaseName function returns a normal string containing all the alphanumeric characters
+				// and spaces up to, but not including the final bagIndexString or '\0' character.
+				function getBagBaseName(instrBagName)
+				{
+					var i, char, charCode, baseName = "", lastAlphaCharIndex = -1;
 
-			        // instrBagName is an unusual string... (unicode?)
-			        // console.log("instrBagName=", instrBagName);
-			        for(i = instrBagName.length - 1; i >= 0; --i)
-			        {
-			            charCode = instrBagName.charCodeAt(i);
-			            // console.log("i=", i, " charCode=", charCode);
-			            // ignore trailing 0 charCodes
-			            if(charCode !== 0)
-			            {
-			                if(lastNumCharIndex === -1)
-			                {
-			                    lastNumCharIndex = i;
-			                }
-			                if(!(charCode >= 48 && charCode <= 57)) // chars '0' to '9'
-			                {
-			                    lastAlphaCharIndex = i;
-			                    break;
-			                }
-			            }
-			        }
+					// instrBagName is an unusual string... (unicode?)
+					// console.log("instrBagName=", instrBagName);
+					for(i = instrBagName.length - 1; i >= 0; --i)
+					{
+						charCode = instrBagName.charCodeAt(i);
+						// console.log("i=", i, " charCode=", charCode);
+						// ignore trailing 0 charCodes
+						if(charCode !== 0 && !(charCode >= 48 && charCode <= 57)) // chars '0' to '9'
+						{
+							lastAlphaCharIndex = i;
+							break;
+						}
+					}
 
-			        if(lastAlphaCharIndex < lastNumCharIndex)
-			        {
-			            for(i = lastAlphaCharIndex + 1; i <= lastNumCharIndex; ++i)
-			            {
-			                char = (instrBagName.charCodeAt(i) - 48).toString();
-			                // console.log("char=", char);
-			                rval = rval.concat(char);
-			                // console.log("rval=", rval);
-			            }
-			        }
-			        return rval;
-			    }
+					for(i = 0; i <= lastAlphaCharIndex; ++i)
+					{
+						char = (instrBagName[i]).toString();
+						baseName = baseName.concat(char);
+					}
+
+					return baseName;
+				}
 
 			    // See comment at top of the getInstrumentBags function.
 			    parsersInstrumentBags = getInstrumentBags(parser);
 			    // See comment at top of the getInstruments function
 
+				let currentBaseName = "";
 				for(i = 0; i < parsersInstrumentBags.length; ++i)
 				{
 					instrBag = parsersInstrumentBags[i];
@@ -330,10 +316,21 @@ WebMIDI.soundFont = (function()
 						break;
 					}
 
-					instrBagIndexString = getBagIndexString(instrBagName);
-					// instrBagIndexString contains only the visible, trailing numeric characters, if any.
-					if(instrBagIndexString.length === 0 || parseInt(instrBagIndexString, 10) === 0)
+					// *********
+					// ji 07.06.2019:
+					// Now using getBagBaseName() instead of getBagIndexString() as in the original gree code which read
+					//     instrBagIndexString = getBagIndexString(instrBagName);
+					//     if(instrBagIndexString.length === 0 || parseInt(instrBagIndexString, 10) === 0)
+					//     {...}
+					// (instrBagIndexString contained only the visible, trailing numeric characters, if any.)
+					// It turned out that some first bags in an instrument have an instrBagIndexString that is neither empty
+					// nor "0", so its better to distinguish new instruments by their baseName.
+					// ********
+					baseName = getBagBaseName(instrBagName);
+
+					if(baseName.localeCompare(currentBaseName) !== 0)
 					{
+						currentBaseName = baseName;
 						instrIndex++;
 						instruments[instrIndex] = [];
 					}
@@ -604,17 +601,18 @@ WebMIDI.soundFont = (function()
 		return banks;
 	},
 
-	// The SoundFont is constructed asychronously (using XmlHttpRequest).
-	// When ready, the callback function is invoked.
+	// The SoundFont has been completely loaded and constructed only when the externally defined
+	// onLoaded() callback is called. The caller (a promise) must therefore wait for that to happen.
 	// Note that XMLHttpRequest does not work with local files (localhost:).
-	// To make it work, run the app from the web (http:).
-	SoundFont = function(soundFontUrl, soundFontName, presetIndices, callback)
+	// To make it work, run the app from the web (https:).
+    SoundFont = function(soundFontUrl, soundFontName, presetIndices, onLoaded)
 	{
-		var xhr = new XMLHttpRequest();
+		let that = this,
+			xhr = new XMLHttpRequest();
 
 		if(!(this instanceof SoundFont))
 		{
-			return new SoundFont(soundFontUrl, soundFontName, presetIndices, callback);
+			return new SoundFont(soundFontUrl, soundFontName, presetIndices, onLoaded);
 		}
 
 		function getPresetInfo(presetIndices)
@@ -633,24 +631,31 @@ WebMIDI.soundFont = (function()
 		{
 			var arrayBuffer, uint8Array;
 
+			let name = soundFontName,
+				presetInfo = getPresetInfo(presetIndices);
+
+			Object.defineProperty(that, "name", { value: name, writable: false });
+			Object.defineProperty(that, "presets", { value: presetInfo, writable: false });
+
 			if(xhr.status === 200)
 			{
 				arrayBuffer = xhr.response;
 				if(arrayBuffer)
 				{
 					uint8Array = new Uint8Array(arrayBuffer);
-					banks = getBanks(uint8Array, presetInfo.length);
-					callback();
+					let banks = getBanks(uint8Array, presetInfo.length);
+					Object.defineProperty(that, "banks", { value: banks, writable: false });
+					onLoaded();
 				}
 			}
 			else
 			{
 				alert("Error in XMLHttpRequest: status =" + xhr.status);
-			}
-		}
 
-		name = soundFontName;
-		presetInfo = getPresetInfo(presetIndices);
+				Object.defineProperty(that, "banks", { value: null, writable: false }); // signals error to caller
+				onLoaded(); // call anyway!
+			}			
+		}
 
 		xhr.open('GET', soundFontUrl);
 		xhr.addEventListener('load', onLoad, false);
@@ -664,12 +669,8 @@ WebMIDI.soundFont = (function()
 	};
 	// end var
 
-	// Call this function immediately after the SoundFont has been constructed.
 	SoundFont.prototype.init = function()
 	{
-		Object.defineProperty(this, "name", { value: name, writable: false });
-		Object.defineProperty(this, "presets", { value: presetInfo, writable: false });
-		Object.defineProperty(this, "banks", { value: banks, writable: false });
 	};
 
 	return API;
