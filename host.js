@@ -767,22 +767,6 @@ WebMIDI.host = (function(document)
 			sendShortControl(WebMIDI.constants.CONTROL.ALL_CONTROLLERS_OFF);
 		},
 
-		logDisabledSf2SelectOptions = function()
-		{
-			let sf2Select = getElem("sf2Select"),
-				loadLog = getElem("loadLog");
-
-			loadLog.innerHTML = "";
-			for(let i = 0; i < sf2Select.options.length; ++i)
-			{
-				if(sf2Select.options[i].disabled === true)
-				{
-					loadLog.innerHTML = "(SoundFont options are disabled until they have loaded.)";
-					break;
-				}
-			}
-		},
-
 		// exported
 		onSf2SelectChanged = function()
 		{
@@ -796,8 +780,6 @@ WebMIDI.host = (function(document)
 			setOptions(presetSelect, sf2Select[sf2Select.selectedIndex].presetOptions);
 			presetSelect.selectedIndex = 0;
 			onChangePreset();
-
-			logDisabledSf2SelectOptions();
 
 			setCommandsAndControlsDivs();
 
@@ -813,8 +795,6 @@ WebMIDI.host = (function(document)
 
 			setOptions(sf2Select, sf2OriginSelect[sf2OriginSelect.selectedIndex].sf2SelectOptions);
 
-			logDisabledSf2SelectOptions();
-
 			setCommandsAndControlsDivs();
 
 			sf2Select.selectedIndex = 0;
@@ -822,7 +802,10 @@ WebMIDI.host = (function(document)
 			let synth = synthSelect[synthSelect.selectedIndex].synth,
 				soundFont = sf2Select[sf2Select.selectedIndex].soundFont;
 
-			synth.setSoundFont(soundFont);
+			if(soundFont !== undefined)
+			{
+				synth.setSoundFont(soundFont);
+			}
 		},
 
 		// exported. Also used by init()
@@ -1198,6 +1181,22 @@ WebMIDI.host = (function(document)
 
 			function onSoundFontLoaded(sf2Option, soundFont)
 			{
+				function logDisabledSf2SelectOptions()
+				{
+					let sf2Select = getElem("sf2Select"),
+						loadLog = getElem("loadLog");
+
+					loadLog.innerHTML = "";
+					for(let i = 0; i < sf2Select.options.length; ++i)
+					{
+						if(sf2Select.options[i].disabled === true)
+						{
+							loadLog.innerHTML = "(SoundFont options are disabled until they have loaded.)";
+							break;
+						}
+					}
+				}
+
 				if(soundFont.banks !== null)
 				{
 					sf2Option.soundFont = soundFont;
@@ -1215,6 +1214,8 @@ WebMIDI.host = (function(document)
 				{
 					console.log("Error loading soundFont: " + soundFont.name);
 				}
+
+				logDisabledSf2SelectOptions();
 			}
 
 			function loadSoundFonts()
@@ -1222,8 +1223,7 @@ WebMIDI.host = (function(document)
 				var typeIndex,
 					originSelect = getElem("sf2OriginSelect");
 
-
-				function getSfPromise(sf2Option)
+				function setSfPromise(sf2Option)
 				{
 					function getPresetIndices(presetOptions)
 					{
@@ -1240,10 +1240,10 @@ WebMIDI.host = (function(document)
 						soundFontName = sf2Option.text,
 						presetIndices = getPresetIndices(sf2Option.presetOptions);
 
-					// Return a promise that resolves to the loaded soundFont.
+					// Create a promise that resolves to the loaded soundFont.
 					// Note that XMLHttpRequest does not work with local files (localhost:).
 					// To make it work, run the app from the web (http:).
-					function soundFontPromise()
+					function createNewSoundFontPromise()
 					{
 						let promise = new Promise(function(resolve, reject)
 						{
@@ -1270,16 +1270,11 @@ WebMIDI.host = (function(document)
 							result => onSoundFontLoaded(sf2Option, result),
 							error => alert(error) // shows "Error: SoundFont failed to load in promise."
 						);
-
-						return promise;
 					}
 
-					return soundFontPromise();
+					createNewSoundFontPromise();
 				}
 
-				// The following loop causes a race condition when loading two types
-				// (the number of expected presetIndices gets confused).
-				// To solve this, try using a Promise to load one type and then the other.
 				for(typeIndex = 0; typeIndex < originSelect.options.length; typeIndex++)
 				{
 					let sf2Options = originSelect.options[typeIndex].sf2SelectOptions,
@@ -1287,7 +1282,7 @@ WebMIDI.host = (function(document)
 
 					for(let fontIndex = 0; fontIndex < nSoundFonts; fontIndex++)
 					{
-						let sfPromise = getSfPromise(sf2Options[fontIndex]);
+						setSfPromise(sf2Options[fontIndex]);
 					}
 				}
 			}
