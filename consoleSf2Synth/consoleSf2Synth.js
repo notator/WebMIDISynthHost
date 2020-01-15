@@ -72,6 +72,7 @@ WebMIDI.consoleSf2Synth = (function()
 		Object.defineProperty(this, "controls", { value: controls, writable: false }); // The controls supported by this synth (see above).		
 		Object.defineProperty(this, "isMultiChannel", { value: true, writable: false }); // If isMultiChannel is false, the synth ignores the channel nibble in MIDI messages
 		Object.defineProperty(this, "isPolyphonic", { value: true, writable: false }); // If isPolyphonic is false, the synth can only play one note at a time
+		Object.defineProperty(this, "supportsGeneralMIDI", { value: true, writable: false }); // see comment in residentSf2Synth.js.
 	},
 
 	API =
