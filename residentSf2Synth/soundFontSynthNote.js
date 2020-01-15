@@ -19,11 +19,17 @@ WebMIDI.soundFontSynthNote = (function()
     "use strict";
 
 	var
+	// ji 15.01.2020:
+	// The keyLayers argument is an array of length 2 containing left and right (i.e. stereo) "keyObjects".
+	// Each "keyObject" has the lowest level attributes necessary for playing a sample using ctx audioContext.
+	// The current code is however a *mono* implementation. It only uses keyLayers[0], and ignores its pan value.
+	// The value of midi.pan is used instead.
+	// TODO: Implement the playing of both keyLayers to produce an improved (stereo) sound.
 	SoundFontSynthNote = function(ctx, gainMaster, keyLayers, midi)
 	{
 		this.ctx = ctx;
 		this.gainMaster = gainMaster;
-		this.keyLayers = keyLayers;
+		this.keyLayers = keyLayers; 
 
 		this.channel = midi.channel;
 		this.key = midi.key;
@@ -33,7 +39,7 @@ WebMIDI.soundFontSynthNote = (function()
 		this.pitchBend = midi.pitchBend;
 		this.pitchBendSensitivity = midi.pitchBendSensitivity;
 
-		this.buffer = keyLayers[0].sample; // TODO: Implement the playing of stereo samples, using stereo Web Audio buffers.
+		this.buffer = keyLayers[0].sample;
  
 		this.startTime = null;
 

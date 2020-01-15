@@ -115,7 +115,7 @@ WebMIDI.residentSf2Synth = (function(window)
 			// WebMIDIAPI §4.6 -- MIDIPort interface
 			// See https://github.com/notator/WebMIDISynthHost/issues/23
 			// and https://github.com/notator/WebMIDISynthHost/issues/24
-			Object.defineProperty(this, "id", { value: "Sf2Synth01", writable: false });
+			Object.defineProperty(this, "id", { value: "ResidentSf2Synth", writable: false });
 			Object.defineProperty(this, "manufacturer", { value: "gree & ji", writable: false });
 			Object.defineProperty(this, "name", { value: "ResidentSf2Synth", writable: false });
 			Object.defineProperty(this, "type", { value: "output", writable: false });
@@ -149,6 +149,7 @@ WebMIDI.residentSf2Synth = (function(window)
 			// 5. the synth MAY define the function:
 			//        void setSoundFont(soundFont)
 			//    It is possible for a synth to support GM without using soundfonts.
+			// 6. a GM preset <select> control will be created in WebMidiSynthHost application.
 			Object.defineProperty(this, "supportsGeneralMIDI", { value: true, writable: false });
 		},
 
@@ -366,18 +367,13 @@ WebMIDI.residentSf2Synth = (function(window)
 		this.dataEntryCoarse(channel, controlDefaultValue(CTL.DATA_ENTRY_COARSE)); // 2 -- was 2
 	};
 
-	// The setSoundFont function should only be defined for synths that use soundFonts.
-	// The argument is a SoundFont object having the appropriate attributes.
-	// (The SoundFont constructor is in WebMIDI/soundFont.js)
 	ResidentSf2Synth.prototype.setSoundFont = function(soundFont)
 	{
-		var i;
-
 		bankSet = soundFont.banks;
 
-		this.bankIndex = 0;
+		bankIndex = 0;
 
-		for(i = 0; i < 16; ++i)
+		for(let i = 0; i < 16; ++i)
 		{
 			if(i !== 9)
 			{

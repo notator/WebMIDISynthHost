@@ -45,7 +45,7 @@ WebMIDI.consoleSf2Synth = (function()
 		CTL.DATA_ENTRY_COARSE, // default coarse pitchWheelDeviation is 2 semitones
 
         CTL.ALL_CONTROLLERS_OFF,
-		CTL.ALL_NOTES_OFF,
+		CTL.ALL_NOTES_OFF
 	],
 
 	ConsoleSf2Synth = function()
@@ -56,9 +56,9 @@ WebMIDI.consoleSf2Synth = (function()
 		}
 
 		/** WebMIDIAPI §10 -- MIDIPort interface **/
-		Object.defineProperty(this, "id", { value: "consoleSf2Synth1", writable: false });
+		Object.defineProperty(this, "id", { value: "ConsoleSf2Synth", writable: false });
 		Object.defineProperty(this, "manufacturer", { value: "james ingram", writable: false });
-		Object.defineProperty(this, "name", { value: "consoleSf2Synth (ji)", writable: false });
+		Object.defineProperty(this, "name", { value: "ConsoleSf2Synth (ji)", writable: false });
 		Object.defineProperty(this, "type", { value: "output", writable: false });
 		Object.defineProperty(this, "version", { value: "1", writable: false });
 		Object.defineProperty(this, "ondisconnect", { value: null, writable: false }); // Do we need this at all? Is it correct to set it to null?
@@ -243,9 +243,6 @@ WebMIDI.consoleSf2Synth = (function()
 		}
 	};
 
-	// The setSoundFont function should only be defined for synths that use soundFonts.
-	// The argument is a SoundFont object having the appropriate attributes.
-	// (The SoundFont constructor is in WebMIDI/WebMIDISoundFont.js)
 	ConsoleSf2Synth.prototype.setSoundFont = function(soundFont)
 	{
 		console.log("consoleSf2Synth soundFont set.");
