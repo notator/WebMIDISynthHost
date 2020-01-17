@@ -29,7 +29,7 @@ WebMIDI.cwMIDISynth = (function()
 	CWCC = WebMIDI.cwConstants.CW_CCINDEX,
 	DEFAULTVALUE = WebMIDI.cwConstants.CW_DEFAULT,
 	NITEMS = WebMIDI.cwConstants.CW_NITEMS,
-	core = WebMIDI.cwMIDISynthCore,
+		core = new WebMIDI.cwMIDISynthCore.CWMIDISynthCore(),
 
 	commands =
 	[
