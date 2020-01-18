@@ -36,7 +36,7 @@ WebMIDI.cwMIDISynth = (function()
 		CMD.NOTE_OFF,
 		CMD.NOTE_ON,
 		CMD.CONTROL_CHANGE,
-		CMD.AFTERTOUCH,
+		//CMD.AFTERTOUCH,
 		//CMD.PATCH_CHANGE,
 		//CMD.CHANNEL_PRESSURE,
 		CMD.PITCHWHEEL
@@ -54,8 +54,7 @@ WebMIDI.cwMIDISynth = (function()
 		// If nItems is defined, then the control will have valid values in the range [0..nItems - 1].
 		// If neither defaultValue nor nItems is defined, the control has a 2-byte message (like CTL.ALL_NOTES_OFF).
         { name: "mod waveform", index: CWCC.MOD_WAVEFORM, defaultValue: DEFAULTVALUE.MOD_WAVEFORM, nItems: NITEMS.MOD_WAVEFORM }, // 4 WAVEFORM.SINE
-        { name: "mod freq", index: CWCC.MOD_FREQ1, defaultValue: DEFAULTVALUE.MOD_FREQ },
-        { name: "mod freq", index: CWCC.MOD_FREQ2, defaultValue: DEFAULTVALUE.MOD_FREQ },
+        { name: "mod freq", index: CWCC.MOD_FREQ, defaultValue: DEFAULTVALUE.MOD_FREQ },
         { name: "mod osc1 tremolo", index: CWCC.MOD_OSC1_TREMOLO, defaultValue: DEFAULTVALUE.MOD_OSC1_TREMOLO },
         { name: "mod osc2 tremolo", index: CWCC.MOD_OSC2_TREMOLO, defaultValue: DEFAULTVALUE.MOD_OSC2_TREMOLO },
 
@@ -70,8 +69,7 @@ WebMIDI.cwMIDISynth = (function()
         { name: "osc2 mix", index: CWCC.OSC2_MIX, defaultValue: DEFAULTVALUE.OSC2_MIX },
 
         { name: "filter cutoff", index: CWCC.FILTER_CUTOFF, defaultValue: DEFAULTVALUE.FILTER_CUTOFF },
-        { name: "filter q", index: CWCC.FILTER_Q1, defaultValue: DEFAULTVALUE.FILTER_Q },
-        { name: "filter q", index: CWCC.FILTER_Q2, defaultValue: DEFAULTVALUE.FILTER_Q },
+        { name: "filter q", index: CWCC.FILTER_Q, defaultValue: DEFAULTVALUE.FILTER_Q },
         { name: "filter mod", index: CWCC.FILTER_MOD, defaultValue: DEFAULTVALUE.FILTER_MOD },
         { name: "filter env", index: CWCC.FILTER_ENV, defaultValue: DEFAULTVALUE.FILTER_ENV },
 
@@ -85,17 +83,11 @@ WebMIDI.cwMIDISynth = (function()
         { name: "volumeEnvelope sustain", index: CWCC.VOLUMEENV_SUSTAIN, defaultValue: DEFAULTVALUE.VOLUMEENV_SUSTAIN },
         { name: "volumeEnvelope release", index: CWCC.VOLUMEENV_RELEASE, defaultValue: DEFAULTVALUE.VOLUMEENV_RELEASE },
 
-        { name: "x1 button", index: CWCC.X1BUTTON1, defaultValue: DEFAULTVALUE.X1BUTTON, nItems: NITEMS.X1BUTTON }, // 2
-        { name: "x1 button", index: CWCC.X1BUTTON2, defaultValue: DEFAULTVALUE.X1BUTTON, nItems: NITEMS.X1BUTTON }, // 2
-        { name: "x2 button", index: CWCC.X2BUTTON1, defaultValue: DEFAULTVALUE.X2BUTTON, nItems: NITEMS.X2BUTTON }, // 2
-        { name: "x2 button", index: CWCC.X2BUTTON2, defaultValue: DEFAULTVALUE.X2BUTTON, nItems: NITEMS.X2BUTTON }, // 2
+        { name: "multiply mod freq by 2 button", index: CWCC.MULTIPLY_MOD_FREQ_BY_2_BUTTON, defaultValue: DEFAULTVALUE.MULTIPLY_MOD_FREQ_BY_2_BUTTON, nItems: NITEMS.MULTIPLY_MOD_FREQ_BY_2_BUTTON }, // 2
+		{ name: "multiply mod freq by 4 button", index: CWCC.MULTIPLY_MOD_FREQ_BY_4_BUTTON, defaultValue: DEFAULTVALUE.MULTIPLY_MOD_FREQ_BY_4_BUTTON, nItems: NITEMS.MULTIPLY_MOD_FREQ_BY_4_BUTTON }, // 2
 
-		{ name: "master drive", index: CWCC.MASTER_DRIVE1, defaultValue: DEFAULTVALUE.MASTER_DRIVE },
-		{ name: "master drive", index: CWCC.MASTER_DRIVE2, defaultValue: DEFAULTVALUE.MASTER_DRIVE },
-		{ name: "master drive", index: CWCC.MASTER_DRIVE3, defaultValue: DEFAULTVALUE.MASTER_DRIVE },
-        { name: "master reverb", index: CWCC.MASTER_REVERB1, defaultValue: DEFAULTVALUE.MASTER_REVERB },
-        { name: "master reverb", index: CWCC.MASTER_REVERB2, defaultValue: DEFAULTVALUE.MASTER_REVERB },
-        { name: "master reverb", index: CWCC.MASTER_REVERB3, defaultValue: DEFAULTVALUE.MASTER_REVERB },
+		{ name: "master drive", index: CWCC.MASTER_DRIVE, defaultValue: DEFAULTVALUE.MASTER_DRIVE },
+        { name: "master reverb", index: CWCC.MASTER_REVERB, defaultValue: DEFAULTVALUE.MASTER_REVERB },
 	    { name: "master volume", index: CWCC.MASTER_VOLUME, defaultValue: DEFAULTVALUE.MASTER_VOLUME },
 
 		// Standard (2-byte) controller.
@@ -199,11 +191,6 @@ WebMIDI.cwMIDISynth = (function()
 			that.core.noteOn(data1, data2);
 			console.log("cwMIDISynth NoteOn: channel:" + channel + " note:" + data1 + " velocity:" + data2 + " (channel is ignored)");
 		}
-		function handleAftertouch(channel, data1, data2)
-		{
-			that.core.polyPressure(data1, data2);
-			console.log("cwMIDISynth PolyPressure: channel:" + channel + " note:" + data1 + " velocity:" + data2 + " (channel is ignored)");
-		}
 		function handleControl(channel, data1, data2)
 		{
 			var
@@ -225,11 +212,11 @@ WebMIDI.cwMIDISynth = (function()
 				{
 					switch(controls[i].index)
 					{
-						case CWCC.MASTER_DRIVE1:
-							controller(CWCC.MASTER_DRIVE1, DEFAULTVALUE.MASTER_DRIVE);
+						case CWCC.MASTER_DRIVE:
+							controller(CWCC.MASTER_DRIVE, DEFAULTVALUE.MASTER_DRIVE);
 							break;
-						case CWCC.MASTER_REVERB1:
-							controller(CWCC.MASTER_REVERB1, DEFAULTVALUE.MASTER_REVERB);
+						case CWCC.MASTER_REVERB:
+							controller(CWCC.MASTER_REVERB, DEFAULTVALUE.MASTER_REVERB);
 							break;
 						case CWCC.MASTER_VOLUME:
 							controller(CWCC.MASTER_VOLUME, DEFAULTVALUE.MASTER_VOLUME);
@@ -238,8 +225,8 @@ WebMIDI.cwMIDISynth = (function()
 						case CWCC.MOD_WAVEFORM:
 							controller(CWCC.MOD_WAVEFORM, DEFAULTVALUE.MOD_WAVEFORM);
 							break;
-						case CWCC.MOD_FREQ1:
-							controller(CWCC.MOD_FREQ1, DEFAULTVALUE.MOD_FREQ);
+						case CWCC.MOD_FREQ:
+							controller(CWCC.MOD_FREQ, DEFAULTVALUE.MOD_FREQ);
 							break;
 						case CWCC.MOD_OSC1_TREMOLO:
 							controller(CWCC.MOD_OSC1_TREMOLO, DEFAULTVALUE.MOD_OSC1_TREMOLO);
@@ -277,8 +264,8 @@ WebMIDI.cwMIDISynth = (function()
 						case CWCC.FILTER_CUTOFF:
 							controller(CWCC.FILTER_CUTOFF, DEFAULTVALUE.FILTER_CUTOFF);
 							break;
-						case CWCC.FILTER_Q1:
-							controller(CWCC.FILTER_Q1, DEFAULTVALUE.FILTER_Q);
+						case CWCC.FILTER_Q:
+							controller(CWCC.FILTER_Q, DEFAULTVALUE.FILTER_Q);
 							break;
 						case CWCC.FILTER_MOD:
 							controller(CWCC.FILTER_MOD, DEFAULTVALUE.FILTER_MOD);
@@ -313,11 +300,11 @@ WebMIDI.cwMIDISynth = (function()
 							controller(CWCC.VOLUMEENV_RELEASE, DEFAULTVALUE.VOLUMEENV_RELEASE);
 							break;
 
-						case CWCC.X1BUTTON1:
-							controller(CWCC.X1BUTTON1, DEFAULTVALUE.X1BUTTON);
+						case CWCC.MULTIPLY_MOD_FREQ_BY_2_BUTTON:
+							controller(CWCC.MULTIPLY_MOD_FREQ_BY_2_BUTTON, DEFAULTVALUE.MULTIPLY_MOD_FREQ_BY_2_BUTTON);
 							break;
-						case CWCC.X2BUTTON1:
-							controller(CWCC.X2BUTTON1, DEFAULTVALUE.X2BUTTON);
+						case CWCC.MULTIPLY_MOD_FREQ_BY_4_BUTTON:
+							controller(CWCC.MULTIPLY_MOD_FREQ_BY_4_BUTTON, DEFAULTVALUE.MULTIPLY_MOD_FREQ_BY_4_BUTTON);
 							break;
 
 						default:
@@ -360,16 +347,12 @@ WebMIDI.cwMIDISynth = (function()
 					break;
 
 				// master
-				case CWCC.MASTER_DRIVE1:
-				case CWCC.MASTER_DRIVE2:
-				case CWCC.MASTER_DRIVE3:
+				case CWCC.MASTER_DRIVE:
 					checkControlExport(data1);
 					controller(data1, data2);
 					console.log("cwMIDISynth setMasterDrive(" + data2 + ")");
 					break;
-				case CWCC.MASTER_REVERB1:
-				case CWCC.MASTER_REVERB2:
-				case CWCC.MASTER_REVERB3:
+				case CWCC.MASTER_REVERB:
 					checkControlExport(data1);
 					controller(data1, data2);
 					console.log("cwMIDISynth setMasterReverb(" + data2 + ")");
@@ -387,8 +370,7 @@ WebMIDI.cwMIDISynth = (function()
 					controller(data1, index);
 					console.log("cwMIDISynth setModShape(" + index + ")");
 					break;
-				case CWCC.MOD_FREQ1:
-				case CWCC.MOD_FREQ2:
+				case CWCC.MOD_FREQ:
 					checkControlExport(data1);
 					controller(data1, data2);
 					console.log("cwMIDISynth setModFreq(" + data2 + ")");
@@ -415,7 +397,7 @@ WebMIDI.cwMIDISynth = (function()
 					checkControlExport(data1);
 					index = getIndex(data2, NITEMS.OSC1_OCTAVE);
 					controller(data1, index);
-					console.log("cwMIDISynth setOsc1Interval(" + index + ")");
+					console.log("cwMIDISynth setOsc1Octave(" + index + ")");
 					break;
 				case CWCC.OSC1_DETUNE:
 					checkControlExport(data1);
@@ -439,7 +421,7 @@ WebMIDI.cwMIDISynth = (function()
 					checkControlExport(data1);
 					index = getIndex(data2, NITEMS.OSC2_OCTAVE);
 					controller(data1, index);
-					console.log("cwMIDISynth setOsc2Interval(" + index + ")");
+					console.log("cwMIDISynth setOsc2Octave(" + index + ")");
 					break;
 				case CWCC.OSC2_DETUNE:
 					checkControlExport(data1);
@@ -458,8 +440,7 @@ WebMIDI.cwMIDISynth = (function()
 					controller(data1, data2);
 					console.log("cwMIDISynth setFilterCutoff(" + data2 + ")");
 					break;
-				case CWCC.FILTER_Q1:
-				case CWCC.FILTER_Q2:
+				case CWCC.FILTER_Q:
 					checkControlExport(data1);
 					controller(data1, data2);
 					console.log("cwMIDISynth setFilterQ(" + data2 + ")");
@@ -520,19 +501,17 @@ WebMIDI.cwMIDISynth = (function()
 					break;
 
 					// buttons
-				case CWCC.X1BUTTON1:
-				case CWCC.X1BUTTON2:
+				case CWCC.MULTIPLY_MOD_FREQ_BY_2_BUTTON:
 					checkControlExport(data1);
-					index = getIndex(data2, NITEMS.X1BUTTON);
+					index = getIndex(data2, NITEMS.MULTIPLY_MOD_FREQ_BY_2_BUTTON);
 					controller(data1, index);
-					console.log("cwMIDISynth setX1Button(" + index + ")");
+					console.log("cwMIDISynth: multiply mod freq by 2");
 					break;
-				case CWCC.X2BUTTON1:
-				case CWCC.X2BUTTON2:
+				case CWCC.MULTIPLY_MOD_FREQ_BY_4_BUTTON:
 					checkControlExport(data1);
-					index = getIndex(data2, NITEMS.X2BUTTON);
+					index = getIndex(data2, NITEMS.MULTIPLY_MOD_FREQ_BY_4_BUTTON);
 					controller(data1, index);
-					console.log("cwMIDISynth setX2Button(" + index + ")");
+					console.log("cwMIDISynth: multiply mod freq by 4");
 					break;
 
 				default:
@@ -564,8 +543,7 @@ WebMIDI.cwMIDISynth = (function()
 				}
 				break;
 			case CMD.AFTERTOUCH:
-				checkCommandExport(CMD.CONTROL_CHANGE);
-				handleAftertouch(channel, data1, data2); //  data1 is key, data2 is pressure
+				console.warn("CMD.AFTERTOUCH is not implemented.");
 				break;
 			case CMD.CONTROL_CHANGE:
 				checkCommandExport(CMD.CONTROL_CHANGE);
@@ -577,10 +555,7 @@ WebMIDI.cwMIDISynth = (function()
 				//handlePatchChange(channel, data1);
 				break;
 			case CMD.CHANNEL_PRESSURE:
-				console.warn( "CMD.CHANNEL_PRESSURE is not implemented.");
-				//checkCommandExport(CMD.CHANNEL_PRESSURE);
-				// CHANNEL_PRESSURE.data[1] is the amount of pressure 0..127.
-				//handleChannelPressure(channel, data1);
+				console.warn("CMD.CHANNEL_PRESSURE is not implemented.");
 				break;
 			case CMD.PITCHWHEEL:
 				checkCommandExport(CMD.PITCHWHEEL);

@@ -53,22 +53,15 @@ WebMIDI.cwConstants = (function()
 	// CW_CCINDEX
 	// These values are unique MIDI controller indices in the range 0..127.
 	// Controls should be used with their original meaning where possible.
-	// The same control can be mapped to more than one index (e.g. "MASTER_DRIVE1",
-	// "MASTER_DRIVE2","MASTER_DRIVE3").
 
     Object.defineProperty(CW_CCINDEX, "RESET", { value: ALL_CONTROLLERS_OFF, writable: false });
 
-    Object.defineProperty(CW_CCINDEX, "MASTER_DRIVE1", { value: 5, writable: false });
-    Object.defineProperty(CW_CCINDEX, "MASTER_DRIVE2", { value: 15, writable: false });
-    Object.defineProperty(CW_CCINDEX, "MASTER_DRIVE3", { value: 73, writable: false });
-    Object.defineProperty(CW_CCINDEX, "MASTER_REVERB1", { value: 6, writable: false });
-    Object.defineProperty(CW_CCINDEX, "MASTER_REVERB2", { value: 16, writable: false });
-    Object.defineProperty(CW_CCINDEX, "MASTER_REVERB3", { value: 72, writable: false });
+    Object.defineProperty(CW_CCINDEX, "MASTER_DRIVE", { value: 5, writable: false });
+    Object.defineProperty(CW_CCINDEX, "MASTER_REVERB", { value: 6, writable: false });
     Object.defineProperty(CW_CCINDEX, "MASTER_VOLUME", { value: 91, writable: false });
 
     Object.defineProperty(CW_CCINDEX, "MOD_WAVEFORM", { value: 9, writable: false });
-    Object.defineProperty(CW_CCINDEX, "MOD_FREQ1", { value: 4, writable: false });
-    Object.defineProperty(CW_CCINDEX, "MOD_FREQ2", { value: 17, writable: false });
+    Object.defineProperty(CW_CCINDEX, "MOD_FREQ", { value: 4, writable: false });
     Object.defineProperty(CW_CCINDEX, "MOD_OSC1_TREMOLO", { value: 74, writable: false });
     Object.defineProperty(CW_CCINDEX, "MOD_OSC2_TREMOLO", { value: 71, writable: false }); 
 
@@ -83,8 +76,7 @@ WebMIDI.cwConstants = (function()
     Object.defineProperty(CW_CCINDEX, "OSC2_MIX", { value: 27, writable: false });
 
     Object.defineProperty(CW_CCINDEX, "FILTER_CUTOFF", { value: 2, writable: false });
-    Object.defineProperty(CW_CCINDEX, "FILTER_Q1", { value: 7, writable: false });
-    Object.defineProperty(CW_CCINDEX, "FILTER_Q2", { value: 10, writable: false });
+    Object.defineProperty(CW_CCINDEX, "FILTER_Q", { value: 7, writable: false });
     Object.defineProperty(CW_CCINDEX, "FILTER_MOD", { value: 1, writable: false }); 
     Object.defineProperty(CW_CCINDEX, "FILTER_ENV", { value: 3, writable: false }); 
 
@@ -98,10 +90,8 @@ WebMIDI.cwConstants = (function()
     Object.defineProperty(CW_CCINDEX, "VOLUMEENV_SUSTAIN", { value: 48, writable: false });
     Object.defineProperty(CW_CCINDEX, "VOLUMEENV_RELEASE", { value: 49, writable: false });
 
-    Object.defineProperty(CW_CCINDEX, "X1BUTTON1", { value: 33, writable: false });
-    Object.defineProperty(CW_CCINDEX, "X1BUTTON2", { value: 51, writable: false });
-    Object.defineProperty(CW_CCINDEX, "X2BUTTON1", { value: 34, writable: false });
-    Object.defineProperty(CW_CCINDEX, "X2BUTTON2", { value: 52, writable: false });
+    Object.defineProperty(CW_CCINDEX, "MULTIPLY_MOD_FREQ_BY_2_BUTTON", { value: 80, writable: false });
+    Object.defineProperty(CW_CCINDEX, "MULTIPLY_MOD_FREQ_BY_4_BUTTON", { value: 81, writable: false });
 
 	/****************************************************************************************************************/
 	// CW_DEFAULT
@@ -140,8 +130,8 @@ WebMIDI.cwConstants = (function()
     Object.defineProperty(CW_DEFAULT, "VOLUMEENV_SUSTAIN", { value: 86, writable: false });	// currentEnvS = 68; [0..100]
     Object.defineProperty(CW_DEFAULT, "VOLUMEENV_RELEASE", { value: 6, writable: false });		// currentEnvR = 5;	 [0..100]		
 
-    Object.defineProperty(CW_DEFAULT, "X1BUTTON", { value: 0, writable: false });
-    Object.defineProperty(CW_DEFAULT, "X2BUTTON", { value: 0, writable: false });
+    Object.defineProperty(CW_DEFAULT, "MULTIPLY_MOD_FREQ_BY_2_BUTTON", { value: 0, writable: false });
+    Object.defineProperty(CW_DEFAULT, "MULTIPLY_MOD_FREQ_BY_4_BUTTON", { value: 0, writable: false });
 
 	/****************************************************************************************************************/
 	// CW_NITEMS
@@ -157,8 +147,8 @@ WebMIDI.cwConstants = (function()
     Object.defineProperty(CW_NITEMS, "OSC1_OCTAVE", { value: 3, writable: false });
     Object.defineProperty(CW_NITEMS, "OSC2_WAVEFORM", { value: 4, writable: false });
     Object.defineProperty(CW_NITEMS, "OSC2_OCTAVE", { value: 3, writable: false });
-    Object.defineProperty(CW_NITEMS, "X1BUTTON", { value: 2, writable: false });
-    Object.defineProperty(CW_NITEMS, "X2BUTTON", { value: 2, writable: false });
+    Object.defineProperty(CW_NITEMS, "MULTIPLY_MOD_FREQ_BY_2_BUTTON", { value: 2, writable: false });
+    Object.defineProperty(CW_NITEMS, "MULTIPLY_MOD_FREQ_BY_4_BUTTON", { value: 2, writable: false });
 
     return API;
 

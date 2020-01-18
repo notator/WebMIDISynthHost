@@ -70,12 +70,9 @@ WebMIDI.cwMIDISynthCore = (function()
 		revBypassGain = null,
 		compressor = null,
 
-		currentOctave = 3, // ji: JSLint says this isn't being used. Delete?
 		modOscFreqMultiplier = 1,
 		moDouble = false,
 		moQuadruple = false,
-
-		aftertouchKey = 0, // ji: JSLint says this isn't being used. Delete?
 
 		frequencyFromNoteNumber = function(note)
 		{
@@ -100,13 +97,12 @@ WebMIDI.cwMIDISynthCore = (function()
 		onUpdateModFrequency = function(value)
 		{
 			var i, oscFreq;
-			currentModFrequency = value;
-			oscFreq = currentModFrequency * modOscFreqMultiplier;
+			currentModFrequency = currentModFrequency * modOscFreqMultiplier;
 			for(i = 0; i < 255; i++)
 			{
 				if(voices[i] !== undefined)
 				{
-					voices[i].updateModFrequency(oscFreq);
+					voices[i].updateModFrequency(currentModFrequency);
 				}
 			}
 		},
@@ -154,7 +150,7 @@ WebMIDI.cwMIDISynthCore = (function()
 		onUpdateFilterQ = function(value)
 		{
 			var i;
-			currentFilterQ = value;
+			currentFilterQ = value; // value is in range [1..20]
 			for(i = 0; i < 255; i++)
 			{
 				if(voices[i] !== undefined)
@@ -530,17 +526,6 @@ WebMIDI.cwMIDISynthCore = (function()
 			onUpdateModFrequency(currentModFrequency);
 		},
 
-		// This is called "aftertouch" in the GUI.
-		currentPolyPressure = 0.0,
-		polyPressure = function(noteNumber, value)
-		{
-			currentPolyPressure = (value * 20);
-			if(voices[noteNumber] !== undefined)
-			{
-				voices[noteNumber].setFilterQ(currentPolyPressure);
-			}
-		},
-
 		// 'value' is in range [0..127].
 		controller = function(controllerIndex, value)
 		{
@@ -550,14 +535,10 @@ WebMIDI.cwMIDISynthCore = (function()
 			value /= 127; // value now in range [0..1]
 			switch(controllerIndex)
 			{
-				case CWCC.MASTER_DRIVE1:
-				case CWCC.MASTER_DRIVE2:
-				case CWCC.MASTER_DRIVE3:
+				case CWCC.MASTER_DRIVE:
 					onUpdateDrive(100 * value);
 					break;
-				case CWCC.MASTER_REVERB1:
-				case CWCC.MASTER_REVERB2:
-				case CWCC.MASTER_REVERB3:
+				case CWCC.MASTER_REVERB:
 					onUpdateReverb(100 * value);
 					break;
 				case CWCC.MASTER_VOLUME:
@@ -567,8 +548,7 @@ WebMIDI.cwMIDISynthCore = (function()
 				case CWCC.MOD_WAVEFORM:
 					onUpdateModWaveform(index);
 					break;
-				case CWCC.MOD_FREQ1:
-				case CWCC.MOD_FREQ2:
+				case CWCC.MOD_FREQ:
 					onUpdateModFrequency(10 * value);
 					break;
 				case CWCC.MOD_OSC1_TREMOLO:
@@ -607,8 +587,7 @@ WebMIDI.cwMIDISynthCore = (function()
 				case CWCC.FILTER_CUTOFF:
 					onUpdateFilterCutoff(100 * value);
 					break;
-				case CWCC.FILTER_Q1:
-				case CWCC.FILTER_Q2:
+				case CWCC.FILTER_Q:
 					onUpdateFilterQ(20 * value);
 					break;
 				case CWCC.FILTER_MOD:
@@ -644,13 +623,11 @@ WebMIDI.cwMIDISynthCore = (function()
 					onUpdateEnvR(100 * value);
 					break;
 
-				case CWCC.X1BUTTON1:
-				case CWCC.X1BUTTON2:
+				case CWCC.MULTIPLY_MOD_FREQ_BY_2_BUTTON:
 					moDouble = (value > 0);
 					changeModMultiplier();
 					break;
-				case CWCC.X2BUTTON1:
-				case CWCC.X2BUTTON2:
+				case CWCC.MULTIPLY_MOD_FREQ_BY_4_BUTTON:
 					moQuadruple = (value > 0);
 					changeModMultiplier();
 					break;
@@ -751,7 +728,6 @@ WebMIDI.cwMIDISynthCore = (function()
 				noteOn: noteOn,
 				noteOff: noteOff,
 				controller: controller,
-				polyPressure: polyPressure,
 				pitchWheel: pitchWheel
 			};
 		},
