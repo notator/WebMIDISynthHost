@@ -71,53 +71,53 @@ WebMIDI.constants = (function()
 	// http://midi.org/techspecs/gm1sound.php
 	GM_PERCUSSION_NAMES =
 	[
-		"Acoustic Bass Drum",// noteIndex 34
-		"Bass Drum 1",   // 35
-		"Side Stick",    // 36
-		"Acoustic Snare",// 37
-		"Hand Clap",     // 38
-		"Electric Snare",// 39
-		"Low Floor Tom", // 40
-		"Closed Hi Hat", // 41
-		"High Floor Tom",// 42
-		"Pedal Hi-Hat",  // 43
-		"Low Tom",       // 44
-		"Open Hi-Hat",   // 45
-		"Low-Mid Tom",   // 46
-		"Hi-Mid Tom",    // 47
-		"Crash Cymbal 1",// 48
-		"High Tom",      // 49
-		"Ride Cymbal 1", // 50
-		"Chinese Cymbal",// 51
-		"Ride Bell",     // 52
-		"Tambourine",    // 53
-		"Splash Cymbal", // 54
-		"Cowbell",       // 55
-		"Crash Cymbal 2",// 56
-		"Vibraslap",     // 57
-		"Ride Cymbal 2", // 58
-		"Hi Bongo",      // 59
-		"Low Bongo",     // 60
-		"Mute Hi Conga", // 61
-		"Open Hi Conga", // 62
-		"Low Conga",     // 63
-		"High Timbale",  // 64
-		"Low Timbale",   // 65
-		"High Agogo",    // 66
-		"Low Agogo",     // 67
-		"Cabasa",        // 68
-		"Maracas",       // 69
-		"Short Whistle", // 70
-		"Long Whistle",  // 71
-		"Short Guiro",   // 72
-		"Long Guiro",    // 73
-		"Claves",        // 74
-		"Hi Wood Block", // 75
-		"Low Wood Block",// 76
-		"Mute Cuica",    // 77
-		"Open Cuica",    // 78
-		"Mute Triangle", // 79
-		"Open Triangle"  // 80	 
+		"Acoustic Bass Drum",// noteIndex 35
+		"Bass Drum 1",   // 36
+		"Side Stick",    // 37
+		"Acoustic Snare",// 38
+		"Hand Clap",     // 39
+		"Electric Snare",// 40
+		"Low Floor Tom", // 41
+		"Closed Hi Hat", // 42
+		"High Floor Tom",// 43
+		"Pedal Hi-Hat",  // 44
+		"Low Tom",       // 45
+		"Open Hi-Hat",   // 46
+		"Low-Mid Tom",   // 47
+		"Hi-Mid Tom",    // 48
+		"Crash Cymbal 1",// 49
+		"High Tom",      // 50
+		"Ride Cymbal 1", // 51
+		"Chinese Cymbal",// 52
+		"Ride Bell",     // 53
+		"Tambourine",    // 54
+		"Splash Cymbal", // 55
+		"Cowbell",       // 56
+		"Crash Cymbal 2",// 57
+		"Vibraslap",     // 58
+		"Ride Cymbal 2", // 59
+		"Hi Bongo",      // 60
+		"Low Bongo",     // 61
+		"Mute Hi Conga", // 62
+		"Open Hi Conga", // 63
+		"Low Conga",     // 64
+		"High Timbale",  // 65
+		"Low Timbale",   // 66
+		"High Agogo",    // 67
+		"Low Agogo",     // 68
+		"Cabasa",        // 69
+		"Maracas",       // 70
+		"Short Whistle", // 71
+		"Long Whistle",  // 72
+		"Short Guiro",   // 73
+		"Long Guiro",    // 74
+		"Claves",        // 75
+		"Hi Wood Block", // 76
+		"Low Wood Block",// 77
+		"Mute Cuica",    // 78
+		"Open Cuica",    // 79
+		"Mute Triangle", // 80
+		"Open Triangle"  // 81	 
 	],
 
 	commandName = function(command)
@@ -234,7 +234,7 @@ WebMIDI.constants = (function()
 	{
 		var
 		percussionName,
-		indexOfFirstPercussionName = 34,
+		indexOfFirstPercussionName = 35,
 		index = noteIndex - indexOfFirstPercussionName;
 
 		if(index >= 0 && index <= GM_PERCUSSION_NAMES.length)
