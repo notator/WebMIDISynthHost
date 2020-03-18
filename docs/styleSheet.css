@@ -1,0 +1,267 @@
+﻿
+/* links ********************************************/
+a:link
+{
+    color: #1010C6;
+}
+a:hover
+{
+    color: #0088FF;
+}
+a:visited
+{
+    color: #00AA00;
+}
+
+/* predefined classes (alphabetically) *************/
+
+body
+{
+    color: #444444; /* dark grey text */
+    background-color: #FFFFFF;
+    font-family: Verdana, Arial, Geneva, Sans-Serif;
+    font-size: 12px;
+    line-height: 20px;
+    margin: 30px;
+}
+
+.archive
+{
+    background-image: url("https://james-ingram-act-two.de/moritz/images/archiveBackground.png");
+}
+
+
+.body_oldPage /* body: used for pages which were in website 2005 */
+{
+    color: #202020; /* dark grey text */
+    background-color: #F8F8F8;
+}
+
+.note /* div: a note in a blue frame */
+{
+    font-size: 8.25pt;
+    line-height: 150%;
+    padding: 10px 20px 10px 20px; 
+    border: 1px solid #1010C6
+}
+
+.redNote /* div: a note in a red frame */ {
+	font-size: 8.25pt;
+	line-height: 150%;
+	padding: 10px 20px 10px 20px;
+	border: 1px solid #FF0000;
+	margin: 20px 20px 20px 20px;
+}
+
+.hr_sectionDivider /* hr: should be used with the attribute noshade="noshade" */
+{
+    border-style: none;
+    height: 4px;
+    background-color: #1010C6;
+}
+.hrHeight1 /* hr: should be used with the attribute noshade="noshade" */ {
+	border-style: none;
+	height: 1px;
+	background-color: #1010C6;
+}
+
+.hrHeight2 /* hr: should be used with the attribute noshade="noshade" */ {
+	border-style: none;
+	height: 2px;
+	background-color: #1010C6;
+}
+
+.hrHeight3 /* hr: should be used with the attribute noshade="noshade" */ {
+	border-style: none;
+	height: 3px;
+	background-color: #1010C6;
+}
+
+.olSmall /* ol */
+{
+    margin-top: 0;
+    margin-bottom:0;
+    font-size: 10px;
+    line-height: 15px;
+}
+
+.olStandard /* ol */ {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+.header1 /* p: used instead of h1 (which does what it likes with heights)*/
+{
+    font-family: Lucida Sans Unicode, Verdana, Arial, Geneva, Sans-Serif;
+    font-size: 18px;
+    font-weight: normal;
+    margin-top:14px;
+    margin-bottom:14px
+}
+
+.header2 /* p: used instead of h2 (which does what it likes with heights)*/
+{
+    font-family: Lucida Sans Unicode, Verdana, Arial, Geneva, Sans-Serif;
+    font-size: 16px;
+    font-weight: normal;
+    margin-top:14px;
+    margin-bottom:14px
+}
+
+.header3 /* p: used instead of h3 (which does what it likes with heights)*/ {
+	font-family: Lucida Sans Unicode, Verdana, Arial, Geneva, Sans-Serif;
+	font-size: 14px;
+	font-weight: normal;
+	margin-top: 14px;
+	margin-bottom: 14px
+}
+
+.boldHeader1 /* p: used for the usual titles of subsections in an article. See e.g. stockhausenSoftware.htm */ {
+	font-family: Verdana, Arial, Geneva, Sans-Serif;
+	font-size: 13px;
+	font-weight: bold;
+	margin-top: 16px;
+	margin-bottom: 10px
+}
+.boldHeader2 /* p: used for the usual subtitles of subsections in an article. See e.g. stockhausenSoftware.htm */ {
+	font-family: Verdana, Arial, Geneva, Sans-Serif;
+	font-size: 12px;
+	font-weight: bold;
+	margin-top: 16px;
+	margin-bottom: 10px
+}
+
+.boldHeader3 /* p: used for the usual subtitles of subsections in an article. See e.g. stockhausenSoftware.htm */ {
+	font-family: Verdana, Arial, Geneva, Sans-Serif;
+	font-size: 11px;
+	font-weight: bold;
+	margin-top: 16px;
+	margin-bottom: 10px
+}
+
+.pStandard /* p: a paragraph for running text containing a sequence of paragraphs -- use inside body class (12px text) */ {
+	margin-top: 0;
+	margin-bottom: 10px
+}
+
+.spanUnderline /* span */
+{
+    text-decoration: underline; 
+}
+
+.menuItem /* span */ 
+{
+	background-color: #F4F4F4;
+	padding: 1px 5px 1px 4px;
+	border: solid;
+	border-width: 1px;
+	border-color: #444444;
+	font-size: 11px;
+	font-family: Arial, Helvetica, sans-serif;
+} 
+
+
+.ulSmall /* ul */
+{
+    margin-top: 0;
+    margin-bottom:0;
+    font-size: 10px;
+    line-height: 15px;
+}
+
+.ulStandard /* ul */ 
+{
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+/* ji sub-classes (alphabetically) *****************/
+
+.captionLucida /* captionLucida for music examples, diagrams, photos etc. */
+{
+    font-family: Lucida Sans Unicode, Verdana, Arial, Geneva, Sans-Serif;
+    font-size: 9pt;
+    line-height: 14pt;
+}
+
+.captionStandard /* used in stockhausenSoftware for FreeHand Xtras Examples*/
+{
+    font-size: 8.25pt;
+    line-height: 12pt;
+    padding: 0;
+    margin: 0;
+}
+
+.clytemnestrasText /* used for all Clytemnestra's text */
+{
+    font-family: Verdana;
+    font-size: 8pt;
+    font-style: italic;
+    color: #000000;
+}
+
+.indentA
+{
+    padding: 0 0 0 15pt;
+    line-height: 16pt;
+}
+
+.indent1
+{
+    padding: 0 0 0 15pt;
+    font-size: 8.25pt;
+    line-height: 150%;
+    margin: 0;
+}
+.indent2
+{
+    padding: 0 0 0 30pt;
+    font-size: 7.5pt;
+    line-height: 150%;
+    margin: 0;
+}
+.indent3
+{
+    padding: 0 0 0 45pt;
+    font-size: 7.5pt;
+    line-height: 150%;
+    margin: 0;
+}
+
+.indent1Size
+{
+    font-size: 8.25pt;
+    line-height: 150%;
+}
+
+.indent2Size
+{
+    font-size: 7.5pt;
+    line-height: 150%;
+}
+
+.indent3Size
+{
+    font-size: 7.5pt;
+    line-height: 150%;
+}
+
+.motto /* at the very top of a file: quotations etc */
+{
+    font-size: 7.5pt;
+    font-family: Arial, Geneva, Verdana, Sans-Serif;
+}
+
+audio{
+	width:300px;
+	height:20px;
+}
+
+.signature /* at the very bottom of each file. e.g. ji www August 2005; revised November 2008*/
+{
+    font-family: Arial, Geneva, Verdana, Sans-Serif;
+    font-size: 7.5pt;
+}
+
+
+
