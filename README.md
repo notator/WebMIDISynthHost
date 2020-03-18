@@ -2,7 +2,8 @@
 This is a Web MIDI application, written in HTML5 and Javascript. It can be tried out at <br />
 https://james-ingram-act-two.de/open-source/WebMIDISynthHost/host.html <br />
 <br />
-A "Web MIDI Synth" is a GUI-less software synth that uses the Web Audio API to implement the Web MIDI API's _Output Device_ interface. Web MIDI Synths can be included in websites as a substitute for end-user hardware MIDI Output devices. They don't depend on browser implementations of the Web MIDI API.<br />
+A "Web MIDI Synth" is a GUI-less software synth that uses the Web Audio API to implement the Web MIDI API's _Output Device_ interface.<br />
+Web MIDI Synths can be included in websites as a substitute for end-user hardware MIDI Output devices. This makes them especially useful on mobile devices. Since they themselves provide the MIDI Output Device interface, they don't depend on browser implementations of the Web MIDI API.<br />
 <br />
 This project was originally started so as to further the discussion about software synths at [Web MIDI API issue 124](https://github.com/WebAudio/web-midi-api/issues/124).<br />
 It is now being used as a framework within which to develop GUI-less Web MIDI Synthesizers.<br />
