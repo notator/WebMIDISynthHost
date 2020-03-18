@@ -1,0 +1,13 @@
+﻿
+LICENSE  
+
+All the files in this application are covered by an MIT licence.
+
+The files that have "FluidR3" or "GeneralUserGS" in their names are clones of the eponymous files in
+https://surikov.github.io/webaudiofontdata/sound/
+
+Licences for the original soundFonts are at:
+FluidR3: https://github.com/musescore/MuseScore/blob/master/share/sound/FluidR3Mono_License.md
+GeneralUserGS: http://www.schristiancollins.com/generaluser.php
+
+ji, 14th January 2020

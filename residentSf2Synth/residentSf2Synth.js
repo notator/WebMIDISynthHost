@@ -79,7 +79,7 @@ WebMIDI.residentSf2Synth = (function(window)
 				CMD.NOTE_ON,
 				// CMD.AFTERTOUCH is not defined,
 				CMD.CONTROL_CHANGE,
-				CMD.PATCH,
+				CMD.PRESET,
 				// CMD.CHANNEL_PRESSURE is not defined,
 				CMD.PITCHWHEEL
 			],
@@ -115,8 +115,8 @@ WebMIDI.residentSf2Synth = (function(window)
 			// WebMIDIAPI §4.6 -- MIDIPort interface
 			// See https://github.com/notator/WebMIDISynthHost/issues/23
 			// and https://github.com/notator/WebMIDISynthHost/issues/24
-			Object.defineProperty(this, "id", { value: "ResidentSf2Synth", writable: false });
-			Object.defineProperty(this, "manufacturer", { value: "gree & ji", writable: false });
+			Object.defineProperty(this, "id", { value: "ResidentSf2Synth_v1", writable: false });
+			Object.defineProperty(this, "manufacturer", { value: "gree & james ingram", writable: false });
 			Object.defineProperty(this, "name", { value: "ResidentSf2Synth", writable: false });
 			Object.defineProperty(this, "type", { value: "output", writable: false });
 			Object.defineProperty(this, "version", { value: "1", writable: false });
@@ -138,14 +138,14 @@ WebMIDI.residentSf2Synth = (function(window)
 			// If isPolyphonic is false or undefined, the synth can only play one note at a time
 			Object.defineProperty(this, "isPolyphonic", { value: true, writable: false });
 			// If supportsGeneralMIDI is defined, and is true, then
-			// 1. both COMMAND.PATCH and CONTROL.BANK MUST be defined.
-			// 2. the patches in bank 0 can be usefully named using GM patch names.
-			//    (GM patch names are returned by WebMIDI.constants.generalMIDIPatchName(patchIndex). )
+			// 1. both COMMAND.PRESET and CONTROL.BANK MUST be defined.
+			// 2. the presets in bank 0 can be usefully named using GM preset names.
+			//    (GM preset names are returned by WebMIDI.constants.generalMIDIPresetName(presetIndex). )
 			// 3. when the channel index is 9, notes can be usefully named using the GM percussion names.
 			//    (GM percussion names are returned by WebMIDI.constants.generalMIDIPercussionName(noteIndex). )
 			// 4. the synth MUST define the function:
-			//        boolean patchIsAvailable(patchIndex).
-			//    On their own, conditions 1-3 do not guarantee that a particular patch can be set.
+			//        boolean presetIsAvailable(presetIndex).
+			//    On their own, conditions 1-3 do not guarantee that a particular preset can be set.
 			// 5. the synth MAY define the function:
 			//        void setSoundFont(soundFont)
 			//    It is possible for a synth to support GM without using soundfonts.
@@ -211,10 +211,17 @@ WebMIDI.residentSf2Synth = (function(window)
 
 		function checkCommandExport(command)
 		{
-			var index = commands.indexOf(command);
-			if(index < 0)
+			if(command === undefined)
 			{
-				console.warn("Command " + command.toString(10) + " (0x" + command.toString(16) + ") is not supported.");
+				console.warn("Illegal command");
+			}
+			else
+			{
+				let cmd = commands.find(cmd => cmd === command);
+				if(cmd === undefined)
+				{
+					console.warn("Command " + command.toString(10) + " (0x" + command.toString(16) + ") is not supported.");
+				}
 			}
 		}
 		function handleNoteOff(channel, data1, data2)
@@ -233,10 +240,17 @@ WebMIDI.residentSf2Synth = (function(window)
 		{
 			function checkControlExport(control)
 			{
-				var index = controls.indexOf(control);
-				if(index < 0)
+				if(control === undefined)
 				{
-					console.warn("Controller " + control.toString(10) + " (0x" + control.toString(16) + ") is not supported.");
+					console.warn("Illegal control");
+				}
+				else
+				{
+					let ctl = controls.find(ctl => ctl === control);
+					if(ctl === undefined)
+					{
+						console.warn("Controller " + control.toString(10) + " (0x" + control.toString(16) + ") is not supported.");
+					}
 				}
 			}
 			function setBank(channel, value)
@@ -264,11 +278,11 @@ WebMIDI.residentSf2Synth = (function(window)
 				// console.log("residentSf2Synth AllControllersOff: channel:" + channel);
 				that.resetAllControl(channel);
 			}
-			function setAllSoundOff(channel)
+			function setAllSoundOff()
 			{
 				checkControlExport(CTL.ALL_SOUND_OFF);
 				// console.log("residentSf2Synth AllSoundOff: channel:" + channel);
-				that.allSoundOff(channel);
+				that.allSoundOff();
 			}
 
 			function setRegisteredParameterCoarse(channel, param)
@@ -306,7 +320,7 @@ WebMIDI.residentSf2Synth = (function(window)
 					setAllControllersOff(channel);
 					break;
 				case CTL.ALL_SOUND_OFF:
-					setAllSoundOff(channel);
+					setAllSoundOff();
 					break;
 				// CTL.REGISTERED_PARAMETER_FINE and CTL.DATA_ENTRY_FINE are not supported (i.e. are ignored by) this synth.
 				case CTL.REGISTERED_PARAMETER_COARSE:
@@ -319,10 +333,10 @@ WebMIDI.residentSf2Synth = (function(window)
 					console.warn(`Controller ${data1.toString(10)} (0x${data1.toString(16)}) is not supported.`);
 			}
 		}
-		function handlePatchChange(channel, data1)
+		function handlePresetChange(channel, data1)
 		{
-			checkCommandExport(CMD.PATCH);
-			// console.log("residentSf2Synth Patch: channel:" + channel, " value:" + data1);
+			checkCommandExport(CMD.PRESET);
+			// console.log("residentSf2Synth preset: channel:" + channel, " value:" + data1);
 			that.programChange(channel, data1);
 		}
 		function handlePitchWheel(channel, data1)
@@ -343,8 +357,8 @@ WebMIDI.residentSf2Synth = (function(window)
 			case CMD.CONTROL_CHANGE:
 				handleControl(channel, data1, data2);
 				break;
-			case CMD.PATCH:
-				handlePatchChange(channel, data1);
+			case CMD.PRESET:
+				handlePresetChange(channel, data1);
 				break;
 			case CMD.PITCHWHEEL:
 				handlePitchWheel(channel, data1, data2);
@@ -356,7 +370,7 @@ WebMIDI.residentSf2Synth = (function(window)
 
 	ResidentSf2Synth.prototype.setChannelControlDefaults = function(channel)
 	{
-		var commandDefaultValue = WebMIDI.constants.commandDefaultValue,
+		let commandDefaultValue = WebMIDI.constants.commandDefaultValue,
 			controlDefaultValue = WebMIDI.constants.controlDefaultValue;
 
 		this.pitchBend(channel, 0, commandDefaultValue(CMD.PITCHWHEEL)); // 0, 64 -- was 0x00, 0x40 (8192)
@@ -377,7 +391,7 @@ WebMIDI.residentSf2Synth = (function(window)
 		{
 			if(i !== 9)
 			{
-				this.programChange(i, soundFont.presets[0].presetIndex); // the first preset index in the bankSet
+				this.programChange(i, soundFont.presetInfos[0].presetIndex); // the first preset index in the bankSet
 			}
 			this.setChannelControlDefaults(i);
 		}
@@ -556,18 +570,28 @@ WebMIDI.residentSf2Synth = (function(window)
 		channelDataEntryCoarse[channel] = semitones;
 	};
 
-	ResidentSf2Synth.prototype.allSoundOff = function(channel)
+	ResidentSf2Synth.prototype.allSoundOff = function()
 	{
-		var currentNoteOn = currentNoteOns[channel];
-
-		while(currentNoteOn.length > 0)
+		for(let channel = 0; channel < currentNoteOns.length; channel++)
 		{
-			this.noteOff(channel, currentNoteOn[0].key, 0);
+			let currentNOns = currentNoteOns[channel];
+
+			while(currentNOns.length > 0)
+			{
+				this.noteOff(channel, currentNOns[0].key, 0);
+			}
 		}
 	};
 
 	ResidentSf2Synth.prototype.resetAllControl = function(channel)
 	{
+		var currentNOns = currentNoteOns[channel];
+
+		while(currentNOns.length > 0)
+		{
+			this.noteOff(channel, currentNOns[0].key, 0);
+		}
+
 		this.setChannelControlDefaults(channel);
 	};
 

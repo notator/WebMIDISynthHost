@@ -615,27 +615,40 @@ WebMIDI.soundFont = (function()
 			return new SoundFont(soundFontUrl, soundFontName, presetIndices, onLoaded);
 		}
 
-		function getPresetInfo(presetIndices)
+		function getPresetInfos(banks)
 		{
-			var i, name, presetIndex, soundFontPresets = [];
-			for(i = 0; i < presetIndices.length; ++i)
+			let presetInfos = [];
+
+			for(var i = 0; i < banks.length; i++)
 			{
-				presetIndex = presetIndices[i];
-				name = WebMIDI.constants.generalMIDIPatchName(presetIndex);
-				soundFontPresets.push({ name: name, presetIndex: presetIndex });
+				let bank = banks[i];
+				if(bank !== undefined)
+				{
+					let bankIndex = i;
+					for(var j = 0; j < bank.length; j++)
+					{
+						if(bank[j] !== undefined)
+						{
+							let presetIndex = j,
+								generalMIDIPresetName = WebMIDI.constants.generalMIDIPresetName(presetIndex);
+
+							presetInfos.push({ bankIndex: bankIndex, presetIndex: presetIndex, generalMIDIPresetName: generalMIDIPresetName });
+						}
+					}
+				}
 			}
-			return soundFontPresets;
+
+			return presetInfos;
 		}
 
 		function onLoad()
 		{
 			var arrayBuffer, uint8Array;
 
-			let name = soundFontName,
-				presetInfo = getPresetInfo(presetIndices);
+			let name = soundFontName;
+				
 
-			Object.defineProperty(that, "name", { value: name, writable: false });
-			Object.defineProperty(that, "presets", { value: presetInfo, writable: false });
+			Object.defineProperty(that, "name", { value: name, writable: false });			
 
 			if(xhr.status === 200)
 			{
@@ -643,8 +656,12 @@ WebMIDI.soundFont = (function()
 				if(arrayBuffer)
 				{
 					uint8Array = new Uint8Array(arrayBuffer);
-					let banks = getBanks(uint8Array, presetInfo.length);
+					let banks = getBanks(uint8Array, presetIndices.length),
+						presetInfos = getPresetInfos(banks);
+
 					Object.defineProperty(that, "banks", { value: banks, writable: false });
+					Object.defineProperty(that, "presetInfos", { value: presetInfos, writable: false });
+
 					onLoaded();
 				}
 			}

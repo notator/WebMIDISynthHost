@@ -29,7 +29,7 @@ WebMIDI.cwMIDISynth = (function()
 	CWCC = WebMIDI.cwConstants.CW_CCINDEX,
 	DEFAULTVALUE = WebMIDI.cwConstants.CW_DEFAULT,
 	NITEMS = WebMIDI.cwConstants.CW_NITEMS,
-		core = new WebMIDI.cwMIDISynthCore.CWMIDISynthCore(),
+	core = new WebMIDI.cwMIDISynthCore.CWMIDISynthCore(),
 
 	commands =
 	[
@@ -37,7 +37,7 @@ WebMIDI.cwMIDISynth = (function()
 		CMD.NOTE_ON,
 		CMD.CONTROL_CHANGE,
 		//CMD.AFTERTOUCH,
-		//CMD.PATCH_CHANGE,
+		//CMD.PRESET,
 		//CMD.CHANNEL_PRESSURE,
 		CMD.PITCHWHEEL
 	],
@@ -104,9 +104,9 @@ WebMIDI.cwMIDISynth = (function()
 		// WebMIDIAPI §4.6 -- MIDIPort interface
 		// See https://github.com/notator/WebMIDISynthHost/issues/23
 		// and https://github.com/notator/WebMIDISynthHost/issues/24
-		Object.defineProperty(this, "id", { value: "cwMIDISynth", writable: false });
+        Object.defineProperty(this, "id", { value: "CW_MIDISynth_v1", writable: false });
 		Object.defineProperty(this, "manufacturer", { value: "chris wilson", writable: false });
-		Object.defineProperty(this, "name", { value: "MIDI synth (Chris Wilson)", writable: false });
+		Object.defineProperty(this, "name", { value: "CW_MIDISynth", writable: false });
 		Object.defineProperty(this, "type", { value: "output", writable: false });
 		Object.defineProperty(this, "version", { value: "1", writable: false });
 		Object.defineProperty(this, "ondisconnect", { value: null, writable: false }); // Do we need this at all? Is it correct to set it to null?
@@ -150,33 +150,25 @@ WebMIDI.cwMIDISynth = (function()
 	CWMIDISynth.prototype.send = function(message, ignoredTimestamp)
 	{
 		var
-		command = message[0] & 0xF0,
+		commandIndex = message[0] & 0xF0,
 		channel = message[0] & 0xF,
 		data1 = message[1],
 		data2 = message[2],
 		that = this;
 
-		function checkCommandExport(command)
+		function checkCommandExport(commandIndex)
 		{
-			var index = commands.indexOf(command);
-			if(index < 0)
+			var command = commands.find(cmd => cmd === commandIndex);
+			if(command === undefined)
 			{
-				console.warn( "Command " + command.toString(10) + " (0x" + command.toString(16) + ") is not supported.");
+				console.warn( "Command " + commandIndex.toString(10) + " (0x" + commandIndex.toString(16) + ") is not supported.");
 			}
 		}
 		function checkControlExport(controlIndex)
 		{
-			var i, found = false;
+			var control = controls.find(ctl => ctl.index === controlIndex);
 
-			for(i = 0; i < controls.length; ++i)
-			{
-				if((typeof controls[i] === "number" && controls[i] === controlIndex) || controls[i].index === controlIndex)
-				{
-					found = true;
-					break;
-				}
-			}
-			if(found === false)
+			if(control === undefined)
 			{
 				console.warn( "Controller " + controlIndex.toString(10) + " (0x" + controlIndex.toString(16) + ") is not supported.");
 			}
@@ -196,115 +188,115 @@ WebMIDI.cwMIDISynth = (function()
 			var
 			index,
 			controller = that.core.controller, // function
-			CWCC = WebMIDI.cwConstants.CW_CCINDEX,
+			CWCCINDEX = WebMIDI.cwConstants.CW_CCINDEX,
 			NITEMS =  WebMIDI.cwConstants.CW_NITEMS;
 
 			function resetAllControllers()
 			{
 				var
 				i,
-				CWCC = WebMIDI.cwConstants.CW_CCINDEX,
+				CWCCINDEX = WebMIDI.cwConstants.CW_CCINDEX,
 				DEFAULTVALUE = WebMIDI.cwConstants.CW_DEFAULT,
 				controls = that.controls,
 				controller = that.core.controller; // function
 
 				for(i = 0; i < controls.length; ++i)
 				{
-					switch(controls[i].index)
+					switch(controls[i])
 					{
-						case CWCC.MASTER_DRIVE:
-							controller(CWCC.MASTER_DRIVE, DEFAULTVALUE.MASTER_DRIVE);
+						case CWCCINDEX.MASTER_DRIVE:
+							controller(CWCCINDEX.MASTER_DRIVE, DEFAULTVALUE.MASTER_DRIVE);
 							break;
-						case CWCC.MASTER_REVERB:
-							controller(CWCC.MASTER_REVERB, DEFAULTVALUE.MASTER_REVERB);
+						case CWCCINDEX.MASTER_REVERB:
+							controller(CWCCINDEX.MASTER_REVERB, DEFAULTVALUE.MASTER_REVERB);
 							break;
-						case CWCC.MASTER_VOLUME:
-							controller(CWCC.MASTER_VOLUME, DEFAULTVALUE.MASTER_VOLUME);
-							break;
-
-						case CWCC.MOD_WAVEFORM:
-							controller(CWCC.MOD_WAVEFORM, DEFAULTVALUE.MOD_WAVEFORM);
-							break;
-						case CWCC.MOD_FREQ:
-							controller(CWCC.MOD_FREQ, DEFAULTVALUE.MOD_FREQ);
-							break;
-						case CWCC.MOD_OSC1_TREMOLO:
-							controller(CWCC.MOD_OSC1_TREMOLO, DEFAULTVALUE.MOD_OSC1_TREMOLO);
-							break;
-						case CWCC.MOD_OSC2_TREMOLO:
-							controller(CWCC.MOD_OSC2_TREMOLO, DEFAULTVALUE.MOD_OSC2_TREMOLO);
+						case CWCCINDEX.MASTER_VOLUME:
+							controller(CWCCINDEX.MASTER_VOLUME, DEFAULTVALUE.MASTER_VOLUME);
 							break;
 
-						case CWCC.OSC1_WAVEFORM:
-							controller(CWCC.OSC1_WAVEFORM, DEFAULTVALUE.OSC1_WAVEFORM);
+						case CWCCINDEX.MOD_WAVEFORM:
+							controller(CWCCINDEX.MOD_WAVEFORM, DEFAULTVALUE.MOD_WAVEFORM);
 							break;
-						case CWCC.OSC1_OCTAVE:
-							controller(CWCC.OSC1_OCTAVE, DEFAULTVALUE.OSC1_OCTAVE);
+						case CWCCINDEX.MOD_FREQ:
+							controller(CWCCINDEX.MOD_FREQ, DEFAULTVALUE.MOD_FREQ);
 							break;
-						case CWCC.OSC1_DETUNE:
-							controller(CWCC.OSC1_DETUNE, DEFAULTVALUE.OSC1_DETUNE);
+						case CWCCINDEX.MOD_OSC1_TREMOLO:
+							controller(CWCCINDEX.MOD_OSC1_TREMOLO, DEFAULTVALUE.MOD_OSC1_TREMOLO);
 							break;
-						case CWCC.OSC1_MIX:
-							controller(CWCC.OSC1_MIX, DEFAULTVALUE.OSC1_MIX);
-							break;
-
-						case CWCC.OSC2_WAVEFORM:
-							controller(CWCC.OSC2_WAVEFORM, DEFAULTVALUE.OSC2_WAVEFORM);
-							break;
-						case CWCC.OSC2_OCTAVE:
-							controller(CWCC.OSC2_OCTAVE, DEFAULTVALUE.OSC2_OCTAVE);
-							break;
-						case CWCC.OSC2_DETUNE:
-							controller(CWCC.OSC2_DETUNE, DEFAULTVALUE.OSC2_DETUNE);
-							break;
-						case CWCC.OSC2_MIX:
-							controller(CWCC.OSC2_MIX, DEFAULTVALUE.OSC2_MIX);
+						case CWCCINDEX.MOD_OSC2_TREMOLO:
+							controller(CWCCINDEX.MOD_OSC2_TREMOLO, DEFAULTVALUE.MOD_OSC2_TREMOLO);
 							break;
 
-						case CWCC.FILTER_CUTOFF:
-							controller(CWCC.FILTER_CUTOFF, DEFAULTVALUE.FILTER_CUTOFF);
+						case CWCCINDEX.OSC1_WAVEFORM:
+							controller(CWCCINDEX.OSC1_WAVEFORM, DEFAULTVALUE.OSC1_WAVEFORM);
 							break;
-						case CWCC.FILTER_Q:
-							controller(CWCC.FILTER_Q, DEFAULTVALUE.FILTER_Q);
+						case CWCCINDEX.OSC1_OCTAVE:
+							controller(CWCCINDEX.OSC1_OCTAVE, DEFAULTVALUE.OSC1_OCTAVE);
 							break;
-						case CWCC.FILTER_MOD:
-							controller(CWCC.FILTER_MOD, DEFAULTVALUE.FILTER_MOD);
+						case CWCCINDEX.OSC1_DETUNE:
+							controller(CWCCINDEX.OSC1_DETUNE, DEFAULTVALUE.OSC1_DETUNE);
 							break;
-						case CWCC.FILTER_ENV:
-							controller(CWCC.FILTER_ENV, DEFAULTVALUE.FILTER_ENV);
-							break;
-
-						case CWCC.FILTERENV_ATTACK:
-							controller(CWCC.FILTERENV_ATTACK, DEFAULTVALUE.FILTERENV_ATTACK);
-							break;
-						case CWCC.FILTERENV_DECAY:
-							controller(CWCC.FILTERENV_DECAY, DEFAULTVALUE.FILTERENV_DECAY);
-							break;
-						case CWCC.FILTERENV_SUSTAIN:
-							controller(CWCC.FILTERENV_SUSTAIN, DEFAULTVALUE.FILTERENV_SUSTAIN);
-							break;
-						case CWCC.FILTERENV_RELEASE:
-							controller(CWCC.FILTERENV_RELEASE, DEFAULTVALUE.FILTERENV_RELEASE);
+						case CWCCINDEX.OSC1_MIX:
+							controller(CWCCINDEX.OSC1_MIX, DEFAULTVALUE.OSC1_MIX);
 							break;
 
-						case CWCC.VOLUMEENV_ATTACK:
-							controller(CWCC.VOLUMEENV_ATTACK, DEFAULTVALUE.VOLUMEENV_ATTACK);
+						case CWCCINDEX.OSC2_WAVEFORM:
+							controller(CWCCINDEX.OSC2_WAVEFORM, DEFAULTVALUE.OSC2_WAVEFORM);
 							break;
-						case CWCC.VOLUMEENV_DECAY:
-							controller(CWCC.VOLUMEENV_DECAY, DEFAULTVALUE.VOLUMEENV_DECAY);
+						case CWCCINDEX.OSC2_OCTAVE:
+							controller(CWCCINDEX.OSC2_OCTAVE, DEFAULTVALUE.OSC2_OCTAVE);
 							break;
-						case CWCC.VOLUMEENV_SUSTAIN:
-							controller(CWCC.VOLUMEENV_SUSTAIN, DEFAULTVALUE.VOLUMEENV_SUSTAIN);
+						case CWCCINDEX.OSC2_DETUNE:
+							controller(CWCCINDEX.OSC2_DETUNE, DEFAULTVALUE.OSC2_DETUNE);
 							break;
-						case CWCC.VOLUMEENV_RELEASE:
-							controller(CWCC.VOLUMEENV_RELEASE, DEFAULTVALUE.VOLUMEENV_RELEASE);
+						case CWCCINDEX.OSC2_MIX:
+							controller(CWCCINDEX.OSC2_MIX, DEFAULTVALUE.OSC2_MIX);
 							break;
 
-						case CWCC.MULTIPLY_MOD_FREQ_BY_2_BUTTON:
-							controller(CWCC.MULTIPLY_MOD_FREQ_BY_2_BUTTON, DEFAULTVALUE.MULTIPLY_MOD_FREQ_BY_2_BUTTON);
+						case CWCCINDEX.FILTER_CUTOFF:
+							controller(CWCCINDEX.FILTER_CUTOFF, DEFAULTVALUE.FILTER_CUTOFF);
 							break;
-						case CWCC.MULTIPLY_MOD_FREQ_BY_4_BUTTON:
-							controller(CWCC.MULTIPLY_MOD_FREQ_BY_4_BUTTON, DEFAULTVALUE.MULTIPLY_MOD_FREQ_BY_4_BUTTON);
+						case CWCCINDEX.FILTER_Q:
+							controller(CWCCINDEX.FILTER_Q, DEFAULTVALUE.FILTER_Q);
+							break;
+						case CWCCINDEX.FILTER_MOD:
+							controller(CWCCINDEX.FILTER_MOD, DEFAULTVALUE.FILTER_MOD);
+							break;
+						case CWCCINDEX.FILTER_ENV:
+							controller(CWCCINDEX.FILTER_ENV, DEFAULTVALUE.FILTER_ENV);
+							break;
+
+						case CWCCINDEX.FILTERENV_ATTACK:
+							controller(CWCCINDEX.FILTERENV_ATTACK, DEFAULTVALUE.FILTERENV_ATTACK);
+							break;
+						case CWCCINDEX.FILTERENV_DECAY:
+							controller(CWCCINDEX.FILTERENV_DECAY, DEFAULTVALUE.FILTERENV_DECAY);
+							break;
+						case CWCCINDEX.FILTERENV_SUSTAIN:
+							controller(CWCCINDEX.FILTERENV_SUSTAIN, DEFAULTVALUE.FILTERENV_SUSTAIN);
+							break;
+						case CWCCINDEX.FILTERENV_RELEASE:
+							controller(CWCCINDEX.FILTERENV_RELEASE, DEFAULTVALUE.FILTERENV_RELEASE);
+							break;
+
+						case CWCCINDEX.VOLUMEENV_ATTACK:
+							controller(CWCCINDEX.VOLUMEENV_ATTACK, DEFAULTVALUE.VOLUMEENV_ATTACK);
+							break;
+						case CWCCINDEX.VOLUMEENV_DECAY:
+							controller(CWCCINDEX.VOLUMEENV_DECAY, DEFAULTVALUE.VOLUMEENV_DECAY);
+							break;
+						case CWCCINDEX.VOLUMEENV_SUSTAIN:
+							controller(CWCCINDEX.VOLUMEENV_SUSTAIN, DEFAULTVALUE.VOLUMEENV_SUSTAIN);
+							break;
+						case CWCCINDEX.VOLUMEENV_RELEASE:
+							controller(CWCCINDEX.VOLUMEENV_RELEASE, DEFAULTVALUE.VOLUMEENV_RELEASE);
+							break;
+
+						case CWCCINDEX.MULTIPLY_MOD_FREQ_BY_2_BUTTON:
+							controller(CWCCINDEX.MULTIPLY_MOD_FREQ_BY_2_BUTTON, DEFAULTVALUE.MULTIPLY_MOD_FREQ_BY_2_BUTTON);
+							break;
+						case CWCCINDEX.MULTIPLY_MOD_FREQ_BY_4_BUTTON:
+							controller(CWCCINDEX.MULTIPLY_MOD_FREQ_BY_4_BUTTON, DEFAULTVALUE.MULTIPLY_MOD_FREQ_BY_4_BUTTON);
 							break;
 
 						default:
@@ -341,177 +333,177 @@ WebMIDI.cwMIDISynth = (function()
 			// of a control	that is not present in its controls array.
 			switch(data1)
 			{
-				case CWCC.RESET:
+				case CWCCINDEX.RESET:
 					checkControlExport(data1);
 					resetAllControllers();
 					break;
 
 				// master
-				case CWCC.MASTER_DRIVE:
+				case CWCCINDEX.MASTER_DRIVE:
 					checkControlExport(data1);
 					controller(data1, data2);
 					console.log("cwMIDISynth setMasterDrive(" + data2 + ")");
 					break;
-				case CWCC.MASTER_REVERB:
+				case CWCCINDEX.MASTER_REVERB:
 					checkControlExport(data1);
 					controller(data1, data2);
 					console.log("cwMIDISynth setMasterReverb(" + data2 + ")");
 					break;
-				case CWCC.MASTER_VOLUME:
+				case CWCCINDEX.MASTER_VOLUME:
 					checkControlExport(data1);
 					controller(data1, data2);
 					console.log("cwMIDISynth setMasterVolume(" + data2 + ")");
 					break;
 
 				// mod
-				case CWCC.MOD_WAVEFORM:
+				case CWCCINDEX.MOD_WAVEFORM:
 					checkControlExport(data1);
 					index = getIndex(data2, NITEMS.MOD_WAVEFORM);
 					controller(data1, index);
 					console.log("cwMIDISynth setModShape(" + index + ")");
 					break;
-				case CWCC.MOD_FREQ:
+				case CWCCINDEX.MOD_FREQ:
 					checkControlExport(data1);
 					controller(data1, data2);
 					console.log("cwMIDISynth setModFreq(" + data2 + ")");
 					break;
-				case CWCC.MOD_OSC1_TREMOLO:
+				case CWCCINDEX.MOD_OSC1_TREMOLO:
 					checkControlExport(data1);
 					controller(data1, data2);
 					console.log("cwMIDISynth setModOsc1Tremolo(" + data2 + ")");
 					break;
-				case CWCC.MOD_OSC2_TREMOLO:
+				case CWCCINDEX.MOD_OSC2_TREMOLO:
 					checkControlExport(data1);
 					controller(data1, data2);
 					console.log("cwMIDISynth setModOsc2Tremolo(" + data2 + ")");
 					break;
 
 					// osc1
-				case CWCC.OSC1_WAVEFORM:
+				case CWCCINDEX.OSC1_WAVEFORM:
 					checkControlExport(data1);
 					index = getIndex(data2, NITEMS.OSC1_WAVEFORM);
 					controller(data1, index);
 					console.log("cwMIDISynth setOsc1Waveform(" + index + ")");
 					break;
-				case CWCC.OSC1_OCTAVE:
+				case CWCCINDEX.OSC1_OCTAVE:
 					checkControlExport(data1);
 					index = getIndex(data2, NITEMS.OSC1_OCTAVE);
 					controller(data1, index);
 					console.log("cwMIDISynth setOsc1Octave(" + index + ")");
 					break;
-				case CWCC.OSC1_DETUNE:
+				case CWCCINDEX.OSC1_DETUNE:
 					checkControlExport(data1);
 					controller(data1, data2);
 					console.log("cwMIDISynth setOsc1Detune(" + data2 + ")");
 					break;
-				case CWCC.OSC1_MIX:
+				case CWCCINDEX.OSC1_MIX:
 					checkControlExport(data1);
 					controller(data1, data2);
 					console.log("cwMIDISynth setOsc1Mix(" + data2 + ")");
 					break;
 
 					// osc2
-				case CWCC.OSC2_WAVEFORM:
+				case CWCCINDEX.OSC2_WAVEFORM:
 					checkControlExport(data1);
 					index = getIndex(data2, NITEMS.OSC2_WAVEFORM);
 					controller(data1, index);
 					console.log("cwMIDISynth setOsc2Waveform(" + index + ")");
 					break;
-				case CWCC.OSC2_OCTAVE:
+				case CWCCINDEX.OSC2_OCTAVE:
 					checkControlExport(data1);
 					index = getIndex(data2, NITEMS.OSC2_OCTAVE);
 					controller(data1, index);
 					console.log("cwMIDISynth setOsc2Octave(" + index + ")");
 					break;
-				case CWCC.OSC2_DETUNE:
+				case CWCCINDEX.OSC2_DETUNE:
 					checkControlExport(data1);
 					controller(data1, data2);
 					console.log("cwMIDISynth setOsc2Detune(" + data2 + ")");
 					break;
-				case CWCC.OSC2_MIX:
+				case CWCCINDEX.OSC2_MIX:
 					checkControlExport(data1);
 					controller(data1, data2);
 					console.log("cwMIDISynth setOsc2Mix(" + data2 + ")");
 					break;
 
 					// filter
-				case CWCC.FILTER_CUTOFF:
+				case CWCCINDEX.FILTER_CUTOFF:
 					checkControlExport(data1);
 					controller(data1, data2);
 					console.log("cwMIDISynth setFilterCutoff(" + data2 + ")");
 					break;
-				case CWCC.FILTER_Q:
+				case CWCCINDEX.FILTER_Q:
 					checkControlExport(data1);
 					controller(data1, data2);
 					console.log("cwMIDISynth setFilterQ(" + data2 + ")");
 					break;
-				case CWCC.FILTER_MOD:
+				case CWCCINDEX.FILTER_MOD:
 					checkControlExport(data1);
 					controller(data1, data2);
 					console.log("cwMIDISynth setFilterMod(" + data2 + ")");
 					break;
-				case CWCC.FILTER_ENV:
+				case CWCCINDEX.FILTER_ENV:
 					checkControlExport(data1);
 					controller(data1, data2);
 					console.log("cwMIDISynth setFilterEnv(" + data2 + ")");
 					break;
 
 					// filter envelope
-				case CWCC.FILTERENV_ATTACK:
+				case CWCCINDEX.FILTERENV_ATTACK:
 					checkControlExport(data1);
 					controller(data1, data2);
 					console.log("cwMIDISynth setFilterEnvelopeAttack(" + data2 + ")");
 					break;
-				case CWCC.FILTERENV_DECAY:
+				case CWCCINDEX.FILTERENV_DECAY:
 					checkControlExport(data1);
 					controller(data1, data2);
 					console.log("cwMIDISynth setFilterEnvelopeDecay(" + data2 + ")");
 					break;
-				case CWCC.FILTERENV_SUSTAIN:
+				case CWCCINDEX.FILTERENV_SUSTAIN:
 					checkControlExport(data1);
 					controller(data1, data2);
 					console.log("cwMIDISynth setFilterEnvelopeSustain(" + data2 + ")");
 					break;
-				case CWCC.FILTERENV_RELEASE:
+				case CWCCINDEX.FILTERENV_RELEASE:
 					checkControlExport(data1);
 					controller(data1, data2);
 					console.log("cwMIDISynth setFilterEnvelopeRelease(" + data2 + ")");
 					break;
 
 					// volume envelope
-				case CWCC.VOLUMEENV_ATTACK:
+				case CWCCINDEX.VOLUMEENV_ATTACK:
 					checkControlExport(data1);
 					controller(data1, data2);
 					console.log("cwMIDISynth setVolumeEnvelopeAttack(" + data2 + ")");
 					break;
-				case CWCC.VOLUMEENV_DECAY:
+				case CWCCINDEX.VOLUMEENV_DECAY:
 					checkControlExport(data1);
 					controller(data1, data2);
 					console.log("cwMIDISynth setVolumeEnvelopeDecay(" + data2 + ")");
 					break;
-				case CWCC.VOLUMEENV_SUSTAIN:
+				case CWCCINDEX.VOLUMEENV_SUSTAIN:
 					checkControlExport(data1);
 					controller(data1, data2);
 					console.log("cwMIDISynth setVolumeEnvelopeSustain(" + data2 + ")");
 					break;
-				case CWCC.VOLUMEENV_RELEASE:
+				case CWCCINDEX.VOLUMEENV_RELEASE:
 					checkControlExport(data1);
 					controller(data1, data2);
 					console.log("cwMIDISynth setVolumeEnvelopeRelease(" + data2 + ")");
 					break;
 
 					// buttons
-				case CWCC.MULTIPLY_MOD_FREQ_BY_2_BUTTON:
+				case CWCCINDEX.MULTIPLY_MOD_FREQ_BY_2_BUTTON:
 					checkControlExport(data1);
 					index = getIndex(data2, NITEMS.MULTIPLY_MOD_FREQ_BY_2_BUTTON);
 					controller(data1, index);
-					console.log("cwMIDISynth: multiply mod freq by 2");
+					console.log("cwMIDISynth: multiply mod freq by 2 (" + index + ")");
 					break;
-				case CWCC.MULTIPLY_MOD_FREQ_BY_4_BUTTON:
+				case CWCCINDEX.MULTIPLY_MOD_FREQ_BY_4_BUTTON:
 					checkControlExport(data1);
 					index = getIndex(data2, NITEMS.MULTIPLY_MOD_FREQ_BY_4_BUTTON);
 					controller(data1, index);
-					console.log("cwMIDISynth: multiply mod freq by 4");
+                    console.log("cwMIDISynth: multiply mod freq by 4 (" + index + ")");
 					break;
 
 				default:
@@ -525,7 +517,7 @@ WebMIDI.cwMIDISynth = (function()
 			console.log("cwMIDISynth PitchWheel: data1:" + data1 + " (value:" + value + ")");
 		}
 
-		switch(command)
+		switch(commandIndex)
 		{
 			case CMD.NOTE_OFF:
 				checkCommandExport(CMD.NOTE_OFF);
@@ -542,27 +534,27 @@ WebMIDI.cwMIDISynth = (function()
 					handleNoteOn(channel, data1, data2);
 				}
 				break;
-			case CMD.AFTERTOUCH:
-				console.warn("CMD.AFTERTOUCH is not implemented.");
-				break;
+			//case CMD.AFTERTOUCH:
+			//	console.warn("CMD.AFTERTOUCH is not implemented.");
+			//	break;
 			case CMD.CONTROL_CHANGE:
 				checkCommandExport(CMD.CONTROL_CHANGE);
 				handleControl(channel, data1, data2);
 				break;
-			case CMD.PATCH_CHANGE:
-				console.warn( "CMD.PATCH_CHANGE is not implemented.");
-				//checkCommandExport(CMD.PATCH_CHANGE);
-				//handlePatchChange(channel, data1);
-				break;
-			case CMD.CHANNEL_PRESSURE:
-				console.warn("CMD.CHANNEL_PRESSURE is not implemented.");
-				break;
+			//case CMD.PRESET:
+			//	console.warn( "CMD.PRESET is not implemented.");
+			//	//checkCommandExport(CMD.PRESET);
+			//	//handlePreset(channel, data1);
+			//	break;
+			//case CMD.CHANNEL_PRESSURE:
+			//	console.warn("CMD.CHANNEL_PRESSURE is not implemented.");
+			//	break;
 			case CMD.PITCHWHEEL:
 				checkCommandExport(CMD.PITCHWHEEL);
 				handlePitchWheel(channel, data1);
 				break;
 			default:
-				console.warn( "Command " + command.toString(10) + " (0x" + command.toString(16) + ") is not defined.");
+				console.warn( "Command " + commandIndex.toString(10) + " (0x" + commandIndex.toString(16) + ") is not implemented.");
 			}
 	};
 

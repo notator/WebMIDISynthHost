@@ -31,7 +31,7 @@ WebMIDI.consoleSf2Synth = (function()
 		CMD.NOTE_OFF,
 		CMD.NOTE_ON, 
 		CMD.CONTROL_CHANGE,
-		CMD.PATCH,
+		CMD.PRESET,
 		CMD.CHANNEL_PRESSURE,
 		CMD.PITCHWHEEL
 	],
@@ -56,9 +56,9 @@ WebMIDI.consoleSf2Synth = (function()
 		}
 
 		/** WebMIDIAPI §10 -- MIDIPort interface **/
-		Object.defineProperty(this, "id", { value: "ConsoleSf2Synth", writable: false });
+		Object.defineProperty(this, "id", { value: "ConsoleSf2Synth_v1", writable: false });
 		Object.defineProperty(this, "manufacturer", { value: "james ingram", writable: false });
-		Object.defineProperty(this, "name", { value: "ConsoleSf2Synth (ji)", writable: false });
+		Object.defineProperty(this, "name", { value: "ConsoleSf2Synth", writable: false });
 		Object.defineProperty(this, "type", { value: "output", writable: false });
 		Object.defineProperty(this, "version", { value: "1", writable: false });
 		Object.defineProperty(this, "ondisconnect", { value: null, writable: false }); // Do we need this at all? Is it correct to set it to null?
@@ -106,10 +106,17 @@ WebMIDI.consoleSf2Synth = (function()
 
 		function checkCommandExport(command)
 		{
-			var index = commands.indexOf(command);
-			if(index < 0)
+			if(command === undefined)
 			{
-				console.warn("Command " + command.toString(10) + " (0x" + command.toString(16) + ") is not being exported.");
+				console.warn("Illegal command");
+			}
+			else
+			{
+				let cmd = commands.find(cmd => cmd === command);
+				if(cmd === undefined)
+				{
+					console.warn("Command " + command.toString(10) + " (0x" + command.toString(16) + ") is not supported.");
+				}
 			}
 		}
 		function handleNoteOff(channel, data1, data2)
@@ -125,10 +132,17 @@ WebMIDI.consoleSf2Synth = (function()
 		{
 			function checkControlExport(control)
 			{
-				var index = controls.indexOf(control);
-				if(index < 0)
+				if(control === undefined)
 				{
-					console.warn("Controller " + control.toString(10) + " (0x" + control.toString(16) + ") is not being exported.");
+					console.warn("Illegal control");
+				}
+				else
+				{
+					let ctl = controls.find(ctl => ctl === control);
+					if(ctl === undefined)
+					{
+						console.warn("Controller " + control.toString(10) + " (0x" + control.toString(16) + ") is not supported.");
+					}
 				}
 			}
 			function setBank(channel, value)
@@ -184,12 +198,12 @@ WebMIDI.consoleSf2Synth = (function()
 					checkControlExport(CTL.ALL_NOTES_OFF);
 					setAllNotesOff(channel);
 					break;
-			    case CTL.REGISTERED_PARAMETER_COARSE: // coarse parameter is coarse pitchWheelDeviation (=semitones)
-			        checkControlExport(CTL.REGISTERED_PARAMETER_COARSE);
+				case CTL.REGISTERED_PARAMETER_COARSE: // coarse parameter is coarse pitchWheelDeviation (=semitones)
+					checkControlExport(CTL.REGISTERED_PARAMETER_COARSE);
 			        setRegisteredParameterCoarse(channel, data2);
 			        break;
-			    case CTL.DATA_ENTRY_COARSE: // default coarse pitchWheelDeviation is 2 semitones
-			        checkControlExport(CTL.DATA_ENTRY_COARSE);
+				case CTL.DATA_ENTRY_COARSE: // default coarse pitchWheelDeviation is 2 semitones
+					checkControlExport(CTL.DATA_ENTRY_COARSE);
 			        setDataEntryCoarse(channel, data2);
 			        break;
 
@@ -197,9 +211,9 @@ WebMIDI.consoleSf2Synth = (function()
 					console.warn("Controller " + data1.toString(10) + " (0x" + data1.toString(16) + ") is not defined.");
 			}
 		}
-		function handlePatchChange(channel, data1)
+		function handlePresetChange(channel, data1)
 		{
-			console.log("consoleSf2Synth Patch: channel:" + channel + " value:" + data1);
+			console.log("consoleSf2Synth Preset: channel:" + channel + " value:" + data1);
 		}
 		// CHANNEL_PRESSURE.data[1] is the amount of pressure 0..127.
 		function handleChannelPressure(channel, data1)
@@ -225,9 +239,9 @@ WebMIDI.consoleSf2Synth = (function()
 				checkCommandExport(CMD.CONTROL_CHANGE);
 				handleControl(channel, data1, data2);
 				break;
-			case CMD.PATCH:
-				checkCommandExport(CMD.PATCH);
-				handlePatchChange(channel, data1);
+			case CMD.PRESET:
+				checkCommandExport(CMD.PRESET);
+				handlePresetChange(channel, data1);
 				break;
 			case CMD.CHANNEL_PRESSURE:
 				checkCommandExport(CMD.CHANNEL_PRESSURE);

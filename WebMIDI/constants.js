@@ -20,9 +20,9 @@ WebMIDI.constants = (function()
     var
     COMMAND = {},
     CONTROL = {},
-	// These GM_PATCH_NAMES are written here exactly as defined at MIDI.org: 
+	// These GM_PRESET_NAMES are written here exactly as defined at MIDI.org: 
 	// http://midi.org/techspecs/gm1sound.php
-	GM_PATCH_NAMES =
+	GM_PRESET_NAMES =
 	[
 		// Piano (1-8)
 		"Acoustic Grand Piano", "Bright Acoustic Piano", "Electric Grand Piano", "Honky-tonk Piano", "Electric Piano 1",
@@ -132,8 +132,8 @@ WebMIDI.constants = (function()
 				return ("aftertouch");
 			case COMMAND.CONTROL_CHANGE:
 				return ("controlChange");
-			case COMMAND.PATCH:
-				return ("patch");
+			case COMMAND.PRESET:
+				return ("preset");
 			case COMMAND.CHANNEL_PRESSURE:
 				return ("channelPressure");
 			case COMMAND.PITCHWHEEL:
@@ -143,13 +143,13 @@ WebMIDI.constants = (function()
 				break;
 		}
 	},
-	// Only AFTERTOUCH, PATCH, CHANNEL_PRESSURE and PITCHWHEEL have default values.
+	// Only AFTERTOUCH, PRESET, CHANNEL_PRESSURE and PITCHWHEEL have default values.
 	commandDefaultValue = function(command)
 	{
 		switch(command)
 		{
 			case COMMAND.AFTERTOUCH:
-			case COMMAND.PATCH:
+			case COMMAND.PRESET:
 			case COMMAND.CHANNEL_PRESSURE:
 				return (0);
 			case COMMAND.PITCHWHEEL:
@@ -172,6 +172,8 @@ WebMIDI.constants = (function()
 				return ("volume");
 			case CONTROL.PAN:
 				return ("pan");
+			case CONTROL.REVERBERATION:
+				return ("reverberation");
 			case CONTROL.ALL_SOUND_OFF:
 				return ("allSoundOff");
 			case CONTROL.ALL_CONTROLLERS_OFF:
@@ -197,11 +199,12 @@ WebMIDI.constants = (function()
 		{
 			case CONTROL.BANK:
 			case CONTROL.MODWHEEL:
+			case CONTROL.REVERBERATION:
 				return (0);
 			case CONTROL.VOLUME:
 				return (100);
 			case CONTROL.PAN:
-			    return (64);
+				return (64);
 
 		    case CONTROL.REGISTERED_PARAMETER_FINE:
 		        return (0); // fine parameter is fine pitchWheelDeviation (=cents)
@@ -216,18 +219,18 @@ WebMIDI.constants = (function()
 		}
 	},
 
-	generalMIDIPatchName = function(patchIndex)
+	generalMIDIPresetName = function(presetIndex)
 	{
-		var patchName;
-		if(patchIndex >= 0 && patchIndex <= GM_PATCH_NAMES.length)
+		var presetName;
+		if(presetIndex >= 0 && presetIndex <= GM_PRESET_NAMES.length)
 		{
-			patchName = GM_PATCH_NAMES[patchIndex];
+			presetName = GM_PRESET_NAMES[presetIndex];
 		}
 		else
 		{
 			console.warn("Bad argument");
 		}
-		return patchName;
+		return presetName;
 	},
 
 	generalMIDIPercussionName = function(noteIndex)
@@ -256,7 +259,7 @@ WebMIDI.constants = (function()
         commandDefaultValue: commandDefaultValue,
         controlName: controlName,
         controlDefaultValue: controlDefaultValue,
-        generalMIDIPatchName: generalMIDIPatchName,
+        generalMIDIPresetName: generalMIDIPresetName,
         generalMIDIPercussionName: generalMIDIPercussionName
     };
 
@@ -265,7 +268,7 @@ WebMIDI.constants = (function()
     Object.defineProperty(COMMAND, "NOTE_ON", { value: 0x90, writable: false });
     Object.defineProperty(COMMAND, "AFTERTOUCH", { value: 0xA0, writable: false });
     Object.defineProperty(COMMAND, "CONTROL_CHANGE", { value: 0xB0, writable: false });
-    Object.defineProperty(COMMAND, "PATCH", { value: 0xC0, writable: false });
+    Object.defineProperty(COMMAND, "PRESET", { value: 0xC0, writable: false });
     Object.defineProperty(COMMAND, "CHANNEL_PRESSURE", { value: 0xD0, writable: false });
     Object.defineProperty(COMMAND, "PITCHWHEEL", { value: 0xE0, writable: false });
 
@@ -278,14 +281,14 @@ WebMIDI.constants = (function()
     Object.defineProperty(CONTROL, "VOLUME", { value: 7, writable: false });
     Object.defineProperty(CONTROL, "PAN", { value: 10, writable: false });
     Object.defineProperty(CONTROL, "DATA_ENTRY_FINE", { value: 38, writable: false });
-    Object.defineProperty(CONTROL, "DATA_ENTRY_COARSE", { value: 6, writable: false });
+	Object.defineProperty(CONTROL, "DATA_ENTRY_COARSE", { value: 6, writable: false });
+	Object.defineProperty(CONTROL, "REVERBERATION", { value: 91, writable: false });
     Object.defineProperty(CONTROL, "REGISTERED_PARAMETER_FINE", { value: 100, writable: false });
     Object.defineProperty(CONTROL, "REGISTERED_PARAMETER_COARSE", { value: 101, writable: false });
     Object.defineProperty(CONTROL, "ALL_SOUND_OFF", { value: 120, writable: false });
     Object.defineProperty(CONTROL, "ALL_CONTROLLERS_OFF", { value: 121, writable: false });
     Object.defineProperty(CONTROL, "ALL_NOTES_OFF", { value: 123, writable: false });
-    return API;
-
+	return API;
 } ());
 
     

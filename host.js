@@ -18,7 +18,6 @@ WebMIDI.host = (function(document)
 	"use strict";
 
 	var
-		previousNormalChannel = 0, // used when setting/unsetting the percussion channel 9.
 		commandInputIDs = [], // used by AllControllersOff control
 		longInputControlIDs = [], // used by AllControllersOff control
 
@@ -44,60 +43,87 @@ WebMIDI.host = (function(document)
 			var
 				synthSelect = getElem("synthSelect"),
 				synth = synthSelect[synthSelect.selectedIndex].synth;
+
 			openInNewTab(synth.url);
 		},
 
 		soundFontWebsiteButtonClick = function()
 		{
-			var sf2OriginSelect = getElem("sf2OriginSelect");
+            let webAudioFontSelect = getElem("webAudioFontSelect"),
+                sf2OriginSelect = getElem("sf2OriginSelect"),
+                selectedOption = webAudioFontSelect[webAudioFontSelect.selectedIndex];
 
-			openInNewTab(sf2OriginSelect[sf2OriginSelect.selectedIndex].url);
+            if (sf2OriginSelect.style.display === "block")
+            {
+                selectedOption = sf2OriginSelect[sf2OriginSelect.selectedIndex];
+            }
+
+			openInNewTab(selectedOption.url);
 		},
 
-		// called by onSf2SelectChanged and by "send again" button.
-		onChangePreset = function()
+		// exported. called by onSynthSelectChanged() with active residentSf2Synth or consoleSf2Synth.
+		onSf2OriginSelectChanged = function()
 		{
-			var CMD = WebMIDI.constants.COMMAND, CTL = WebMIDI.constants.CONTROL,
+			let synthSelect = getElem("synthSelect"),
+				webAudioFontSelect = getElem("webAudioFontSelect"),
+				sf2Select = getElem("sf2Select");
+
+			setOptions(sf2Select, webAudioFontSelect[webAudioFontSelect.selectedIndex].presetOptionsArray);
+
+			setCommandsAndControlsDivs();
+
+			sf2Select.selectedIndex = 0;
+
+			let synth = synthSelect[synthSelect.selectedIndex].synth,
+				soundFont = sf2Select[sf2Select.selectedIndex].soundFont;
+
+			if(soundFont !== undefined)
+			{
+				synth.setSoundFont(soundFont);
+			}
+		},
+
+		onChannelSelectChanged = function()
+		{
+			let sendAgainButtons = document.getElementsByClassName("sendAgainButton");
+			for(var i = 0; i < sendAgainButtons.length; i++)
+			{
+				sendAgainButtons[i].click();
+			}
+		},
+
+		// called by onSoundFontSelectChanged with Sf2 fonts,and by "send again" button.
+		onPresetSelectChanged = function()
+		{
+			var CMD = WebMIDI.constants.COMMAND,
+				CTL = WebMIDI.constants.CONTROL,
 				synthSelect = getElem("synthSelect"),
 				channelSelect = getElem("channelSelect"),
 				presetSelect = getElem("presetSelect"),
-				synth, channel, bank, patch, status, data1, message;
+				synth = synthSelect.options[synthSelect.selectedIndex].synth,
+				channel = channelSelect.selectedIndex,
+				selectedOption = presetSelect.options[presetSelect.selectedIndex],
+				bankIndex, presetIndex;
 
-			synth = synthSelect.options[synthSelect.selectedIndex].synth;
-			channel = channelSelect.selectedIndex;
-			bank = presetSelect.options[presetSelect.selectedIndex].bank;
-			patch = presetSelect.options[presetSelect.selectedIndex].patch;
 
-			if(bank === 128)
+			if(selectedOption.preset !== undefined) // residentWAFSynth
 			{
-				if(channel !== 9)
-				{
-					previousNormalChannel = channel;
-					channelSelect.selectedIndex = 9;
-					channelSelect.disabled = true;
-				}
+				presetIndex = selectedOption.preset.presetIndex;
+				bankIndex = selectedOption.preset.bankIndex;
 			}
-			else
+			else  // residentSf2Synth
 			{
-				if(channel === 9)
-				{
-					channel = previousNormalChannel;
-					channelSelect.selectedIndex = channel;
-					channelSelect.disabled = false;
-				}
-				else
-				{
-					previousNormalChannel = channel;
-				}
+				presetIndex = selectedOption.presetIndex;
+				bankIndex = selectedOption.bankIndex;
 			}
 
-			status = CMD.CONTROL_CHANGE + channel;
-			data1 = CTL.BANK;
-			message = new Uint8Array([status, data1, bank]);
+			let status = CMD.CONTROL_CHANGE + channel;
+			let data1 = CTL.BANK;
+			let message = new Uint8Array([status, data1, bankIndex]);
 			synth.send(message, performance.now());
 
-			status = CMD.PATCH + channel;
-			message = new Uint8Array([status, patch]);
+			status = CMD.PRESET + channel;
+			message = new Uint8Array([status, presetIndex]);
 			synth.send(message, performance.now());
 		},
 
@@ -118,17 +144,17 @@ WebMIDI.host = (function(document)
 			select.selectedIndex = 0;
 		},
 
-		sendCommand = function(command, data1, data2)
+		sendCommand = function(commandIndex, data1, data2)
 		{
 			var CMD = WebMIDI.constants.COMMAND,
 				synthSelect = getElem("synthSelect"),
 				synth = synthSelect[synthSelect.selectedIndex].synth,
 				channelSelect = getElem("channelSelect"),
 				channelIndex = parseInt(channelSelect[channelSelect.selectedIndex].value, 10),
-				status = command + channelIndex,
+				status = commandIndex + channelIndex,
 				message;
 
-			switch(command)
+			switch(commandIndex)
 			{
 				case CMD.NOTE_ON:
 				case CMD.NOTE_OFF:
@@ -136,7 +162,7 @@ WebMIDI.host = (function(document)
 				case CMD.CONTROL_CHANGE:
 					message = new Uint8Array([status, data1, data2]); // data1 can be RegisteredParameter or DataEntry controls
 					break;
-				case CMD.PATCH:
+				case CMD.PRESET:
 				case CMD.CHANNEL_PRESSURE:
 					message = new Uint8Array([status, data1]);
 					break;
@@ -157,7 +183,6 @@ WebMIDI.host = (function(document)
 			var CMD = WebMIDI.constants.COMMAND,
 				synthSelect = getElem("synthSelect"),
 				synth = synthSelect[synthSelect.selectedIndex].synth,
-				sf2Select = getElem("sf2Select"),
 				commandsDiv = getElem("commandsDiv"),
 				commandsTitleDiv = getElem("commandsTitleDiv"),
 				commandsTable = getElem("commandsTable"),
@@ -219,7 +244,6 @@ WebMIDI.host = (function(document)
 					synthSelect = getElem("synthSelect"),
 					synth = synthSelect[synthSelect.selectedIndex].synth,
 					presetSelect = getElem("presetSelect"),
-					commandDefaultValue = WebMIDI.constants.commandDefaultValue, // function
 					commands = synth.commands;
 
 				function resetHostGUI()
@@ -250,27 +274,29 @@ WebMIDI.host = (function(document)
 				{
 					resetHostGUI();
 
-					if(commands.indexOf(CMD.PATCH) >= 0)
+					let commandDefaultValue = WebMIDI.constants.commandDefaultValue;
+
+					if(commands.findIndex(cmd => cmd === CMD.PRESET) >= 0)
 					{
 						if(presetSelect !== null)
 						{
-							sendCommand(CMD.PATCH, presetSelect[0].patch);
+							sendCommand(CMD.PRESET, presetSelect[0].presetIndex);
 						}
 						else
 						{
-							sendCommand(CMD.PATCH, commandDefaultValue(CMD.PATCH));
+							sendCommand(CMD.PRESET, commandDefaultValue(CMD.PRESET));
 						}
 					}
 
-					if(commands.indexOf(CMD.CHANNEL_PRESSURE) >= 0)
+					if(commands.findIndex(cmd => cmd === CMD.CHANNEL_PRESSURE) >= 0)
 					{
 						sendCommand(CMD.CHANNEL_PRESSURE, commandDefaultValue(CMD.CHANNEL_PRESSURE));
 					}
-					if(commands.indexOf(CMD.PITCHWHEEL) >= 0)
+					if(commands.findIndex(cmd => cmd === CMD.PITCHWHEEL) >= 0)
 					{
 						sendCommand(CMD.PITCHWHEEL, commandDefaultValue(CMD.PITCHWHEEL));
 					}
-					if(commands.indexOf(CMD.AFTERTOUCH) >= 0)
+					if(commands.findIndex(cmd => cmd === CMD.AFTERTOUCH) >= 0)
 					{
 						sendAftertouch(commandDefaultValue(CMD.AFTERTOUCH));
 					}
@@ -280,11 +306,11 @@ WebMIDI.host = (function(document)
 			}
 
 			// Returns true if the synth implements one or more of the following commands:
-			// PATCH, CHANNEL_PRESSURE, PITCHWHEEL, AFTERTOUCH.
+			// PRESET, CHANNEL_PRESSURE, PITCHWHEEL, AFTERTOUCH.
 			// These are the only commands to be displayed in the Commands Div.
 			// None of these commands MUST be implemented, so hasCommandsDiv() may return false. 
 			// Other commands:
-			// If CONTROL_CHANGE is implemented, the Controls Div will be displayed.										  ccs
+			// If CONTROL_CHANGE is implemented, the Controls Div will be displayed.
 			// NOTE_ON MUST be implemented, otherwise the host can't play anything.
 			// The Notes Div is therefore always displayed.
 			// Whether the synth implements NOTE_OFF or not only needs to be determined inside the sendNoteOff function.
@@ -295,7 +321,7 @@ WebMIDI.host = (function(document)
 				{
 					for(i = 0; i < commands.length; ++i)
 					{
-						if(commands[i] === CMD.PATCH
+						if(commands[i] === CMD.PRESET
 							|| commands[i] === CMD.CHANNEL_PRESSURE
 							|| commands[i] === CMD.PITCHWHEEL
 							|| commands[i] === CMD.AFTERTOUCH)
@@ -309,7 +335,7 @@ WebMIDI.host = (function(document)
 				return rval;
 			}
 
-			function appendSoundFontPresetCommandRow(table, presetOptions)
+			function appendSoundFontPresetCommandRow(table, presetOptionsArray)
 			{
 				var tr = document.createElement("tr"),
 					td, presetSelect, input;
@@ -326,8 +352,8 @@ WebMIDI.host = (function(document)
 				presetSelect = document.createElement("select");
 				presetSelect.id = "presetSelect";
 				presetSelect.className = "presetSelect";
-				setOptions(presetSelect, presetOptions);
-				presetSelect.onchange = onChangePreset;
+				setOptions(presetSelect, presetOptionsArray);
+				presetSelect.onchange = onPresetSelectChanged;
 				td.appendChild(presetSelect);
 
 				td = document.createElement("td");
@@ -336,22 +362,17 @@ WebMIDI.host = (function(document)
 				input.type = "button";
 				input.className = "sendAgainButton";
 				input.value = "send again";
-				input.onclick = onChangePreset;
+				input.onclick = onPresetSelectChanged;
 				td.appendChild(input);
-
-				onChangePreset();
 			}
 
 			function appendCommandRows(table, synthCommands)
 			{
-				var i, command, row = 0;
-
 				function appendCommandRow(table, command, i)
 				{
-					var tr,
-						commandDefaultValue = WebMIDI.constants.commandDefaultValue; // function;
+					var tr;
 
-					function getCommandRow(namestr, command, defaultValue, i)
+					function getCommandRow(command, i)
 					{
 						var
 							tr = document.createElement("tr"),
@@ -389,7 +410,7 @@ WebMIDI.host = (function(document)
 						td = document.createElement("td");
 						tr.appendChild(td);
 						td.className = "left";
-						td.innerHTML = namestr;
+						td.innerHTML = WebMIDI.constants.commandName(command);
 
 						td = document.createElement("td");
 						tr.appendChild(td);
@@ -400,9 +421,9 @@ WebMIDI.host = (function(document)
 						input.id = "commandNumberInput" + i.toString(10);
 						input.min = 0;
 						input.max = 127;
-						input.value = defaultValue;
+						input.value = WebMIDI.constants.commandDefaultValue(command);
 						input.command = command;
-						input.defaultValue = defaultValue;
+						input.defaultValue = input.value;
 						input.className = "number";
 						input.onchange = onInputChanged;
 						td.appendChild(input);
@@ -423,17 +444,17 @@ WebMIDI.host = (function(document)
 					// These are the only commands that need handling here.
 					switch(command)
 					{
-						case CMD.PATCH:
-							tr = getCommandRow("patch", CMD.PATCH, commandDefaultValue(CMD.PATCH), i);
+						case CMD.PRESET:
+							tr = getCommandRow(CMD.PRESET, i);
 							break;
 						case CMD.CHANNEL_PRESSURE:
-							tr = getCommandRow("channel pressure", CMD.CHANNEL_PRESSURE, commandDefaultValue(CMD.CHANNEL_PRESSURE), i);
+							tr = getCommandRow(CMD.CHANNEL_PRESSURE, i);
 							break;
 						case CMD.PITCHWHEEL:
-							tr = getCommandRow("pitchWheel", CMD.PITCHWHEEL, commandDefaultValue(CMD.PITCHWHEEL), i);
+							tr = getCommandRow(CMD.PITCHWHEEL, i);
 							break;
 						case CMD.AFTERTOUCH:
-							tr = getCommandRow("aftertouch", CMD.AFTERTOUCH, commandDefaultValue(CMD.AFTERTOUCH), i);
+							tr = getCommandRow(CMD.AFTERTOUCH, i);
 							break;
 						default:
 							break;
@@ -444,14 +465,27 @@ WebMIDI.host = (function(document)
 					}
 				}
 
-				for(i = 0; i < synthCommands.length; ++i)
+				let sf2Select = getElem("sf2Select"),
+					webAudioFontSelect = getElem("webAudioFontSelect"),
+					command, row = 0;
+
+				for(let i = 0; i < synthCommands.length; ++i)
 				{
 					command = synthCommands[i];
-					if(command === CMD.PATCH)
+					if(command === CMD.PRESET)
 					{
-						if(synth.supportsGeneralMIDI)
+						if(synth.setSoundFont !== undefined)
 						{
-							appendSoundFontPresetCommandRow(commandsTable, sf2Select[sf2Select.selectedIndex].presetOptions);
+							if(synth.name === "ResidentWAFSynth")
+							{
+								appendSoundFontPresetCommandRow(commandsTable, webAudioFontSelect[webAudioFontSelect.selectedIndex].presetOptionsArray);
+								onWebAudioFontSelectChanged();
+							}
+							else // synth.name === "ResidentSf2Synth" or "ConsoleSf2Synth"
+							{
+								appendSoundFontPresetCommandRow(commandsTable, sf2Select[sf2Select.selectedIndex].presetOptions);
+								onSf2SelectChanged();
+							}
 							row++;
 						}
 						else
@@ -459,13 +493,10 @@ WebMIDI.host = (function(document)
 							appendCommandRow(table, synthCommands[i], row++);
 						}
 					}
-					else
-						if(command === CMD.CHANNEL_PRESSURE
-							|| command === CMD.PITCHWHEEL
-							|| command === CMD.AFTERTOUCH)
-						{
-							appendCommandRow(table, synthCommands[i], row++);
-						}
+					else if(command === CMD.CHANNEL_PRESSURE || command === CMD.PITCHWHEEL || command === CMD.AFTERTOUCH)
+					{
+						appendCommandRow(table, synthCommands[i], row++);
+					}
 				}
 			}
 
@@ -479,53 +510,29 @@ WebMIDI.host = (function(document)
 					var i, uControls, tr, rval = [], uControl;
 
 					// Returns an array of unique controls.
-					// Each unique control has a ccs array attribute containing the unique control's cc indices.
-					// The unique control's other attributes (name, defaultValue and nItems) are the same as
-					// for the original non-unique controls (for which these attributes are all the same).
+					// Each unique control has the following attributes:
+					//   .name -- the name string (for use in a GUI)
+					//   .defaultValue -- a MIDI value in range [0..127]
+					//   .ccs -- an array containing the control's possible cc indices.
 					function getUniqueControls(nonUniqueControls)
 					{
-						var i, nuControl, uniqueControls = [], uniqueControl,
-							registeredParameterCoarseName = WebMIDI.constants.controlName(WebMIDI.constants.CONTROL.REGISTERED_PARAMETER_COARSE),
-							dataEntryCoarseName = WebMIDI.constants.controlName(WebMIDI.constants.CONTROL.DATA_ENTRY_COARSE);
-
-						function newStandardControl(standardControlIndex)
-						{
-							var standardControl = {}, defaultValue;
-
-							standardControl.name = WebMIDI.constants.controlName(standardControlIndex);
-							standardControl.index = standardControlIndex;
-							defaultValue = WebMIDI.constants.controlDefaultValue(standardControlIndex);
-							if(defaultValue !== undefined)
-							{
-								standardControl.defaultValue = defaultValue;
-							}
-							return standardControl;
-						}
-						function findUniqueControl(name, uniqueControls)
-						{
-							var i, uControl = null;
-
-							for(i = 0; i < uniqueControls.length; ++i)
-							{
-								if(uniqueControls[i].name === name)
-								{
-									uControl = uniqueControls[i];
-									break;
-								}
-							}
-							return uControl;
-						}
+						var controlDefaultValue = WebMIDI.constants.controlDefaultValue,
+							controlName = WebMIDI.constants.controlName,
+							nuControlName, nuDefaultValue, i, nuControl, uniqueControls = [], uniqueControl,
+							registeredParameterCoarseName = controlName(WebMIDI.constants.CONTROL.REGISTERED_PARAMETER_COARSE),
+							dataEntryCoarseName = controlName(WebMIDI.constants.CONTROL.DATA_ENTRY_COARSE);
 
 						function newUniqueControl(nuControl)
 						{
 							var uniqueControl = {};
 
-							uniqueControl.name = nuControl.name;
+							uniqueControl.name = controlName(nuControl);
 							uniqueControl.ccs = [];
-							uniqueControl.ccs.push(nuControl.index);
-							if(nuControl.defaultValue !== undefined)
+							uniqueControl.ccs.push(nuControl);
+							nuDefaultValue = controlDefaultValue(nuControl);
+							if(nuDefaultValue !== undefined)
 							{
-								uniqueControl.defaultValue = nuControl.defaultValue;
+								uniqueControl.defaultValue = nuDefaultValue;
 							}
 							if(nuControl.nItems !== undefined)
 							{
@@ -536,28 +543,37 @@ WebMIDI.host = (function(document)
 
 						for(i = 0; i < nonUniqueControls.length; ++i)
 						{
-							nuControl = nonUniqueControls[i];
-							if(typeof nuControl === "number")
+                            if(synth.name === "CW_MIDISynth")
 							{
-								nuControl = newStandardControl(nuControl);
-							}
-							uniqueControl = findUniqueControl(nuControl.name, uniqueControls);
-							if(uniqueControl === null)
-							{
+								let nonUniqueControl = nonUniqueControls[i]; 
+								nuControl = nonUniqueControl.index;
 								uniqueControl = newUniqueControl(nuControl);
-
-								if(uniqueControl.name !== registeredParameterCoarseName)
-								{
-									if(uniqueControl.name === dataEntryCoarseName)
-									{
-										uniqueControl.name = dataEntryCoarseName + " (pitchBendSensitivity)";
-									}
-									uniqueControls.push(uniqueControl);
-								}
+								uniqueControl.name = nonUniqueControl.name;
+								uniqueControl.defaultValue = nonUniqueControl.defaultValue;
+								uniqueControl.nItems = nonUniqueControl.nItems;
+								uniqueControls.push(uniqueControl);
 							}
 							else
 							{
-								uniqueControl.ccs.push(nuControl.index);
+								nuControl = nonUniqueControls[i];
+								uniqueControl = uniqueControls.find(ctl => ctl.name === nuControl.name);
+								if(uniqueControl === undefined)
+								{
+									uniqueControl = newUniqueControl(nuControl);
+									if(uniqueControl.name !== registeredParameterCoarseName)
+									{
+										if(uniqueControl.name === dataEntryCoarseName)
+										{
+											uniqueControl.name = dataEntryCoarseName + " (pitchBendSensitivity)";
+										}
+										uniqueControl.defaultValue = WebMIDI.constants.controlDefaultValue(nuControl)
+										uniqueControls.push(uniqueControl);
+									}
+								}
+								else
+								{
+									uniqueControl.ccs.push(nuControl);
+								}
 							}
 						}
 
@@ -777,21 +793,21 @@ WebMIDI.host = (function(document)
 				synth = synthSelect[synthSelect.selectedIndex].synth,
 				soundFont = sf2Select[sf2Select.selectedIndex].soundFont;
 
+			synth.setSoundFont(soundFont);
+
 			setOptions(presetSelect, sf2Select[sf2Select.selectedIndex].presetOptions);
 			presetSelect.selectedIndex = 0;
-			onChangePreset();
+			onPresetSelectChanged();
 
-			setCommandsAndControlsDivs();
-
-			synth.setSoundFont(soundFont);
+			//setCommandsAndControlsDivs();
 		},
 
-		// exported. Also used by onSynthSelectChanged()
+		// exported for HTML. Also used by onSynthSelectChanged()
 		onSf2OriginSelectChanged = function()
 		{
 			let synthSelect = getElem("synthSelect"),
 				sf2OriginSelect = getElem("sf2OriginSelect"),
-				sf2Select = getElem("sf2Select");				
+				sf2Select = getElem("sf2Select");
 
 			setOptions(sf2Select, sf2OriginSelect[sf2OriginSelect.selectedIndex].sf2SelectOptions);
 
@@ -806,6 +822,24 @@ WebMIDI.host = (function(document)
 			{
 				synth.setSoundFont(soundFont);
 			}
+		},
+
+		// exported
+		onWebAudioFontSelectChanged = function()
+		{
+			let synthSelect = getElem("synthSelect"),
+				webAudioFontSelect = getElem("webAudioFontSelect"),
+				presetSelect = getElem("presetSelect"),
+				synth = synthSelect[synthSelect.selectedIndex].synth,
+				selectedSoundFontOption = webAudioFontSelect[webAudioFontSelect.selectedIndex],
+				soundFont = selectedSoundFontOption.soundFont,
+				presetOptionsArray = selectedSoundFontOption.presetOptionsArray;
+
+			synth.setSoundFont(soundFont);
+
+			setOptions(presetSelect, presetOptionsArray);
+			presetSelect.selectedIndex = 0;
+			onPresetSelectChanged();
 		},
 
 		// exported. Also used by init()
@@ -837,29 +871,94 @@ WebMIDI.host = (function(document)
 
 			function setSoundFontTableDisplay(synth)
 			{
-				var
-					sf2OriginSelect = getElem("sf2OriginSelect"),
+				function getWebAudioFontOptions(webAudioFonts)
+				{
+					let options = [];
+
+					for(var fontIndex = 0; fontIndex < webAudioFonts.length; fontIndex++)
+					{
+						let option = new Option("webAudioFontOption"),
+							webAudioFont = webAudioFonts[fontIndex];
+
+						let presetOptionsArray = [];
+						for(let bankIndex = 0; bankIndex < webAudioFont.banks.length; bankIndex++)
+						{
+							let bank = webAudioFont.banks[bankIndex];
+							for(var j = 0; j < bank.length; j++)
+							{
+								let preset = bank[j],
+									presetOption = new Option("presetOption");
+
+								presetOption.innerHTML = preset.name;
+								presetOption.preset = preset;
+
+								presetOptionsArray.push(presetOption);
+							}
+						}
+
+						option.innerHTML = webAudioFont.name;
+						option.soundFont = webAudioFont;
+						option.presetOptionsArray = presetOptionsArray; // used to set the presetSelect
+						option.url = "https://github.com/surikov/webaudiofont";
+
+						options.push(option);
+					}
+
+					return options;
+				}
+
+				let
 					cursorControlDiv = getElem("cursorControlDiv"),
 					soundFontDiv = getElem("soundFontDiv"),
 					soundFontTable1 = getElem("soundFontTable1"),
+					soundFontTypeName = getElem("soundFontType"),
+					webAudioFontSelect = getElem("webAudioFontSelect"),
+					sf2Select = getElem("sf2Select"),
+					sf2OriginSelect = getElem("sf2OriginSelect"),
 					soundFontTable2 = getElem("soundFontTable2");
 
-				if(synth.setSoundFont === undefined)
+				cursorControlDiv.style.cursor = "auto";
+
+				if(synth.setSoundFont !== undefined)
 				{
-					cursorControlDiv.style.cursor = "auto";
-					soundFontTable1.style.display = "none";
-					soundFontTable2.style.display = "none";
-					soundFontDiv.style.display = "none";
+					if(synth.name === "ResidentWAFSynth")
+					{
+						soundFontTypeName.innerHTML = "WebAudioFont: ";
+
+						let options = getWebAudioFontOptions(synth.webAudioFonts);
+						setOptions(webAudioFontSelect, options);
+
+						webAudioFontSelect.selectedIndex = 0;
+						webAudioFontSelect.style.display = "block";
+						sf2Select.style.display = "none";
+						sf2OriginSelect.style.display = "none";
+					}
+					else
+					{
+						soundFontTypeName.innerHTML = "SoundFont: ";  // default in html
+
+						sf2OriginSelect.selectedIndex = 0;
+						onSf2OriginSelectChanged(); // set the dependent pop-ups
+
+						sf2Select.selectedIndex = 0;
+						sf2Select.style.display = "block";
+						sf2OriginSelect.selectedIndex = 0;
+						sf2OriginSelect.style.display = "block";
+						webAudioFontSelect.style.display = "none";
+					}
+
+					soundFontDiv.style.display = "block";
+					soundFontTable1.style.display = "block";
+					soundFontTable2.style.display = "block";
 				}
 				else
 				{
-					sf2OriginSelect.selectedIndex = 0;
-					onSf2OriginSelectChanged();
-
-					cursorControlDiv.style.cursor = "auto";
-					soundFontTable1.style.display = "block";
-					soundFontTable2.style.display = "block";
-					soundFontDiv.style.display = "block";
+					soundFontDiv.style.display = "none";
+					webAudioFontSelect.style.display = "none";
+					sf2Select.style.display = "none";
+					sf2OriginSelect.style.display = "none";
+					soundFontTable1.style.display = "none";
+					soundFontTable2.style.display = "none";
 				}
 			}
 
@@ -885,7 +984,6 @@ WebMIDI.host = (function(document)
 				getElem("noteDiv1").style.display = "block";
 				getElem("notesDiv2").style.display = "none";
 			}
-
 		},
 
 		noteCheckboxClicked = function()
@@ -1021,12 +1119,6 @@ WebMIDI.host = (function(document)
 
 		init = function()
 		{
-			var
-				option,
-				synthSelect = getElem("synthSelect"),
-				sf2OriginSelect = getElem("sf2OriginSelect"),
-				sf2Select = getElem("sf2Select");
-
 			function setInitialDivsDisplay()
 			{
 				getElem("synthSelectDiv").style.display = "block";
@@ -1039,22 +1131,13 @@ WebMIDI.host = (function(document)
 				getElem("notesDiv2").style.display = "none";
 			}
 
-			// Returns an array of <option> elements, specific to the origin, to be used
-			// in the sf2Select when the corresponding option in the sf2OriginSelect is selected.
+			// Returns an array of <option> elements, specific to the origin.
+			// The inner values describe preset options to be used to select presets
+			// when the corresponding options in the sf2OriginSelect and sf2Select are selected.
 			function getSf2SelectOptions(originName)
 			{
-				var
-					so, sf2OriginPathBase, sf2SelectOptions;
-
-				// The argument is an array of select options, each of which has its original presets array.
-				// This function converts the original presets array to an array of presetOptions, each
-				// of which has a bank and patch attribute, and whose innerHTML has been set to bank:patch name.
-				function setSf2SelectPresetOptions(sf2SelectOptions)
+				function bank0PresetOptionName(presetIndex)
 				{
-					var i, j, generalMIDIPatchName = WebMIDI.constants.generalMIDIPatchName,
-						bank, patch, name, presetOption,
-						sf2SelectOption, presetInfo, presetsArray, nPresets, presetOptions, stringArray;
-
 					// num is an integer in range 0..999
 					function threePlaceString(num)
 					{
@@ -1066,116 +1149,111 @@ WebMIDI.host = (function(document)
 						return rval;
 					}
 
-					for(i = 0; i < sf2SelectOptions.length; ++i)
-					{
-						sf2SelectOption = sf2SelectOptions[i];
-						sf2SelectOption.disabled = true;
-						presetsArray = sf2SelectOption.presets; // the original array
-						nPresets = presetsArray.length;
-						presetOptions = [];
-						sf2SelectOption.presetOptions = presetOptions;
+					let name = WebMIDI.constants.generalMIDIPresetName(presetIndex),
+						presetOptionName = "000:".concat(threePlaceString(presetIndex), " - ", name);
 
-						for(j = 0; j < nPresets; ++j)
-						{
-							presetInfo = presetsArray[j];
-							if(typeof presetInfo === "number")
-							{
-								bank = 0;
-								patch = presetInfo;
-								name = generalMIDIPatchName(patch);
-							}
-							else if(typeof presetInfo === "string")
-							{
-								stringArray = presetInfo.split(":");
-								bank = parseInt(stringArray[0], 10);
-								patch = parseInt(stringArray[1], 10);
-								name = stringArray[2];
-							}
-							else
-							{
-								console.warn("Illegal preset info type");
-							}
-							presetOption = document.createElement("option");
-							presetOption.bank = bank;
-							presetOption.patch = patch;
-							presetOption.innerHTML = threePlaceString(bank).concat(":", threePlaceString(patch), " - ", name);
-							presetOptions.push(presetOption);
-						}
-					}
+					return presetOptionName;
 				}
+
+				function presetOption(bankIndex, presetIndex, presetName)
+				{
+					let presetOption = document.createElement("option");
+
+					presetOption.bankIndex = bankIndex;
+					presetOption.presetIndex = presetIndex;
+					presetOption.innerHTML = presetName;
+
+					return presetOption;
+				}
+
+				let sf2SelectOptions = [], sf2Option,
+					presetIndex,presetOptionName;
 
 				// Do the following for each available SoundFont type.
 				if(originName === "Arachno Version 1.0")
 				{
-					sf2OriginPathBase = "https://james-ingram-act-two.de/soundFonts/Arachno/Arachno1.0selection-";
-					sf2SelectOptions = [];
+					let sf2OriginPathBase = "https://james-ingram-act-two.de/soundFonts/Arachno/Arachno1.0selection-";
 
-					so = document.createElement("option");
-					so.url = sf2OriginPathBase + "grand piano.sf2";
-					so.innerHTML = "grand piano"; // the text in the sf2Select option
-					so.presets = [0]; // Patch index in bank 0. The standard midi name (grand piano) is set automatically later.
-					sf2SelectOptions.push(so);
+					sf2Option = document.createElement("option");
+					sf2Option.url = sf2OriginPathBase + "grand piano.sf2";
+					sf2Option.innerHTML = "grand piano"; // the text in the sf2Select option
+					sf2Option.presetOptions = [];
+					presetOptionName = bank0PresetOptionName(0); 
+					sf2Option.presetOptions.push(presetOption(0, 0, presetOptionName)); // {bankIndex, presetIndex, innerHTML} - innerHTML is the text in the preset selector 
+					sf2SelectOptions.push(sf2Option);
 
-					so = document.createElement("option");
-					so.url = sf2OriginPathBase + "harpsichord.sf2";
-					so.innerHTML = "harpsichord"; // the text in the sf2Select
-					so.presets = [6]; // Patch index in bank 0. The standard midi name (harpsichord) is set automatically later.
-					sf2SelectOptions.push(so);
+					sf2Option = document.createElement("option");
+					sf2Option.url = sf2OriginPathBase + "harpsichord.sf2";
+					sf2Option.innerHTML = "harpsichord"; // the text in the sf2Select option
+					sf2Option.presetOptions = [];
+					presetOptionName = bank0PresetOptionName(6);
+					sf2Option.presetOptions.push(presetOption(0, 6, presetOptionName)); // {bankIndex, presetIndex, innerHTML} - innerHTML is the text in the preset selector 
+					sf2SelectOptions.push(sf2Option);
 
-					so = document.createElement("option");
-					so.url = sf2OriginPathBase + "ensemble1.sf2";
-					so.innerHTML = "ensemble 1"; // the text in the sf2Select
-					so.presets = [0, 6, 8, 12]; // Patch indices in bank 0. The standard midi names are set automatically later. 
-					sf2SelectOptions.push(so);
+					sf2Option = document.createElement("option");
+					sf2Option.url = sf2OriginPathBase + "ensemble1.sf2";
+					sf2Option.innerHTML = "ensemble 1"; // the text in the sf2Select
+					sf2Option.presetOptions = [];
+					let presetIndices = [0, 6, 8, 12];
+					for(var i = 0; i < presetIndices.length; i++)
+					{
+						presetIndex = presetIndices[i];
+						presetOptionName = bank0PresetOptionName(presetIndex);
+						sf2Option.presetOptions.push(presetOption(0, presetIndex, presetOptionName)); // {bankIndex, presetIndex, innerHTML} - innerHTML is the text in the preset selector 
+					}
+					sf2SelectOptions.push(sf2Option);
 
-					so = document.createElement("option");
-					so.url = sf2OriginPathBase + "tuned percussion1.sf2";
-					so.innerHTML = "tuned percussion 1"; // the text in the sf2Select
-					so.presets = [8, 9, 10, 11, 12, 13, 14]; // Patch indices in bank 0. The standard midi names are set automatically later.
-					sf2SelectOptions.push(so);
+					sf2Option = document.createElement("option");
+					sf2Option.url = sf2OriginPathBase + "tuned percussion1.sf2";
+					sf2Option.innerHTML = "tuned percussion 1"; // the text in the sf2Select
+					sf2Option.presetOptions = [];
+					presetIndices = [8, 9, 10, 11, 12, 13, 14];
+					for(var i = 0; i < presetIndices.length; i++)
+					{
+						presetIndex = presetIndices[i];
+						presetOptionName = bank0PresetOptionName(presetIndex);
+						sf2Option.presetOptions.push(presetOption(0, presetIndex, presetOptionName)); // {bankIndex, presetIndex, innerHTML} - innerHTML is the text in the preset selector 
+					}
+					sf2SelectOptions.push(sf2Option);
 
-					so = document.createElement("option");
-					so.url = sf2OriginPathBase + "drumkits1.sf2";
-					so.innerHTML = "drum kits 1"; // the text in the sf2Select
-					// Standard MIDI names are used for bank 0. If the sf2 file contains presets having
-					// banks other than 0, those presets are defined here using a string of the form
-					//     <bankIndex>:<patchIndex>:<name>.
-					// (Such strings can be mixed with bank 0 patch numbers.),
-					so.presets = ["128:0:standard drumkit", "128:127:MT-32 drumkit"];
-					sf2SelectOptions.push(so);
-
-					// Converts each so.presets value to an array of presetOptions, each of which has a
-					// bank and patch attribute, and whose innerHTML has been set to the preset's name.
-					setSf2SelectPresetOptions(sf2SelectOptions);
-
-					// Resets each sf2.presets attribute to an array of {bank:bankIndex, patch:patchIndex, name:name}
-					//setSf2Options(sf2s);// Constructs an <option> element for each preset.
+					sf2Option = document.createElement("option");
+					sf2Option.url = sf2OriginPathBase + "drumkits1.sf2";
+					sf2Option.innerHTML = "drum kits 1"; // the text in the sf2Select
+					sf2Option.presetOptions = [];
+					sf2Option.presetOptions.push(presetOption(128, 0, "128:000 - standard drumkit" ));
+					sf2Option.presetOptions.push(presetOption(128, 127, "127:127 - MT-32 drumkit"));
+					sf2SelectOptions.push(sf2Option);
 
 				} // end of Arachno
-
-				if(originName === "TimGM6mb")
+				else if(originName === "TimGM6mb")
 				{
-					sf2OriginPathBase = "https://james-ingram-act-two.de/soundFonts/TimGM6mb/TimGM6mb";
-					sf2SelectOptions = [];
+					let sf2OriginPathBase = "https://james-ingram-act-two.de/soundFonts/TimGM6mb/TimGM6mb";
 
-					so = document.createElement("option");
-					so.url = sf2OriginPathBase + "Piano0.sf2";
-					so.innerHTML = "grand piano"; // the text in the sf2Select option
-					so.presets = [0]; // Patch index in bank 0. The standard midi name (grand piano) is set automatically later.
-					sf2SelectOptions.push(so);
+					sf2Option = document.createElement("option");
+					sf2Option.url = sf2OriginPathBase + "Piano0.sf2";
+					sf2Option.innerHTML = "grand piano"; // the text in the sf2Select option
+					sf2Option.presetOptions = [];
+					presetOptionName = bank0PresetOptionName(0);
+					sf2Option.presetOptions.push(presetOption(0, 0, presetOptionName)); // {bankIndex, presetIndex, innerHTML} - innerHTML is the text in the preset selector 
+					sf2SelectOptions.push(sf2Option);
 
-					so = document.createElement("option");
-					so.url = sf2OriginPathBase + "Ensemble.sf2";
-					so.innerHTML = "ensemble"; // the text in the sf2Select
-					so.presets = [6, 13, 14]; // Patch indices in bank 0. The standard midi names are set automatically later. 
-					sf2SelectOptions.push(so);
+					sf2Option = document.createElement("option");
+					sf2Option.url = sf2OriginPathBase + "Ensemble.sf2";
+					sf2Option.innerHTML = "ensemble"; // the text in the sf2Select
+					sf2Option.presetOptions = [];
+					let presetIndices = [6, 13, 14];
+					for(var i = 0; i < presetIndices.length; i++)
+					{
+						presetIndex = presetIndices[i];
+						presetOptionName = bank0PresetOptionName(presetIndex);
+						sf2Option.presetOptions.push(presetOption(0, presetIndex, presetOptionName)); // {bankIndex, presetIndex, innerHTML} - innerHTML is the text in the preset selector 
+					}
+					sf2SelectOptions.push(sf2Option);
 
-					// Converts each so.presets value to an array of presetOptions, each of which has a
-					// bank and patch attribute, and whose innerHTML has been set to the preset's name.
-					setSf2SelectPresetOptions(sf2SelectOptions);
-				}
+				}  // end of TimGM6mb
 
 				// add more origins here:
+
 				return sf2SelectOptions;
 			}
 
@@ -1204,9 +1282,11 @@ WebMIDI.host = (function(document)
 
 					console.log("Loaded:");
 					console.log("soundFont.name: " + soundFont.name);
-					for(let i = 0; i < soundFont.presets.length; ++i)
+					let presetInfos = soundFont.presetInfos; 
+					for(let i = 0; i < presetInfos.length; ++i)
 					{
-						console.log("  preset" + i.toString() + ": " + soundFont.presets[i].name);
+						let presetInfo = presetInfos[i]; 
+						console.log("  bankIndex:" + presetInfo.bankIndex + ", presetIndex:" + presetInfo.presetIndex + ", generalMIDIPresetName:" + presetInfo.generalMIDIPresetName);
 					}
 					console.log(" ");
 				}
@@ -1220,9 +1300,6 @@ WebMIDI.host = (function(document)
 
 			function loadSoundFonts()
 			{
-				var typeIndex,
-					originSelect = getElem("sf2OriginSelect");
-
 				function setSfPromise(sf2Option)
 				{
 					function getPresetIndices(presetOptions)
@@ -1231,7 +1308,7 @@ WebMIDI.host = (function(document)
 
 						for(i = 0; i < presetOptions.length; ++i)
 						{
-							rval.push(presetOptions[i].patch);
+							rval.push(presetOptions[i].presetIndex);
 						}
 						return rval;
 					}
@@ -1275,46 +1352,61 @@ WebMIDI.host = (function(document)
 					createNewSoundFontPromise();
 				}
 
-				for(typeIndex = 0; typeIndex < originSelect.options.length; typeIndex++)
+				var originSelect = getElem("sf2OriginSelect");
+
+				for(let originIndex = 0; originIndex < originSelect.options.length; originIndex++)
 				{
-					let sf2Options = originSelect.options[typeIndex].sf2SelectOptions,
-						nSoundFonts = sf2Options.length;
+					let sf2SelectOptions = originSelect.options[originIndex].sf2SelectOptions,
+						nSoundFonts = sf2SelectOptions.length;
 
 					for(let fontIndex = 0; fontIndex < nSoundFonts; fontIndex++)
 					{
-						setSfPromise(sf2Options[fontIndex]);
+						setSfPromise(sf2SelectOptions[fontIndex]);
 					}
 				}
 			}
 
+
+			let	option,
+				synthSelect = getElem("synthSelect");
+
 			setInitialDivsDisplay();
 
-			// Do the following for each available synth
-			option = document.createElement("option");
-			option.synth = new WebMIDI.cwMIDISynth.CWMIDISynth();
+			// Do the following for each available synth.
+            // The synths appear in this order in the synth selector.
+			option = new Option("synthOption");
+			option.synth = new WebMIDI.residentWAFSynth.ResidentWAFSynth();
 			option.text = option.synth.name;
 			synthSelect.add(option);
 
-			option = document.createElement("option");
-			option.synth = new WebMIDI.cwMonosynth.CWMonosynth();
-			option.text = option.synth.name;
-			synthSelect.add(option);
-
-			option = document.createElement("option");
+			option = new Option("synthOption");
 			option.synth = new WebMIDI.residentSf2Synth.ResidentSf2Synth();
 			option.text = option.synth.name;
 			synthSelect.add(option);
 
-			option = document.createElement("option");
+			option = new Option("synthOption");
 			option.synth = new WebMIDI.consoleSf2Synth.ConsoleSf2Synth();
 			option.text = option.synth.name;
-			synthSelect.add(option);
+            synthSelect.add(option);
+
+            option = new Option("synthOption");
+            option.synth = new WebMIDI.cwMIDISynth.CWMIDISynth();
+            option.text = option.synth.name;
+            synthSelect.add(option);
+
+            option = new Option("synthOption");
+            option.synth = new WebMIDI.cwMonosynth.CWMonosynth();
+            option.text = option.synth.name;
+            synthSelect.add(option);
+
+			let	sf2Select = getElem("sf2Select"),
+				sf2OriginSelect = getElem("sf2OriginSelect");
 
 			// Do the following for each available soundFont origin folder (= soundFont 'type').	
 			option = document.createElement("option");
 			option.text = "Arachno Version 1.0";
 			option.url = "http://www.arachnosoft.com/main/soundfont.php";
-			option.sf2SelectOptions = getSf2SelectOptions(option.text); // Add specific patch groups here.
+			option.sf2SelectOptions = getSf2SelectOptions(option.text); // presetOptionsArray
 			setOptions(sf2Select, option.sf2SelectOptions);
 			sf2OriginSelect.add(option);
 
@@ -1322,16 +1414,14 @@ WebMIDI.host = (function(document)
 			option = document.createElement("option");
 			option.text = "TimGM6mb";
 			option.url = "https://packages.debian.org/sid/sound/timgm6mb-soundfont";
-			option.sf2SelectOptions = getSf2SelectOptions(option.text); // Add specific patch groups here.
+			option.sf2SelectOptions = getSf2SelectOptions(option.text); // Add specific preset groups here.
 			setOptions(sf2Select, option.sf2SelectOptions);
 			sf2OriginSelect.add(option);
 
 			// Add more soundFont origin folders here...
 
-			synthSelect.selectedIndex = 0;
-			sf2OriginSelect.selectedIndex = 0;
-
 			loadSoundFonts();
+
 		},
 
 		publicAPI =
@@ -1343,8 +1433,11 @@ WebMIDI.host = (function(document)
 			synthWebsiteButtonClick: synthWebsiteButtonClick,
 			soundFontWebsiteButtonClick: soundFontWebsiteButtonClick,
 
-			onSf2OriginSelectChanged: onSf2OriginSelectChanged,
+			onChannelSelectChanged: onChannelSelectChanged,
 			onSf2SelectChanged: onSf2SelectChanged,
+			onSf2OriginSelectChanged: onSf2OriginSelectChanged,
+			onWebAudioFontSelectChanged: onWebAudioFontSelectChanged,
+			onPresetSelectChanged: onPresetSelectChanged,
 
 			noteCheckboxClicked: noteCheckboxClicked,
 			holdCheckboxClicked: holdCheckboxClicked,
