@@ -278,11 +278,11 @@ WebMIDI.residentSf2Synth = (function(window)
 				// console.log("residentSf2Synth AllControllersOff: channel:" + channel);
 				that.resetAllControl(channel);
 			}
-			function setAllSoundOff()
+			function setAllSoundOff(channel)
 			{
 				checkControlExport(CTL.ALL_SOUND_OFF);
 				// console.log("residentSf2Synth AllSoundOff: channel:" + channel);
-				that.allSoundOff();
+				that.allSoundOff(channel);
 			}
 
 			function setRegisteredParameterCoarse(channel, param)
@@ -320,7 +320,7 @@ WebMIDI.residentSf2Synth = (function(window)
 					setAllControllersOff(channel);
 					break;
 				case CTL.ALL_SOUND_OFF:
-					setAllSoundOff();
+					setAllSoundOff(channel);
 					break;
 				// CTL.REGISTERED_PARAMETER_FINE and CTL.DATA_ENTRY_FINE are not supported (i.e. are ignored by) this synth.
 				case CTL.REGISTERED_PARAMETER_COARSE:
@@ -570,16 +570,13 @@ WebMIDI.residentSf2Synth = (function(window)
 		channelDataEntryCoarse[channel] = semitones;
 	};
 
-	ResidentSf2Synth.prototype.allSoundOff = function()
+	ResidentSf2Synth.prototype.allSoundOff = function(channel)
 	{
-		for(let channel = 0; channel < currentNoteOns.length; channel++)
-		{
-			let currentNOns = currentNoteOns[channel];
+		let currentNOns = currentNoteOns[channel];
 
-			while(currentNOns.length > 0)
-			{
-				this.noteOff(channel, currentNOns[0].key, 0);
-			}
+		while(currentNOns.length > 0)
+		{
+			this.noteOff(channel, currentNOns[0].key, 0);
 		}
 	};
 
