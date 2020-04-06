@@ -19,7 +19,7 @@ WebMIDI.residentWAFSynthNote = (function()
     "use strict";
 
 	var
-		ResidentWAFSynthNote = function(audioContext, noteGainNode, envelopeType, zone, midi)
+		ResidentWAFSynthNote = function(audioContext, noteGainNode, zone, midi)
 		{
 			if(!(this instanceof ResidentWAFSynthNote))
 			{
@@ -28,12 +28,11 @@ WebMIDI.residentWAFSynthNote = (function()
 
 			this.audioContext = audioContext;
 			this.noteGainNode = noteGainNode; // this node has been connected to a channel inputNode
-			this.envType = envelopeType;
 			this.zone = zone;
 
 			this.key = midi.key;
 			this.velocityFactor = midi.velocity / 127;
-			this.pitchBend = midi.pitchBend;
+            this.pitchBend14bit = midi.pitchBend14bit;  // a value in range [-8192..+8191]
 			this.pitchBendSensitivity = midi.pitchBendSensitivity;
 		},
 
@@ -100,7 +99,7 @@ WebMIDI.residentWAFSynthNote = (function()
 		setNoteEnvelope(noteGainNode.gain, now, this.velocityFactor, zone.vEnvData);
 
 		this.bufferSourceNode = getBufferSourceNode(audioContext, this.key, zone);
-		this.updatePlaybackRate(this.pitchBend);		
+		this.updatePlaybackRate(this.pitchBend14bit);		
 		this.bufferSourceNode.onended = function()
 		{
 			// see https://stackoverflow.com/questions/46203191/should-i-disconnect-nodes-that-cant-be-used-anymore
@@ -129,16 +128,16 @@ WebMIDI.residentWAFSynthNote = (function()
 	// This function is called when the bufferSourceNode has just been created, and
 	// can be called again to shift the pitch while the note is still playing.
 	// The pitchBend argument is a 14-bit int value (in range [-8192..+8191]). 
-	ResidentWAFSynthNote.prototype.updatePlaybackRate = function(pitchBend)
+	ResidentWAFSynthNote.prototype.updatePlaybackRate = function(pitchBend14bit)
 	{
-		if(pitchBend < -8192 || pitchBend > 8191)
+		if(pitchBend14bit < -8192 || pitchBend14bit > 8191)
 		{
 			throw "Illegal pitchBend value.";
 		}
 
 		if((this.startTime + this.envelopeDuration) > this.audioContext.currentTime)
 		{
-			let factor = Math.pow(Math.pow(2, 1 / 12), (this.pitchBendSensitivity * (pitchBend / (pitchBend < 0 ? 8192 : 8191)))),
+			let factor = Math.pow(Math.pow(2, 1 / 12), (this.pitchBendSensitivity * (pitchBend14bit / (pitchBend14bit < 0 ? 8192 : 8191)))),
 				bufferSourceNode = this.bufferSourceNode,
 				newPlaybackRate = bufferSourceNode.standardPlaybackRate * factor;
 

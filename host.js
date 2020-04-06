@@ -279,8 +279,16 @@ WebMIDI.host = (function(document)
 					if(commands.findIndex(cmd => cmd === CMD.PRESET) >= 0)
 					{
 						if(presetSelect !== null)
-						{
-							sendCommand(CMD.PRESET, presetSelect[0].presetIndex);
+                        {
+                            if(presetSelect[0].preset === undefined)
+                            {
+                                // ResidentSf2Synth
+                                sendCommand(CMD.PRESET, presetSelect[0].presetIndex);
+                            }
+                            else // ResidentWAFSynth
+                            {
+                                sendCommand(CMD.PRESET, presetSelect[0].preset.presetIndex);
+                            }
 						}
 						else
 						{
@@ -1341,7 +1349,7 @@ WebMIDI.host = (function(document)
 							soundFont = new WebMIDI.soundFont.SoundFont(soundFontURL, soundFontName, presetIndices, onLoaded);
 						});
 
-						console.log("Promise created for " + soundFontURL);
+						//console.log("Promise created for " + soundFontURL);
 
 						promise.then(
 							result => onSoundFontLoaded(sf2Option, result),
