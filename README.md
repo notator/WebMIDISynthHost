@@ -1,4 +1,10 @@
 ### Web MIDI Synth Host
+#### 2nd May 2022: This repository is now a read-only archive.
+To keep things simple, I am now developing just one synthesizer in one repository: the **ResidentSynth** in the [ResidentSynthHost](https://james-ingram-act-two.de/open-source/ResidentSynthHost/host.html) repository.<br />
+The **ResidentSynth** is a direct descendant of **ResidentWAFSynth**, whose code is archived here.<br />
+
+---
+
 This is a Web MIDI application, written in HTML5 and Javascript. It can be tried out at <br />
 https://james-ingram-act-two.de/open-source/WebMIDISynthHost/host.html <br />
 <br />
@@ -7,8 +13,7 @@ Web MIDI Synths can be included in websites as a substitute for end-user hardwar
 <br />
 This project was originally started so as to further the discussion about software synths at [Web MIDI API issue 124](https://github.com/WebAudio/web-midi-api/issues/124).<br />
 It is now being used as a framework demonstrating the use of the Web MIDI Output Device Interface for different GUI-less synthesizers.<br />
-Issues and suggestions for the [ResidentWAFSynth](https://github.com/notator/ResidentWAFSynthHost) and [cwMIDISynth](https://github.com/cwilso/midi-synth) should be made in their own repositories.<br />
-Issues with this host application and the other hosted synths should be made here in this repository.<br />
+Issues and suggestions for the [cwMIDISynth](https://github.com/cwilso/midi-synth) should be made in its own repository.<br />
 A new, compatible synth could be added to this host as follows:
 1. clone this repository.
 2. create a new folder, parallel to the other synths' folders, for the new synth's files.
@@ -48,7 +53,7 @@ There are simple demo applications, showing how to embed the above synths in web
 SimpleMIDISynthHost2 demonstrates how to use a hardware MIDI keyboard to play the synth, and only works in browsers that support the Web MIDI API.<br />
 
 James Ingram<br />
-December 2015 (updated February 2016, June 2019, March 2020, April 2020)<br />
+December 2015 (updated February 2016, June 2019, March 2020, April 2020, May 2022)<br />
 
 
 
